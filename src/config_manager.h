@@ -200,8 +200,8 @@ public:
     
     /// \brief Returns the name of the config file that was used to launch the server.
     inline zmm::String getConfigFilename() { return filename; }
-    
-    void load(zmm::String filename);
+
+    void reload();
   
     /// \brief returns a config option of type String
     /// \param option option to retrieve.

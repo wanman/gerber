@@ -104,7 +104,7 @@ ConfigManager::ConfigManager() : Singleton<ConfigManager, std::mutex>()
 
     String home = userhome + DIR_SEPARATOR + config_dir;
     bool home_ok = true;
-    
+
     if (filename == nullptr)
     {
         // we are looking for ~/.mediatomb
@@ -116,33 +116,23 @@ ConfigManager::ConfigManager() : Singleton<ConfigManager, std::mutex>()
         {
             filename = home + DIR_SEPARATOR + DEFAULT_CONFIG_NAME;
         }
-        
+
         if ((!home_ok) && (string_ok(userhome)))
         {
             userhome = normalizePath(userhome);
             filename = createDefaultConfig(userhome);
         }
-        
     }
-    
+
     if (filename == nullptr)
-    {       
+    {
         throw _Exception(_("\nThe server configuration file could not be found in ~/.mediatomb\n") +
-                "MediaTomb could not determine your home directory - automatic setup failed.\n" + 
-                "Try specifying an alternative configuration file on the command line.\n" + 
-                "For a list of options run: mediatomb -h\n");
+            "MediaTomb could not determine your home directory - automatic setup failed.\n" +
+            "Try specifying an alternative configuration file on the command line.\n" +
+            "For a list of options run: mediatomb -h\n");
     }
-    
-    log_info("Loading configuration from: %s\n", filename.c_str());
-    load(filename);
-    
-    prepare_udn();
-    validate(home);
-#ifdef TOMBDEBUG
-    dumpOptions();
-#endif
-    // now the XML is no longer needed we can destroy it
-    root = nullptr;
+
+    reload();
 }
 
 String ConfigManager::construct_path(String path)
@@ -2329,17 +2319,26 @@ void ConfigManager::save_text(String filename, String content)
     fclose(file);
 }
 
-void ConfigManager::load(String filename)
+void ConfigManager::reload()
 {
-    this->filename = filename;
+    log_info("Loading configuration from: %s\n", filename.c_str());
     Ref<Parser> parser(new Parser());
     rootDoc = parser->parseFile(filename);
     root = rootDoc->getRoot();
-    
-    if (rootDoc == nullptr)
-    {
+
+    if (rootDoc == nullptr) {
         throw _Exception(_("Unable to parse server configuration!"));
     }
+
+    prepare_udn();
+    String home = userhome + DIR_SEPARATOR + config_dir;
+    // validate() populates the options array
+    validate(home);
+#ifdef TOMBDEBUG
+    dumpOptions();
+#endif
+    // now the XML is no longer needed we can destroy it
+    root = nullptr;
 }
 
 String ConfigManager::getOption(String xpath, String def)

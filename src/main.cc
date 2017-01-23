@@ -382,55 +382,25 @@ For more information visit " DESC_MANUFACTURER_URL "\n\n");
 
     // wait until signalled to terminate
     while (!shutdown_flag) {
-        //pause();
-        //sleep(timer->getNotifyInterval());
-
         if (timer == nullptr)
             timer = Timer::getInstance();
 
         timer->triggerWait();
 
         if (restart_flag != 0) {
-            log_info("Restarting MediaTomb!\n");
+            log_info("Reloading config file\n");
             try {
-                server = nullptr;
-                timer = nullptr;
-
-                singletonManager->shutdown(true);
-                singletonManager = nullptr;
-                singletonManager = SingletonManager::getInstance();
-
-                try {
-                    ConfigManager::setStaticArgs(config_file, home, confdir,
-                        prefix, magic);
-                    ConfigManager::getInstance();
-                } catch (const mxml::ParseException& pe) {
-                    log_error("Error parsing config file: %s line %d:\n%s\n",
-                        pe.context->location.c_str(),
-                        pe.context->line,
-                        pe.getMessage().c_str());
-                    log_error("Could not restart MediaTomb\n");
-                    // at this point upnp shutdown has already been called
-                    // so it is safe to exit
-                    exit(EXIT_FAILURE);
-                } catch (const Exception& e) {
-                    log_error("Error reloading configuration: %s\n",
-                        e.getMessage().c_str());
-                    e.printStackTrace();
-                    exit(EXIT_FAILURE);
-                }
-
-                ///  \todo fix this for SIGHUP
-                server = Server::getInstance();
-                server->upnp_init();
-
-                restart_flag = 0;
+                ConfigManager::getInstance()->reload();
+                log_info("Reloaded!");
+            } catch (const mxml::ParseException& pe) {
+                log_error("Error parsing config file: %s line %d:\n%s\n",
+                    pe.context->location.c_str(),
+                    pe.context->line,
+                    pe.getMessage().c_str());
+                log_error("Could not reload MediaTomb\n");
             } catch (const Exception& e) {
-                restart_flag = 0;
-                shutdown_flag = 1;
-                sigemptyset(&mask_set);
-                pthread_sigmask(SIG_SETMASK, &mask_set, nullptr);
-                log_error("Could not restart MediaTomb\n");
+                log_error("Error reloading configuration: %s\n", e.getMessage().c_str());
+                e.printStackTrace();
             }
         }
     }
