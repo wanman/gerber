@@ -44,9 +44,9 @@ TranscodeDispatcher::TranscodeDispatcher() : TranscodeHandler()
 {
 }
 
-Ref<IOHandler> TranscodeDispatcher::open(Ref<TranscodingProfile> profile, 
+shared_ptr<IOHandler> TranscodeDispatcher::open(shared_ptr<TranscodingProfile> profile, 
                                          String location, 
-                                         Ref<CdsObject> obj,
+                                         shared_ptr<CdsObject> obj,
                                          String range)
 {
     if (profile == nullptr)
@@ -57,7 +57,7 @@ Ref<IOHandler> TranscodeDispatcher::open(Ref<TranscodingProfile> profile,
 
     if (profile->getType() == TR_External)
     {
-        Ref<TranscodeExternalHandler> tr_ext(new TranscodeExternalHandler());
+        shared_ptr<TranscodeExternalHandler> tr_ext(new TranscodeExternalHandler());
         return tr_ext->open(profile, location, obj, range);
     }
     else

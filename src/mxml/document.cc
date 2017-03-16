@@ -41,25 +41,25 @@ Document::Document() : Node()
     root = nullptr;
 }
 
-void Document::setRoot(Ref<Element> root)
+void Document::setRoot(shared_ptr<Element> root)
 {
     this->root = root;
-    appendChild(RefCast(root, Node));
+    appendChild(dynamic_pointer_cast<Node>(root));
 }
 
-Ref<Element> Document::getRoot()
+shared_ptr<Element> Document::getRoot()
 {
     return root;
 }
 
-void Document::appendChild(Ref<Node> child)
+void Document::appendChild(shared_ptr<Node> child)
 {
     if(children == nullptr)
-        children = Ref<Array<Node> >(new Array<Node>());
+        children = shared_ptr<Array<Node> >(new Array<Node>());
     children->append(child);
 }
 
-void Document::print_internal(Ref<StringBuffer> buf, int indent)
+void Document::print_internal(shared_ptr<StringBuffer> buf, int indent)
 {
     if (children != nullptr && children->size())
     {

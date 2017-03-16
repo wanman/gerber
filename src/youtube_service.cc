@@ -244,7 +244,7 @@ static regions YT_regions[] =
 
 YouTubeService::YouTubeService()
 {
-    url = Ref<URL>(new URL());
+    url = shared_ptr<URL>(new URL());
     pid = 0;
     curl_handle = curl_easy_init();
     if (!curl_handle)
@@ -261,7 +261,7 @@ YouTubeService::~YouTubeService()
 
 YouTubeService::YouTubeTask::YouTubeTask()
 {
-    parameters = zmm::Ref<Dictionary>(new Dictionary());
+    parameters = zmm::shared_ptr<Dictionary>(new Dictionary());
     request = YT_request_none;
     region = YT_region_none;
     amount = 0;
@@ -326,7 +326,7 @@ String YouTubeService::getRegionName(yt_regions_t region_code)
 }
 
 #if 0
-String YouTubeService::getCheckAttr(Ref<Element> xml, String attrname)
+String YouTubeService::getCheckAttr(shared_ptr<Element> xml, String attrname)
 {
     String temp = xml->getAttribute(attrname);
     if (string_ok(temp))
@@ -338,7 +338,7 @@ String YouTubeService::getCheckAttr(Ref<Element> xml, String attrname)
     return nullptr;
 }
 
-int YouTubeService::getCheckPosIntAttr(Ref<Element> xml, String attrname)
+int YouTubeService::getCheckPosIntAttr(shared_ptr<Element> xml, String attrname)
 {
     int itmp;
     String temp = xml->getAttribute(attrname);
@@ -358,7 +358,7 @@ int YouTubeService::getCheckPosIntAttr(Ref<Element> xml, String attrname)
 
 #endif
 
-void YouTubeService::getPagingParams(Ref<Element> xml, Ref<YouTubeTask> task)
+void YouTubeService::getPagingParams(shared_ptr<Element> xml, shared_ptr<YouTubeTask> task)
 {
     String temp;
     int itmp;
@@ -395,7 +395,7 @@ void YouTubeService::getPagingParams(Ref<Element> xml, Ref<YouTubeTask> task)
     task->start_index = itmp;
 }
 
-void YouTubeService::addTimeParams(Ref<Element> xml, Ref<YouTubeTask> task)
+void YouTubeService::addTimeParams(shared_ptr<Element> xml, shared_ptr<YouTubeTask> task)
 {
     String temp;
     
@@ -413,7 +413,7 @@ void YouTubeService::addTimeParams(Ref<Element> xml, Ref<YouTubeTask> task)
     task->parameters->put(_(GDATA_YT_PARAM_TIME), temp);
 }
 
-yt_regions_t YouTubeService::getRegion(Ref<Element> xml)
+yt_regions_t YouTubeService::getRegion(shared_ptr<Element> xml)
 {
     String region = xml->getAttribute(_(CFG_OPTION_REGION_ID));
     if (!string_ok(region))
@@ -431,7 +431,7 @@ yt_regions_t YouTubeService::getRegion(Ref<Element> xml)
 
 }
 
-String YouTubeService::getFeed(Ref<Element> xml)
+String YouTubeService::getFeed(shared_ptr<Element> xml)
 {
     String feed = xml->getAttribute(_(CFG_OPTION_STDFEED));
     if (!string_ok(feed))
@@ -448,12 +448,12 @@ String YouTubeService::getFeed(Ref<Element> xml)
     throw _Exception(_("<") + xml->getName() + _("> tag has an invalid feed setting: ") + feed);
 
 }
-Ref<Object> YouTubeService::defineServiceTask(Ref<Element> xmlopt, Ref<Object> params)
+shared_ptr<Object> YouTubeService::defineServiceTask(shared_ptr<Element> xmlopt, shared_ptr<Object> params)
 {
-    Ref<YouTubeTask> task(new YouTubeTask());
+    shared_ptr<YouTubeTask> task(new YouTubeTask());
     String temp = xmlopt->getName();
     String temp2;
-    Ref<Option> racy = RefCast(params, Option);
+    shared_ptr<Option> racy = dynamic_pointer_cast<Option>(params);
     
     if (temp == CFG_REQUEST_STDFEED)
         task->request = YT_request_stdfeed;
@@ -568,14 +568,14 @@ Ref<Object> YouTubeService::defineServiceTask(Ref<Element> xmlopt, Ref<Object> p
             throw _Exception(_("Unsupported tag!"));
             break;
     } // switch
-    return RefCast(task, Object);
+    return dynamic_pointer_cast<Object>(task);
 }
 
-Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bool construct_url)
+shared_ptr<Element> YouTubeService::getData(String url_part, shared_ptr<Dictionary> params, bool construct_url)
 {
     long retcode;
     String URL;
-    Ref<StringConverter> sc = StringConverter::i2i();
+    shared_ptr<StringConverter> sc = StringConverter::i2i();
 
     if (construct_url)
         URL = _(GDATA_API_YT_BASE_URL) + url_part;
@@ -592,7 +592,7 @@ Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bo
 
     log_debug("Retrieving URL: %s\n", URL.c_str());
    
-    Ref<StringBuffer> buffer;
+    shared_ptr<StringBuffer> buffer;
     try 
     {
         buffer = url->download(URL, &retcode, curl_handle, false, true);
@@ -611,7 +611,7 @@ Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bo
         return nullptr;
 
 //    log_debug("GOT BUFFER\n%s\n", buffer->toString().c_str()); 
-    Ref<Parser> parser(new Parser());
+    shared_ptr<Parser> parser(new Parser());
     try
     {
         return parser->parseString(sc->convert(buffer->toString()))->getRoot();
@@ -633,17 +633,17 @@ Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bo
     return nullptr;
 }
 
-void YouTubeService::killOneTimeTasks(Ref<Array<Object> > tasklist)
+void YouTubeService::killOneTimeTasks(shared_ptr<Array<Object> > tasklist)
 {
     int current = 0;
 
     for (int i = 0; i < tasklist->size(); i++)
     {
-        Ref<YouTubeTask> task = RefCast(tasklist->get(i), YouTubeTask);
+        shared_ptr<YouTubeTask> task = RefCast(tasklist->get(i), YouTubeTask);
     }
     while (true)
     {
-        Ref<YouTubeTask> task = RefCast(tasklist->get(current), YouTubeTask);
+        shared_ptr<YouTubeTask> task = RefCast(tasklist->get(current), YouTubeTask);
         if ((task != nullptr) && (task->kill))
             tasklist->removeUnordered(current);
         else
@@ -654,11 +654,11 @@ void YouTubeService::killOneTimeTasks(Ref<Array<Object> > tasklist)
     }
     for (int i = 0; i < tasklist->size(); i++)
     {
-        Ref<YouTubeTask> task = RefCast(tasklist->get(i), YouTubeTask);
+        shared_ptr<YouTubeTask> task = RefCast(tasklist->get(i), YouTubeTask);
     }
 }
 
-bool YouTubeService::refreshServiceData(Ref<Layout> layout)
+bool YouTubeService::refreshServiceData(shared_ptr<Layout> layout)
 {
     log_debug("Refreshing YouTube service\n");
     // the layout is in full control of the service items
@@ -674,13 +674,13 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
     if (pid != pthread_self())
         throw _Exception(_("Not allowed to call refreshServiceData from different threads!"));
 
-    Ref<ConfigManager> config = ConfigManager::getInstance();
-    Ref<Array<Object> > tasklist = config->getObjectArrayOption(CFG_ONLINE_CONTENT_YOUTUBE_TASK_LIST);
+    shared_ptr<ConfigManager> config = ConfigManager::getInstance();
+    shared_ptr<Array<Object> > tasklist = config->getObjectArrayOption(CFG_ONLINE_CONTENT_YOUTUBE_TASK_LIST);
 
     if (tasklist->size() == 0)
         throw _Exception(_("Not specified what content to fetch!"));
 
-    Ref<YouTubeTask> task = RefCast(tasklist->get(current_task), YouTubeTask);
+    shared_ptr<YouTubeTask> task = RefCast(tasklist->get(current_task), YouTubeTask);
     if (task == nullptr)
         throw _Exception(_("Encountered invalid task!"));
 
@@ -709,8 +709,8 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
     bool b = false;
     bool construct_url = true;
 
-    Ref<Element> reply;
-    Ref<YouTubeContentHandler> yt(new YouTubeContentHandler());
+    shared_ptr<Element> reply;
+    shared_ptr<YouTubeContentHandler> yt(new YouTubeContentHandler());
 
     if ((task->request == YT_request_user_subscriptions) ||
         (task->request == YT_request_user_playlists)) 
@@ -724,7 +724,7 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
         // create new tasks
         for (int f = 0; f < task->subfeed->links->size(); f++)
         {
-            Ref<YouTubeTask> subtask(new YouTubeTask());
+            shared_ptr<YouTubeTask> subtask(new YouTubeTask());
             subtask->kill = true; // autoremove after one time execution
             if (task->request == YT_request_user_subscriptions)
                 subtask->request = YT_subrequest_subscriptions;
@@ -741,7 +741,7 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
             subtask->parameters->put(_(GDATA_PARAM_FEED_FORMAT),
                                      _(GDATA_VALUE_FEED_FORMAT_RSS));
 
-            tasklist->append(RefCast(subtask, Object));
+            tasklist->append(dynamic_pointer_cast<Object>(subtask));
         }
 
         current_task++;
@@ -789,7 +789,7 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
     /// \todo make sure the CdsResourceManager knows whats going on,
     /// since those items do not contain valid links but need to be
     /// processed later on (i.e. need to figure out the real link to the flv)
-    Ref<CdsObject> obj;
+    shared_ptr<CdsObject> obj;
     do
     {
         /// \todo add try/catch here and a possibility do find out if we
@@ -800,7 +800,7 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
 
         obj->setVirtual(true);
 
-        Ref<CdsObject> old = Storage::getInstance()->loadObjectByServiceID(RefCast(obj, CdsItem)->getServiceID());
+        shared_ptr<CdsObject> old = Storage::getInstance()->loadObjectByServiceID(dynamic_pointer_cast<CdsItem>(obj)->getServiceID());
         if (old == nullptr)
         {
             log_debug("Adding new YouTube object\n");

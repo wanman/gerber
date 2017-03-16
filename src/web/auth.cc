@@ -55,7 +55,7 @@ static String generate_token()
 
 static bool check_token(String token, String password, String encPassword)
 {
-    Ref<Array<StringBase> > parts = split_string(token, '_');
+    shared_ptr<Array<StringBase> > parts = split_string(token, '_');
     if (parts->size() != 2)
         return false;
     long expiration = String(parts->get(0)).toLong();
@@ -72,7 +72,7 @@ web::auth::auth() : WebRequestHandler()
 void web::auth::process()
 {
     String action = param(_("action"));
-    Ref<SessionManager> sessionManager = SessionManager::getInstance();
+    shared_ptr<SessionManager> sessionManager = SessionManager::getInstance();
     
     if (! string_ok(action))
     {
@@ -82,8 +82,8 @@ void web::auth::process()
     
     if (action == "get_config")
     {
-        Ref<ConfigManager> cm = ConfigManager::getInstance();
-        Ref<Element> config (new Element(_("config")));
+        shared_ptr<ConfigManager> cm = ConfigManager::getInstance();
+        shared_ptr<Element> config (new Element(_("config")));
         root->appendElementChild(config);
         config->setAttribute(_("accounts"), accountsEnabled() ? _("1") : _("0"), mxml_bool_type);
         config->setAttribute(_("show-tooltips"),
@@ -95,12 +95,12 @@ void web::auth::process()
         config->setAttribute(_("poll-interval"), 
             String::from(cm->getIntOption(CFG_SERVER_UI_POLL_INTERVAL)), mxml_int_type);
 /// CREATE XML FRAGMENT FOR ITEMS PER PAGE
-        Ref<Element> ipp (new Element(_("items-per-page")));
+        shared_ptr<Element> ipp (new Element(_("items-per-page")));
         ipp->setArrayName(_("option"));
         ipp->setAttribute(_("default"), 
           String::from(cm->getIntOption(CFG_SERVER_UI_DEFAULT_ITEMS_PER_PAGE)), mxml_int_type);
     
-        Ref<Array<StringBase> > menu_opts = 
+        shared_ptr<Array<StringBase> > menu_opts = 
             cm->getStringArrayOption(CFG_SERVER_UI_ITEMS_PER_PAGE_DROPDOWN);
 
         for (int i = 0; i < menu_opts->size(); i++)
@@ -119,7 +119,7 @@ void web::auth::process()
 #endif
         
         
-        Ref<Element> actions (new Element(_("actions")));
+        shared_ptr<Element> actions (new Element(_("actions")));
         actions->setArrayName(_("action"));
 #ifdef YOUTUBE
         if (cm->getBoolOption(CFG_ONLINE_CONTENT_YOUTUBE_ENABLED))
@@ -135,7 +135,7 @@ void web::auth::process()
     else if (action == "get_sid")
     {
         log_debug("checking/getting sid...\n");
-        Ref<Session> session = nullptr;
+        shared_ptr<Session> session = nullptr;
         String sid = param(_("sid"));
         
         if (sid == nullptr || (session = sessionManager->getSession(sid)) == nullptr)
@@ -161,7 +161,7 @@ void web::auth::process()
     {
         check_request();
         String sid = param(_("sid"));
-        Ref<Session> session = SessionManager::getInstance()->getSession(sid);
+        shared_ptr<Session> session = SessionManager::getInstance()->getSession(sid);
         if (session == nullptr)
             throw _Exception(_("illegal session id"));
         sessionManager->removeSession(sid);
@@ -187,7 +187,7 @@ void web::auth::process()
         if (! string_ok(username) || ! string_ok(encPassword))
             throw LoginException(_("Missing username or password"));
         
-        Ref<Session> session = sessionManager->getSession(sid);
+        shared_ptr<Session> session = sessionManager->getSession(sid);
         if (session == nullptr)
             throw _Exception(_("illegal session id"));
         

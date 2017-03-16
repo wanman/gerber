@@ -38,7 +38,7 @@
 using namespace zmm;
 using namespace std;
 
-BufferedIOHandler::BufferedIOHandler(Ref<IOHandler> underlyingHandler, size_t bufSize, size_t maxChunkSize, size_t initialFillSize) : IOHandlerBufferHelper(bufSize, initialFillSize)
+BufferedIOHandler::BufferedIOHandler(shared_ptr<IOHandler> underlyingHandler, size_t bufSize, size_t maxChunkSize, size_t initialFillSize) : IOHandlerBufferHelper(bufSize, initialFillSize)
 {
     if (underlyingHandler == nullptr)
         throw _Exception(_("underlyingHandler must not be nullptr"));

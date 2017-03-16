@@ -47,8 +47,8 @@ static JSBool js_addDVDObject(JSContext *cx, uint32_t argc, jsval *vp)
     {
         jsval arg;
         JSObject *js_cds_obj;
-        Ref<CdsObject> cds_obj;
-        Ref<CdsObject> processed;
+        shared_ptr<CdsObject> cds_obj;
+        shared_ptr<CdsObject> processed;
         int title;
         int chapter;
         int audio_track;
@@ -166,7 +166,7 @@ static JSBool js_addDVDObject(JSContext *cx, uint32_t argc, jsval *vp)
 
 } // extern "C" 
 
-void DVDImportScript::addDVDObject(Ref<CdsObject> obj, int title,
+void DVDImportScript::addDVDObject(shared_ptr<CdsObject> obj, int title,
                                   int chapter, int audio_track, String chain,
                                   String containerclass)
 {
@@ -182,12 +182,12 @@ void DVDImportScript::addDVDObject(Ref<CdsObject> obj, int title,
     obj->setVirtual(1);
     obj->clearFlag(OBJECT_FLAG_USE_RESOURCE_REF);
 
-    Ref<ContentManager> cm = ContentManager::getInstance();
+    shared_ptr<ContentManager> cm = ContentManager::getInstance();
 
     int id = cm->addContainerChain(chain, containerclass, processed->getID());
     obj->setParentID(id);
 
-    RefCast(obj, CdsItem)->setMimeType(mimetype);
+    dynamic_pointer_cast<CdsItem>(obj)->setMimeType(mimetype);
     obj->getResource(0)->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO), renderProtocolInfo(mimetype));
 
     /// \todo this has to be changed once we add seeking
@@ -221,7 +221,7 @@ void DVDImportScript::addDVDObject(Ref<CdsObject> obj, int title,
     cm->addObject(obj);
 }
 
-DVDImportScript::DVDImportScript(Ref<Runtime> runtime) : Script(runtime)
+DVDImportScript::DVDImportScript(shared_ptr<Runtime> runtime) : Script(runtime)
 {
 
 #ifdef JS_THREADSAFE
@@ -240,7 +240,7 @@ DVDImportScript::DVDImportScript(Ref<Runtime> runtime) : Script(runtime)
         JS_AddNamedObjectRoot(cx, &root, "DVDImportScript");
         log_info("Loaded %s\n", scriptPath.c_str());
 
-         Ref<Dictionary> mappings =
+         shared_ptr<Dictionary> mappings =
                          ConfigManager::getInstance()->getDictionaryOption(
                               CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
 
@@ -262,7 +262,7 @@ DVDImportScript::DVDImportScript(Ref<Runtime> runtime) : Script(runtime)
 #endif
 }
 
-void DVDImportScript::processDVDObject(Ref<CdsObject> obj)
+void DVDImportScript::processDVDObject(shared_ptr<CdsObject> obj)
 {
 #ifdef JS_THREADSAFE
     JS_SetContextThread(cx);

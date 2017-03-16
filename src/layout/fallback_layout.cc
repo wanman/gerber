@@ -61,7 +61,7 @@
 
 using namespace zmm;
 
-void FallbackLayout::add(Ref<CdsObject> obj, int parentID, bool use_ref)
+void FallbackLayout::add(shared_ptr<CdsObject> obj, int parentID, bool use_ref)
 {
     obj->setParentID(parentID);
     if (use_ref)
@@ -76,9 +76,9 @@ zmm::String FallbackLayout::esc(zmm::String str)
     return escape(str, VIRTUAL_CONTAINER_ESCAPE, VIRTUAL_CONTAINER_SEPARATOR);
 }
 
-void FallbackLayout::addVideo(zmm::Ref<CdsObject> obj, String rootpath)
+void FallbackLayout::addVideo(zmm::shared_ptr<CdsObject> obj, String rootpath)
 {
-    Ref<StringConverter> f2i = StringConverter::f2i();
+    shared_ptr<StringConverter> f2i = StringConverter::f2i();
     int id = ContentManager::getInstance()->addContainerChain(_("/Video/All Video"));
 
     if (obj->getID() != INVALID_OBJECT_ID)
@@ -117,7 +117,7 @@ void FallbackLayout::addVideo(zmm::Ref<CdsObject> obj, String rootpath)
 
 #ifdef HAVE_LIBDVDNAV
 
-Ref<CdsObject> FallbackLayout::prepareChapter(Ref<CdsObject> obj, int title_idx,
+shared_ptr<CdsObject> FallbackLayout::prepareChapter(shared_ptr<CdsObject> obj, int title_idx,
                                               int chapter_idx)
 {
     String chapter_name = _("Chapter ");
@@ -139,7 +139,7 @@ Ref<CdsObject> FallbackLayout::prepareChapter(Ref<CdsObject> obj, int title_idx,
     return obj;
 }
 
-void FallbackLayout::addDVD(Ref<CdsObject> obj)
+void FallbackLayout::addDVD(shared_ptr<CdsObject> obj)
 {
     #define DVD_VPATH "/Video/DVD/"
 
@@ -153,7 +153,7 @@ void FallbackLayout::addDVD(Ref<CdsObject> obj)
         dvd_name = obj->getTitle();
 
     String dvd_container = _(DVD_VPATH) + esc(dvd_name);
-    Ref<ContentManager> cm = ContentManager::getInstance();
+    shared_ptr<ContentManager> cm = ContentManager::getInstance();
 
     int id = cm->addContainerChain(dvd_container, nullptr, pcd_id);
 
@@ -179,8 +179,8 @@ void FallbackLayout::addDVD(Ref<CdsObject> obj)
 
     int title_count = obj->getAuxData(DVDHandler::renderKey(DVD_TitleCount)).toInt();
     // set common item attributes 
-    RefCast(obj, CdsItem)->setMimeType(mpeg_mimetype);
-    obj->getResource(0)->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO), renderProtocolInfo(RefCast(obj, CdsItem)->getMimeType()));
+    dynamic_pointer_cast<CdsItem>(obj)->setMimeType(mpeg_mimetype);
+    obj->getResource(0)->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO), renderProtocolInfo(dynamic_pointer_cast<CdsItem>(obj)->getMimeType()));
     obj->setClass(_(UPNP_DEFAULT_CLASS_VIDEO_ITEM));
     /// \todo this has to be changed once we add seeking
     obj->getResource(0)->removeAttribute(MetadataHandler::getResAttrName(R_SIZE));
@@ -280,10 +280,10 @@ void FallbackLayout::addDVD(Ref<CdsObject> obj)
 }
 #endif
 
-void FallbackLayout::addImage(Ref<CdsObject> obj, String rootpath)
+void FallbackLayout::addImage(shared_ptr<CdsObject> obj, String rootpath)
 {
     int id;
-    Ref<StringConverter> f2i = StringConverter::f2i();
+    shared_ptr<StringConverter> f2i = StringConverter::f2i();
 
     
     id = ContentManager::getInstance()->addContainerChain(_("/Photos/All Photos"));
@@ -298,7 +298,7 @@ void FallbackLayout::addImage(Ref<CdsObject> obj, String rootpath)
         obj->setRefID(obj->getID());
     }
 
-    Ref<Dictionary> meta = obj->getMetadata();
+    shared_ptr<Dictionary> meta = obj->getMetadata();
 
     String date = meta->get(MetadataHandler::getMetaFieldName(M_DATE));
     if (string_ok(date))
@@ -351,7 +351,7 @@ void FallbackLayout::addImage(Ref<CdsObject> obj, String rootpath)
     }
 }
 
-void FallbackLayout::addAudio(zmm::Ref<CdsObject> obj)
+void FallbackLayout::addAudio(zmm::shared_ptr<CdsObject> obj)
 {
     String desc;
     String chain;
@@ -360,7 +360,7 @@ void FallbackLayout::addAudio(zmm::Ref<CdsObject> obj)
 
     int id;
 
-    Ref<Dictionary> meta = obj->getMetadata();
+    shared_ptr<Dictionary> meta = obj->getMetadata();
 
     String title = meta->get(MetadataHandler::getMetaFieldName(M_TITLE));
     if (!string_ok(title))
@@ -483,7 +483,7 @@ void FallbackLayout::addAudio(zmm::Ref<CdsObject> obj)
 
 }
 #ifdef YOUTUBE
-void FallbackLayout::addYouTube(zmm::Ref<CdsObject> obj)
+void FallbackLayout::addYouTube(zmm::shared_ptr<CdsObject> obj)
 {
     #define YT_VPATH "/Online Services/YouTube"
     String chain;
@@ -549,7 +549,7 @@ void FallbackLayout::addYouTube(zmm::Ref<CdsObject> obj)
 #endif
 
 #ifdef SOPCAST
-void FallbackLayout::addSopCast(zmm::Ref<CdsObject> obj)
+void FallbackLayout::addSopCast(zmm::shared_ptr<CdsObject> obj)
 {
     #define SP_VPATH "/Online Services/SopCast"
     String chain;
@@ -583,7 +583,7 @@ void FallbackLayout::addSopCast(zmm::Ref<CdsObject> obj)
 #endif
 
 #ifdef ATRAILERS
-void FallbackLayout::addATrailers(zmm::Ref<CdsObject> obj)
+void FallbackLayout::addATrailers(zmm::shared_ptr<CdsObject> obj)
 {
     #define AT_VPATH "/Online Services/Apple Trailers"
     String chain;
@@ -603,12 +603,12 @@ void FallbackLayout::addATrailers(zmm::Ref<CdsObject> obj)
         obj->setRefID(obj->getID());
     }
 
-    Ref<Dictionary> meta = obj->getMetadata();
+    shared_ptr<Dictionary> meta = obj->getMetadata();
 
     temp = meta->get(MetadataHandler::getMetaFieldName(M_GENRE));
     if (string_ok(temp))
     {
-        Ref<StringTokenizer> st(new StringTokenizer(temp));
+        shared_ptr<StringTokenizer> st(new StringTokenizer(temp));
         String genre;
         String next;
         do
@@ -659,20 +659,20 @@ FallbackLayout::FallbackLayout() : Layout()
 #endif
 
 #ifdef HAVE_LIBDVDNAV
-    Ref<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
+    shared_ptr<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
     mpeg_mimetype = mappings->get(_(CONTENT_TYPE_MPEG));
     if (!string_ok(mpeg_mimetype))
         mpeg_mimetype = _("video/mpeg");
 #endif
 }
 
-void FallbackLayout::processCdsObject(zmm::Ref<CdsObject> obj, String rootpath)
+void FallbackLayout::processCdsObject(zmm::shared_ptr<CdsObject> obj, String rootpath)
 {
     log_debug("Process CDS Object: %s\n", obj->getTitle().c_str());
 #ifdef ENABLE_PROFILING
     PROF_START(&layout_profiling);
 #endif
-    Ref<CdsObject> clone = CdsObject::createObject(obj->getObjectType());
+    shared_ptr<CdsObject> clone = CdsObject::createObject(obj->getObjectType());
     obj->copyTo(clone);
     clone->setVirtual(1);
 
@@ -708,8 +708,8 @@ void FallbackLayout::processCdsObject(zmm::Ref<CdsObject> obj, String rootpath)
     {
 #endif
 
-        String mimetype = RefCast(obj, CdsItem)->getMimeType();
-        Ref<Dictionary> mappings = 
+        String mimetype = dynamic_pointer_cast<CdsItem>(obj)->getMimeType();
+        shared_ptr<Dictionary> mappings = 
             ConfigManager::getInstance()->getDictionaryOption(
                     CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
         String content_type = mappings->get(mimetype);

@@ -38,14 +38,14 @@ using namespace mxml;
 
 String Node::print()
 {
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
     print_internal(buf, 0);
     return buf->toString();
 }
 
 String Node::escape(String str)
 {
-    Ref<StringBuffer> buf(new StringBuffer(str.length()));
+    shared_ptr<StringBuffer> buf(new StringBuffer(str.length()));
     signed char *ptr = (signed char *)str.c_str();
     while (ptr && *ptr)
     {
@@ -73,7 +73,7 @@ String Node::escape(String str)
 }
 
 /*
-void Node::print_internal(Ref<StringBuffer> buf, int indent)
+void Node::print_internal(shared_ptr<StringBuffer> buf, int indent)
 {
     static char *ind_str = "                                                               ";
     static char *ind = ind_str + strlen(ind_str);

@@ -93,7 +93,7 @@ void Sqlite3Storage::init()
     
     
     
-    taskQueue = Ref<ObjectQueue<SLTask> >(new ObjectQueue<SLTask>(SL3_INITITAL_QUEUE_SIZE));
+    taskQueue = shared_ptr<ObjectQueue<SLTask> >(new ObjectQueue<SLTask>(SL3_INITITAL_QUEUE_SIZE));
     taskQueueOpen = true;
     
     ret = pthread_create(
@@ -136,8 +136,8 @@ void Sqlite3Storage::init()
                 try
                 {
                     // trying to copy backup file
-                    Ref<SLBackupTask> btask (new SLBackupTask(true));
-                    this->addTask(RefCast(btask, SLTask));
+                    shared_ptr<SLBackupTask> btask (new SLBackupTask(true));
+                    this->addTask(dynamic_pointer_cast<SLTask>(btask));
                     btask->waitForTask();
                     dbVersion = getInternalSetting(_("db_version"));
                 }
@@ -150,8 +150,8 @@ void Sqlite3Storage::init()
             {
 #ifdef AUTO_CREATE_DATABASE
                 log_info("no sqlite3 backup is available or backup is corrupt. automatically creating database...\n");
-                Ref<SLInitTask> ptask (new SLInitTask());
-                addTask(RefCast(ptask, SLTask));
+                shared_ptr<SLInitTask> ptask (new SLInitTask());
+                addTask(dynamic_pointer_cast<SLTask>(ptask));
                 try
                 {
                     ptask->waitForTask();
@@ -186,7 +186,7 @@ void Sqlite3Storage::init()
     
     _exec("PRAGMA locking_mode = EXCLUSIVE");
     int synchronousOption = ConfigManager::getInstance()->getIntOption(CFG_SERVER_STORAGE_SQLITE_SYNCHRONOUS);
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
     *buf << "PRAGMA synchronous = " << synchronousOption;
     SQLStorage::exec(buf);
     
@@ -230,8 +230,8 @@ void Sqlite3Storage::init()
         Timer::getInstance()->addTimerSubscriber(this, backupInterval, nullptr);
         
         // do a backup now
-        Ref<SLBackupTask> btask (new SLBackupTask(false));
-        this->addTask(RefCast(btask, SLTask));
+        shared_ptr<SLBackupTask> btask (new SLBackupTask(false));
+        this->addTask(dynamic_pointer_cast<SLTask>(btask));
         btask->waitForTask();
     }
     
@@ -258,12 +258,12 @@ String Sqlite3Storage::getError(String query, String error, sqlite3 *db)
         + sqlite3_errmsg(db) +"\nQuery:" + (query == nullptr ? _("unknown") : query) + "\nerror: " + (error == nullptr ? _("unknown") : error);
 }
 
-Ref<SQLResult> Sqlite3Storage::select(const char *query, int length)
+shared_ptr<SQLResult> Sqlite3Storage::select(const char *query, int length)
 {
     //fprintf(stdout, "%s\n",query);
     //fflush(stdout);
-    Ref<SLSelectTask> ptask (new SLSelectTask(query));
-    addTask(RefCast(ptask, SLTask));
+    shared_ptr<SLSelectTask> ptask (new SLSelectTask(query));
+    addTask(dynamic_pointer_cast<SLTask>(ptask));
     ptask->waitForTask();
     return ptask->getResult();
 }
@@ -272,8 +272,8 @@ int Sqlite3Storage::exec(const char *query, int length, bool getLastInsertId)
 {
     //fprintf(stdout, "%s\n",query);
     //fflush(stdout);
-    Ref<SLExecTask> ptask (new SLExecTask(query, getLastInsertId));
-    addTask(RefCast(ptask, SLTask));
+    shared_ptr<SLExecTask> ptask (new SLExecTask(query, getLastInsertId));
+    addTask(dynamic_pointer_cast<SLTask>(ptask));
     ptask->waitForTask();
     if (getLastInsertId) return ptask->getLastInsertId();
     else return -1;
@@ -290,7 +290,7 @@ void *Sqlite3Storage::staticThreadProc(void *arg)
 
 void Sqlite3Storage::threadProc()
 {
-    Ref<SLTask> task;
+    shared_ptr<SLTask> task;
     
     sqlite3 *db;
     
@@ -341,7 +341,7 @@ void Sqlite3Storage::threadProc()
         sqlite3_close(db);
 }
 
-void Sqlite3Storage::addTask(zmm::Ref<SLTask> task, bool onlyIfDirty)
+void Sqlite3Storage::addTask(zmm::shared_ptr<SLTask> task, bool onlyIfDirty)
 {
     if (! taskQueueOpen)
         throw _Exception(_("sqlite3 task queue is already closed"));
@@ -377,17 +377,17 @@ void Sqlite3Storage::shutdownDriver()
 
 void Sqlite3Storage::storeInternalSetting(String key, String value)
 {
-    Ref<StringBuffer> q(new StringBuffer());
+    shared_ptr<StringBuffer> q(new StringBuffer());
     *q << "INSERT OR REPLACE INTO " << QTB << INTERNAL_SETTINGS_TABLE << QTE << " (" << QTB << "key" << QTE << ", " << QTB << "value" << QTE << ") "
     "VALUES (" << quote(key) << ", "<< quote(value) << ") ";
     SQLStorage::exec(q);
 }
 
-void Sqlite3Storage::_addToInsertBuffer(Ref<StringBuffer> query)
+void Sqlite3Storage::_addToInsertBuffer(shared_ptr<StringBuffer> query)
 {
     if (insertBuffer == nullptr)
     {
-        insertBuffer = Ref<StringBuffer>(new StringBuffer());
+        insertBuffer = shared_ptr<StringBuffer>(new StringBuffer());
         *insertBuffer << "BEGIN TRANSACTION;";
     }
     
@@ -505,7 +505,7 @@ SLSelectTask::SLSelectTask(const char *query) : SLTask()
 void SLSelectTask::run(sqlite3 **db, Sqlite3Storage *sl)
 {
     
-    pres = Ref<Sqlite3Result>(new Sqlite3Result());
+    pres = shared_ptr<Sqlite3Result>(new Sqlite3Result());
     
     char *err;
     int ret = sqlite3_get_table(
@@ -629,7 +629,7 @@ Sqlite3Result::~Sqlite3Result()
         table = nullptr;
     }
 }
-Ref<SQLRow> Sqlite3Result::nextRow()
+shared_ptr<SQLRow> Sqlite3Result::nextRow()
 {
     if(nrow)
     {
@@ -637,9 +637,9 @@ Ref<SQLRow> Sqlite3Result::nextRow()
         cur_row++;
         if (cur_row <= nrow)
         {
-            Ref<Sqlite3Row> p (new Sqlite3Row(row, Ref<SQLResult>(this)));
-            p->res = Ref<Sqlite3Result>(this);
-            return RefCast(p, SQLRow);
+            shared_ptr<Sqlite3Row> p (new Sqlite3Row(row, shared_ptr<SQLResult>(this)));
+            p->res = shared_ptr<Sqlite3Result>(this);
+            return dynamic_pointer_cast<SQLRow>(p);
         }
         else
             return nullptr;
@@ -650,17 +650,17 @@ Ref<SQLRow> Sqlite3Result::nextRow()
 
 /* Sqlite3Row */
 
-Sqlite3Row::Sqlite3Row(char **row, Ref<SQLResult> sqlResult) : SQLRow(sqlResult)
+Sqlite3Row::Sqlite3Row(char **row, shared_ptr<SQLResult> sqlResult) : SQLRow(sqlResult)
 {
     this->row = row;
 }
 
 /* Sqlite3BackupTimerSubscriber */
 
-void Sqlite3Storage::timerNotify(Ref<Timer::Parameter> param)
+void Sqlite3Storage::timerNotify(shared_ptr<Timer::Parameter> param)
 {
-    Ref<SLBackupTask> btask (new SLBackupTask(false));
-    this->addTask(RefCast(btask, SLTask), true);
+    shared_ptr<SLBackupTask> btask (new SLBackupTask(false));
+    this->addTask(dynamic_pointer_cast<SLTask>(btask), true);
 }
 
 #endif // HAVE_SQLITE3

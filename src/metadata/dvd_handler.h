@@ -68,8 +68,8 @@ class DVDHandler : public MetadataHandler
 {
 public:
     DVDHandler();
-    virtual void fillMetadata(zmm::Ref<CdsItem> item);
-    virtual zmm::Ref<IOHandler> serveContent(zmm::Ref<CdsItem> item, int resNum, off_t *data_size);
+    virtual void fillMetadata(std::shared_ptr<CdsItem> item);
+    virtual std::shared_ptr<IOHandler> serveContent(std::shared_ptr<CdsItem> item, int resNum, off_t *data_size);
 
     /// \brief Helper function to construct the key names for DVD aux data
     static zmm::String renderKey(dvd_aux_key_names_t name, int title_idx = 0, 

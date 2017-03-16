@@ -64,14 +64,14 @@ class Filesystem : public zmm::Object
 public:
     Filesystem();
 
-    zmm::Ref<zmm::Array<FsObject> > readDirectory(zmm::String path, int mask,
+    std::shared_ptr<zmm::Array<FsObject> > readDirectory(zmm::String path, int mask,
                                                   int chldMask = 0);
     bool haveFiles(zmm::String dir);
     bool haveDirectories(zmm::String dir);
     bool fileAllowed(zmm::String path);
     
 protected:
-    zmm::Ref<zmm::Array<RExp> > includeRules;
+    std::shared_ptr<zmm::Array<RExp> > includeRules;
     bool have(zmm::String dir, int mask);
 };
 

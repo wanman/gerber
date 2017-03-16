@@ -34,7 +34,7 @@
 
 using namespace zmm;
 
-IOHandlerChainer::IOHandlerChainer(Ref<IOHandler> readFrom, Ref<IOHandler> writeTo, int chunkSize) : ThreadExecutor()
+IOHandlerChainer::IOHandlerChainer(shared_ptr<IOHandler> readFrom, shared_ptr<IOHandler> writeTo, int chunkSize) : ThreadExecutor()
 {
     if (chunkSize <=0)
         throw _Exception(_("chunkSize must be positive"));

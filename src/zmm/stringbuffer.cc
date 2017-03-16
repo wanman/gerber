@@ -71,7 +71,7 @@ StringBuffer &StringBuffer::operator<<(String other)
     return *this;
 }
 
-StringBuffer &StringBuffer::operator<<(Ref<StringBuffer> other)
+StringBuffer &StringBuffer::operator<<(shared_ptr<StringBuffer> other)
 {
     concat(other, 0);
     return *this;
@@ -129,7 +129,7 @@ StringBuffer &StringBuffer::operator<<(unsigned int x)
     return *this;
 }
 
-void StringBuffer::concat(Ref<StringBuffer> other, int offset)
+void StringBuffer::concat(shared_ptr<StringBuffer> other, int offset)
 {
     int otherLen = other->length();
     if(otherLen > 0)

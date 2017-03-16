@@ -44,9 +44,9 @@ using namespace mxml;
 web::addObject::addObject() : WebRequestHandler()
 {}
 
-/*static Ref<Element> addOption(String option_name, String option_type, String default_value = nullptr)
+/*static shared_ptr<Element> addOption(String option_name, String option_type, String default_value = nullptr)
 {
-    Ref<Element> option (new Element(_("option")));
+    shared_ptr<Element> option (new Element(_("option")));
     option->addAttribute(_("name"), option_name);
     option->addAttribute(_("type"), option_type);
     
@@ -61,7 +61,7 @@ void web::addObject::addContainer(int parentID)
     ContentManager::getInstance()->addContainer(parentID, param(_("title")), param(_("class")));
 }
 
-Ref<CdsObject> web::addObject::addItem(int parentID, Ref<CdsItem> item)
+shared_ptr<CdsObject> web::addObject::addItem(int parentID, shared_ptr<CdsItem> item)
 {
     String tmp;
     
@@ -84,13 +84,13 @@ Ref<CdsObject> web::addObject::addItem(int parentID, Ref<CdsItem> item)
     item->setFlag(OBJECT_FLAG_USE_RESOURCE_REF);
 
    
-    return RefCast(item, CdsObject);
+    return dynamic_pointer_cast<CdsObject>(item);
 }
 
-Ref<CdsObject> web::addObject::addActiveItem(int parentID)
+shared_ptr<CdsObject> web::addObject::addActiveItem(int parentID)
 {
     String tmp;
-    Ref<CdsActiveItem> item (new CdsActiveItem());
+    shared_ptr<CdsActiveItem> item (new CdsActiveItem());
     
     item->setAction(param(_("action")));
     
@@ -107,7 +107,7 @@ Ref<CdsObject> web::addObject::addActiveItem(int parentID)
         tmp = _(MIMETYPE_DEFAULT);
     item->setMimeType(tmp);
   
-    MetadataHandler::setMetadata(RefCast(item, CdsItem));
+    MetadataHandler::setMetadata(dynamic_pointer_cast<CdsItem>(item));
 
     item->setTitle(param(_("title")));
     item->setClass(param(_("class")));
@@ -118,17 +118,17 @@ Ref<CdsObject> web::addObject::addActiveItem(int parentID)
     
     /// \todo is there a default setting? autoscan? import settings?
 
-//    Ref<CdsResource> resource(new CdsResource(CH_DEFAULT));
+//    shared_ptr<CdsResource> resource(new CdsResource(CH_DEFAULT));
 
-//    Ref<CdsResource> resource = item->getResource(0); // added by m-handler
+//    shared_ptr<CdsResource> resource = item->getResource(0); // added by m-handler
 //    resource->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO),
 //                           renderProtocolInfo(tmp));
 //    item->addResource(resource);
 
-    return RefCast(item, CdsObject);
+    return dynamic_pointer_cast<CdsObject>(item);
 }
 
-Ref<CdsObject> web::addObject::addUrl(int parentID, Ref<CdsItemExternalURL> item, bool addProtocol)
+shared_ptr<CdsObject> web::addObject::addUrl(int parentID, shared_ptr<CdsItemExternalURL> item, bool addProtocol)
 {
     String tmp;
     String protocolInfo;
@@ -159,12 +159,12 @@ Ref<CdsObject> web::addObject::addUrl(int parentID, Ref<CdsItemExternalURL> item
     else
         protocolInfo = renderProtocolInfo(tmp);
     
-    Ref<CdsResource> resource(new CdsResource(CH_DEFAULT));
+    shared_ptr<CdsResource> resource(new CdsResource(CH_DEFAULT));
     resource->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO),
                            protocolInfo);
     item->addResource(resource);
     
-    return RefCast(item, CdsObject);
+    return dynamic_pointer_cast<CdsObject>(item);
 }
 
 void web::addObject::process()
@@ -182,16 +182,16 @@ void web::addObject::process()
     
     int parentID = intParam(_("parent_id"), 0);
     
-    Ref<CdsObject> obj = nullptr;
+    shared_ptr<CdsObject> obj = nullptr;
     
-    Ref<Element> updateContainerEl;
+    shared_ptr<Element> updateContainerEl;
    
     bool allow_fifo = false;
 
     if (obj_type == STRING_OBJECT_TYPE_CONTAINER)
     {
         this->addContainer(parentID);
-        //updateContainerEl = Ref<Element>(new Element(_("updateContainer")));
+        //updateContainerEl = shared_ptr<Element>(new Element(_("updateContainer")));
         //updateContainerEl->setText(parID);
         //updateContainerEl->addAttribute(_("add"), _("1"));
         //root->appendChild(updateContainerEl);
@@ -200,7 +200,7 @@ void web::addObject::process()
     {
         if (!string_ok(location)) throw _Exception(_("no location given"));
         if (!check_path(location, false)) throw _Exception(_("file not found"));
-        obj = this->addItem(parentID, Ref<CdsItem> (new CdsItem()));
+        obj = this->addItem(parentID, shared_ptr<CdsItem> (new CdsItem()));
         allow_fifo = true;
     }
     else if (obj_type == STRING_OBJECT_TYPE_ACTIVE_ITEM)
@@ -215,12 +215,12 @@ void web::addObject::process()
     else if (obj_type == STRING_OBJECT_TYPE_EXTERNAL_URL)
     {
         if (!string_ok(location)) throw _Exception(_("No URL given"));
-        obj = this->addUrl(parentID, Ref<CdsItemExternalURL> (new CdsItemExternalURL()), true);
+        obj = this->addUrl(parentID, shared_ptr<CdsItemExternalURL> (new CdsItemExternalURL()), true);
     }
     else if (obj_type == STRING_OBJECT_TYPE_INTERNAL_URL)
     {
         if (!string_ok(location)) throw _Exception(_("No URL given"));
-        obj = this->addUrl(parentID, Ref<CdsItemExternalURL> (new CdsItemInternalURL()), false);
+        obj = this->addUrl(parentID, shared_ptr<CdsItemExternalURL> (new CdsItemInternalURL()), false);
     }
     else
     {

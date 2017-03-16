@@ -47,7 +47,7 @@ public:
 
     /// \brief this function will determine the final URL for services that
     /// need extra steps to do that
-    zmm::String resolveURL(zmm::Ref<CdsItemExternalURL> item);
+    zmm::String resolveURL(std::shared_ptr<CdsItemExternalURL> item);
 };
 
 #endif//__ONLINE_SERVICE_HELPER_H__

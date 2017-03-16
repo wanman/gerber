@@ -66,21 +66,21 @@ String DictionaryElement::getValue()
 
 Dictionary::Dictionary() : Object()
 {
-    elements = Ref<Array<DictionaryElement> >(new Array<DictionaryElement>());
+    elements = shared_ptr<Array<DictionaryElement> >(new Array<DictionaryElement>());
 }
 
 void Dictionary::put(String key, String value)
 {
     for (int i = 0; i < elements->size(); i++)
     {
-        Ref<DictionaryElement> el = elements->get(i);
+        shared_ptr<DictionaryElement> el = elements->get(i);
         if(el->getKey() == key)
         {
             el->setValue(value);
             return;
         }
     }
-    Ref<DictionaryElement> newEl(new DictionaryElement(key, value));
+    shared_ptr<DictionaryElement> newEl(new DictionaryElement(key, value));
     elements->append(newEl);
 }
 
@@ -88,7 +88,7 @@ String Dictionary::get(String key)
 {
     for (int i = 0; i < elements->size(); i++)
     {
-        Ref<DictionaryElement> el = elements->get(i);
+        shared_ptr<DictionaryElement> el = elements->get(i);
         if (el->getKey() == key)
         {
             return el->getValue();
@@ -106,7 +106,7 @@ void Dictionary::remove(String key)
 {
     for (int i = 0; i < elements->size(); i++)
     {
-        Ref<DictionaryElement> el = elements->get(i);
+        shared_ptr<DictionaryElement> el = elements->get(i);
         if (el->getKey() == key)
         {
             elements->remove(i, 1);
@@ -117,13 +117,13 @@ void Dictionary::remove(String key)
 
 String Dictionary::_encode(char sep1, char sep2)
 {
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
     int len = elements->size();
     for (int i = 0; i < len; i++)
     {
         if(i > 0)
             *buf << sep1;
-        Ref<DictionaryElement> el = elements->get(i);
+        shared_ptr<DictionaryElement> el = elements->get(i);
         *buf << url_escape(el->getKey()) << sep2
              << url_escape(el->getValue());
     }
@@ -198,49 +198,49 @@ void Dictionary::clear()
     elements->remove(0, elements->size());
 }
 
-Ref<Dictionary> Dictionary::clone()
+shared_ptr<Dictionary> Dictionary::clone()
 {
-    Ref<Dictionary> ret(new Dictionary());
+    shared_ptr<Dictionary> ret(new Dictionary());
     int len = elements->size();
     for (int i = 0; i < len; i++)
     {
-        Ref<DictionaryElement> el = elements->get(i);
+        shared_ptr<DictionaryElement> el = elements->get(i);
         ret->put(el->getKey(), el->getValue());
     }
     return ret;
 }
 
-void Dictionary::merge(Ref<Dictionary> other)
+void Dictionary::merge(shared_ptr<Dictionary> other)
 {
     if (other == nullptr)
         return;
 
-    Ref<Array<DictionaryElement> > other_el = other->getElements();
+    shared_ptr<Array<DictionaryElement> > other_el = other->getElements();
     int len = other_el->size();
     for (int i = 0; i < len; i++)
     {
-        Ref<DictionaryElement> el = other_el->get(i);
+        shared_ptr<DictionaryElement> el = other_el->get(i);
         this->put(el->getKey(), el->getValue());
     }
 }
 
-bool Dictionary::isSubsetOf(Ref<Dictionary> other)
+bool Dictionary::isSubsetOf(shared_ptr<Dictionary> other)
 {
     int len = elements->size();
     for (int i = 0; i < len; i++)
     {
-        Ref<DictionaryElement> el = elements->get(i);
+        shared_ptr<DictionaryElement> el = elements->get(i);
         if (el->getValue() != other->get(el->getKey()))
             return 0;
     }
     return 1;
 }
-bool Dictionary::equals(Ref<Dictionary> other)
+bool Dictionary::equals(shared_ptr<Dictionary> other)
 {
-    return (isSubsetOf(other) && other->isSubsetOf(Ref<Dictionary>(this)));
+    return (isSubsetOf(other) && other->isSubsetOf(shared_ptr<Dictionary>(this)));
 }
 
-Ref<Array<DictionaryElement> > Dictionary::getElements()
+shared_ptr<Array<DictionaryElement> > Dictionary::getElements()
 {
     return elements;
 }

@@ -117,7 +117,7 @@ String::String(StringBase *other)
     if(base)
         base->retain();
 }
-String::String(Ref<StringBase> other)
+String::String(shared_ptr<StringBase> other)
 {
     base = other.getPtr();
     if(base)

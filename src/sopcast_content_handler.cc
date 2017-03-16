@@ -42,7 +42,7 @@
 using namespace zmm;
 using namespace mxml;
 
-bool SopCastContentHandler::setServiceContent(zmm::Ref<mxml::Element> service)
+bool SopCastContentHandler::setServiceContent(zmm::shared_ptr<mxml::Element> service)
 {
     String temp;
 
@@ -66,7 +66,7 @@ bool SopCastContentHandler::setServiceContent(zmm::Ref<mxml::Element> service)
     return true;
 }
 
-Ref<CdsObject> SopCastContentHandler::getNextObject()
+shared_ptr<CdsObject> SopCastContentHandler::getNextObject()
 {
 #define DATE_BUF_LEN 12
     String temp;
@@ -76,7 +76,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
     {
         if (current_group == nullptr)
         {
-            Ref<Node> n = channels->getChild(current_group_node_index);
+            shared_ptr<Node> n = channels->getChild(current_group_node_index);
             current_group_node_index++;
 
             if (n == nullptr)
@@ -85,7 +85,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
             if (n->getType() != mxml_node_element)
                 continue;
 
-            current_group = RefCast(n, Element);
+            current_group = dynamic_pointer_cast<Element>(n);
             channel_count = current_group->childCount();
 
             if ((current_group->getName() != "group") ||
@@ -117,19 +117,19 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
 
         while (current_channel_index < channel_count)
         {
-            Ref<Node> n = current_group->getChild(current_channel_index);
+            shared_ptr<Node> n = current_group->getChild(current_channel_index);
             current_channel_index++;
 
             if ((n == nullptr) || (n->getType() != mxml_node_element))
                 continue;
 
-            Ref<Element> channel = RefCast(n, Element);
+            shared_ptr<Element> channel = dynamic_pointer_cast<Element>(n);
 
             if (channel->getName() != "channel")
                 continue;
 
-            Ref<CdsItemExternalURL> item(new CdsItemExternalURL());
-            Ref<CdsResource> resource(new CdsResource(CH_DEFAULT));
+            shared_ptr<CdsItemExternalURL> item(new CdsItemExternalURL());
+            shared_ptr<CdsResource> resource(new CdsResource(CH_DEFAULT));
             item->addResource(resource);
 
             item->setAuxData(_(ONLINE_SERVICE_AUX_ID),
@@ -176,7 +176,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
                     renderProtocolInfo(mt, _(SOPCAST_PROTOCOL)));
             item->setMimeType(mt);
            
-            Ref<Element> tmp_el = channel->getChildByName(_("sop_address"));
+            shared_ptr<Element> tmp_el = channel->getChildByName(_("sop_address"));
             if (tmp_el == nullptr)
             {
                 log_warning("Failed to retrieve SopCast channel URL\n");
@@ -230,7 +230,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
             try
             {
                 item->validate();
-                return RefCast(item, CdsObject);
+                return dynamic_pointer_cast<CdsObject>(item);
             }
             catch (const Exception & ex)
             {

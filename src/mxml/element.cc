@@ -45,7 +45,7 @@ Element::Element(String name) : Node()
     arrayName = nullptr;
     textKey = nullptr;
 }
-Element::Element(String name, Ref<Context> context) : Node()
+Element::Element(String name, shared_ptr<Context> context) : Node()
 {
     type = mxml_node_element;
     this->name = name;
@@ -61,7 +61,7 @@ String Element::getAttribute(String name)
     int len = attributes->size();
     for(int i = 0; i < len; i++)
     {
-        Ref<Attribute> attr = attributes->get(i);
+        shared_ptr<Attribute> attr = attributes->get(i);
         if(attr->name == name)
             return attr->value;
     }
@@ -69,25 +69,25 @@ String Element::getAttribute(String name)
 }
 void Element::addAttribute(String name, String value, enum mxml_value_type type)
 {
-    Ref<Attribute> attr = Ref<Attribute>(new Attribute(name, value, type));
+    shared_ptr<Attribute> attr = shared_ptr<Attribute>(new Attribute(name, value, type));
     addAttribute(attr);
 }
 
-void Element::addAttribute(Ref<Attribute> attr)
+void Element::addAttribute(shared_ptr<Attribute> attr)
 {
     if (attributes == nullptr)
-        attributes = Ref<Array<Attribute> >(new Array<Attribute>());
+        attributes = shared_ptr<Array<Attribute> >(new Array<Attribute>());
     attributes->append(attr);
 }
 
 void Element::setAttribute(String name, String value, enum mxml_value_type type)
 {
     if (attributes == nullptr)
-        attributes = Ref<Array<Attribute> >(new Array<Attribute>());
+        attributes = shared_ptr<Array<Attribute> >(new Array<Attribute>());
     int len = attributes->size();
     for(int i = 0; i < len; i++)
     {
-        Ref<Attribute> attr = attributes->get(i);
+        shared_ptr<Attribute> attr = attributes->get(i);
         if(attr->name == name)
         {
             attr->setValue(value);
@@ -109,7 +109,7 @@ int Element::childCount(enum mxml_node_types type)
     int countElements = 0;
     for(int i = 0; i < children->size(); i++)
     {
-        Ref<Node> nd = children->get(i);
+        shared_ptr<Node> nd = children->get(i);
         if (nd->getType() == type)
         {
             countElements++;
@@ -118,7 +118,7 @@ int Element::childCount(enum mxml_node_types type)
     return countElements;
 }
 
-Ref<Node> Element::getChild(int index, enum mxml_node_types type, bool remove)
+shared_ptr<Node> Element::getChild(int index, enum mxml_node_types type, bool remove)
 {
     if (children == nullptr)
         return nullptr;
@@ -130,7 +130,7 @@ Ref<Node> Element::getChild(int index, enum mxml_node_types type, bool remove)
             return nullptr;
         else
         {
-            Ref<Node> node = children->get(index);
+            shared_ptr<Node> node = children->get(index);
             if (remove)
                 children->remove(index);
             return node;
@@ -139,7 +139,7 @@ Ref<Node> Element::getChild(int index, enum mxml_node_types type, bool remove)
     
     for(int i = 0; i < children->size(); i++)
     {
-        Ref<Node> nd = children->get(i);
+        shared_ptr<Node> nd = children->get(i);
         if (nd->getType() == type)
         {
             if (countElements++ == index)
@@ -158,7 +158,7 @@ bool Element::removeElementChild(String name, bool removeAll)
     int id = getChildIdByName(name);
     if (id < 0)
         return false;
-    Ref<Node> child = getChild(id, mxml_node_all, true);
+    shared_ptr<Node> child = getChild(id, mxml_node_all, true);
     if (child == nullptr)
         return false;
     if (! removeAll)
@@ -167,17 +167,17 @@ bool Element::removeElementChild(String name, bool removeAll)
     return true;
 }
 
-void Element::appendChild(Ref<Node> child)
+void Element::appendChild(shared_ptr<Node> child)
 {
     if(children == nullptr)
-        children = Ref<Array<Node> >(new Array<Node>());
+        children = shared_ptr<Array<Node> >(new Array<Node>());
     children->append(child);
 }
 
-void Element::insertChild(int index, Ref<Node> child)
+void Element::insertChild(int index, shared_ptr<Node> child)
 {
     if (children == nullptr)
-        children = Ref<Array<Node> >(new Array<Node>());
+        children = shared_ptr<Array<Node> >(new Array<Node>());
     children->insert(index, child);
 }
 
@@ -196,10 +196,10 @@ void Element::removeWhitespace()
     int numChildren = childCount();
     for (int i = 0; i < numChildren; i++)
     {
-        Ref<Node> node = getChild(i);
+        shared_ptr<Node> node = getChild(i);
         if (node->getType() == mxml_node_text)
         {
-            Ref<Text> text = RefCast(node, Text);
+            shared_ptr<Text> text = dynamic_pointer_cast<Text>(node);
             String trimmed = trim_string(text->getText());
             if (string_ok(trimmed))
             {
@@ -216,7 +216,7 @@ void Element::removeWhitespace()
         }
         else if (node->getType() == mxml_node_element)
         {
-            Ref<Element> el = RefCast(node, Element);
+            shared_ptr<Element> el = dynamic_pointer_cast<Element>(node);
             el->removeWhitespace();
         }
     }
@@ -235,10 +235,10 @@ void Element::indent(int level)
     bool noTextChildren = true;
     for (int i = 0; i < numChildren; i++)
     {
-        Ref<Node> node = getChild(i);
+        shared_ptr<Node> node = getChild(i);
         if (node->getType() == mxml_node_element)
         {
-            Ref<Element> el = RefCast(node, Element);
+            shared_ptr<Element> el = dynamic_pointer_cast<Element>(node);
             el->indent(level+1);
         }
         else if (node->getType() == mxml_node_text)
@@ -260,28 +260,28 @@ void Element::indent(int level)
             bool newlineBefore = true;
             if (getChild(i)->getType() == mxml_node_comment)
             {
-                Ref<Comment> comment = RefCast(getChild(i), Comment);
+                shared_ptr<Comment> comment = RefCast(getChild(i), Comment);
                 newlineBefore = comment->getIndentWithLFbefore();
             }
             if (newlineBefore)
             {
-                Ref<Text> indentText(new Text(_("\n")+ptr));
-                insertChild(i++,RefCast(indentText, Node));
+                shared_ptr<Text> indentText(new Text(_("\n")+ptr));
+                insertChild(i++,dynamic_pointer_cast<Node>(indentText));
                 numChildren++;
             }
         }
         
         ptr += 2;
         
-        Ref<Text> indentTextAfter(new Text(_("\n")+ptr));
-        appendChild(RefCast(indentTextAfter, Node));
+        shared_ptr<Text> indentTextAfter(new Text(_("\n")+ptr));
+        appendChild(dynamic_pointer_cast<Node>(indentTextAfter));
     }
 }
 
 String Element::getText()
 {
-    Ref<StringBuffer> buf(new StringBuffer());
-    Ref<Text> text;
+    shared_ptr<StringBuffer> buf(new StringBuffer());
+    shared_ptr<Text> text;
     int i = 0;
     bool someText = false;
     while ((text = RefCast(getChild(i++, mxml_node_text), Text)) != nullptr)
@@ -297,7 +297,7 @@ String Element::getText()
 
 enum mxml_value_type Element::getVTypeText()
 {
-    Ref<Text> text;
+    shared_ptr<Text> text;
     int i = 0;
     bool someText = false;
     enum mxml_value_type vtype = mxml_string_type;
@@ -324,7 +324,7 @@ int Element::attributeCount()
     return attributes->size();
 }
 
-Ref<Attribute> Element::getAttribute(int index)
+shared_ptr<Attribute> Element::getAttribute(int index)
 {
     if (attributes == nullptr)
         return nullptr;
@@ -340,22 +340,22 @@ void Element::setText(String str, enum mxml_value_type type)
     
     if (childCount() == 1)
     {
-        Ref<Node> child = getChild(0);
+        shared_ptr<Node> child = getChild(0);
         if (child == nullptr || child->getType() != mxml_node_text)
             throw _Exception(_("Element::setText() cannot be called on an element which has a non-text child"));
-        Ref<Text> text = RefCast(child, Text);
+        shared_ptr<Text> text = dynamic_pointer_cast<Text>(child);
         text->setText(str);
     }
     else
     {
-        Ref<Text> text(new Text(str, type));
-        appendChild(RefCast(text, Node));
+        shared_ptr<Text> text(new Text(str, type));
+        appendChild(dynamic_pointer_cast<Node>(text));
     }
 }
 
 void Element::appendTextChild(String name, String text, enum mxml_value_type type)
 {
-    Ref<Element> el = Ref<Element>(new Element(name));
+    shared_ptr<Element> el = shared_ptr<Element>(new Element(name));
     el->setText(text, type);
     appendElementChild(el);
 }
@@ -368,10 +368,10 @@ int Element::getChildIdByName(String name)
         return -1;
     for(int i = 0; i < children->size(); i++)
     {
-        Ref<Node> nd = children->get(i);
+        shared_ptr<Node> nd = children->get(i);
         if (nd->getType() == mxml_node_element)
         {
-            Ref<Element> el = RefCast(nd, Element);
+            shared_ptr<Element> el = dynamic_pointer_cast<Element>(nd);
             if (name == nullptr || el->name == name)
                 return i;
         }
@@ -379,7 +379,7 @@ int Element::getChildIdByName(String name)
     return -1;
 }
 
-Ref<Element> Element::getChildByName(String name)
+shared_ptr<Element> Element::getChildByName(String name)
 {
     int id = getChildIdByName(name);
     if (id < 0)
@@ -389,13 +389,13 @@ Ref<Element> Element::getChildByName(String name)
 
 String Element::getChildText(String name)
 {
-    Ref<Element> el = getChildByName(name);
+    shared_ptr<Element> el = getChildByName(name);
     if(el == nullptr)
         return nullptr;
     return el->getText();
 }
 
-void Element::print_internal(Ref<StringBuffer> buf, int indent)
+void Element::print_internal(shared_ptr<StringBuffer> buf, int indent)
 {
     /*
     static char *ind_str = "                                                               ";
@@ -412,7 +412,7 @@ void Element::print_internal(Ref<StringBuffer> buf, int indent)
         for(i = 0; i < attributes->size(); i++)
         {
             *buf << ' ';
-            Ref<Attribute> attr = attributes->get(i);
+            shared_ptr<Attribute> attr = attributes->get(i);
             *buf << attr->name << "=\"" << escape(attr->value) << '"';
         }
     }

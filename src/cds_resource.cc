@@ -39,14 +39,14 @@ using namespace zmm;
 CdsResource::CdsResource(int handlerType) : Object()
 {
     this->handlerType = handlerType;
-    this->attributes = Ref<Dictionary>(new Dictionary());
-    this->parameters = Ref<Dictionary>(new Dictionary());
-    this->options = Ref<Dictionary>(new Dictionary());
+    this->attributes = shared_ptr<Dictionary>(new Dictionary());
+    this->parameters = shared_ptr<Dictionary>(new Dictionary());
+    this->options = shared_ptr<Dictionary>(new Dictionary());
 }
 CdsResource::CdsResource(int handlerType,
-                         Ref<Dictionary> attributes,
-                         Ref<Dictionary> parameters,
-                         Ref<Dictionary> options)
+                         shared_ptr<Dictionary> attributes,
+                         shared_ptr<Dictionary> parameters,
+                         shared_ptr<Dictionary> options)
 {
     this->handlerType = handlerType;
     this->attributes = attributes;
@@ -64,7 +64,7 @@ void CdsResource::removeAttribute(String name)
     attributes->remove(name);
 }
 
-void CdsResource::mergeAttributes(Ref<Dictionary> additional)
+void CdsResource::mergeAttributes(shared_ptr<Dictionary> additional)
 {
     attributes->merge(additional);
 }
@@ -85,17 +85,17 @@ int CdsResource::getHandlerType()
     return handlerType;
 }
 
-Ref<Dictionary> CdsResource::getAttributes()
+shared_ptr<Dictionary> CdsResource::getAttributes()
 {
     return attributes;
 }
 
-Ref<Dictionary> CdsResource::getParameters()
+shared_ptr<Dictionary> CdsResource::getParameters()
 {
     return parameters;
 }
 
-Ref<Dictionary> CdsResource::getOptions()
+shared_ptr<Dictionary> CdsResource::getOptions()
 {
     return options;
 }
@@ -115,7 +115,7 @@ String CdsResource::getOption(String name)
     return options->get(name);
 }
 
-bool CdsResource::equals(Ref<CdsResource> other)
+bool CdsResource::equals(shared_ptr<CdsResource> other)
 {
     return (
         handlerType == other->handlerType &&
@@ -125,9 +125,9 @@ bool CdsResource::equals(Ref<CdsResource> other)
     );
 }
 
-Ref<CdsResource> CdsResource::clone()
+shared_ptr<CdsResource> CdsResource::clone()
 {
-    return Ref<CdsResource>(new CdsResource(handlerType,
+    return shared_ptr<CdsResource>(new CdsResource(handlerType,
                                             attributes->clone(),
                                             parameters->clone(),
                                             options->clone()));
@@ -136,7 +136,7 @@ Ref<CdsResource> CdsResource::clone()
 String CdsResource::encode()
 {
     // encode resources
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
     *buf << handlerType;
     *buf << RESOURCE_PART_SEP;
     *buf << attributes->encode();
@@ -147,29 +147,29 @@ String CdsResource::encode()
     return buf->toString();
 }
 
-Ref<CdsResource> CdsResource::decode(String serial)
+shared_ptr<CdsResource> CdsResource::decode(String serial)
 {
-    Ref<Array<StringBase> > parts = split_string(serial, RESOURCE_PART_SEP, true);
+    shared_ptr<Array<StringBase> > parts = split_string(serial, RESOURCE_PART_SEP, true);
     int size = parts->size();
     if (size < 2 || size > 4)
         throw _Exception(_("CdsResource::decode: Could not parse resources"));
 
     int handlerType = String(parts->get(0)).toInt();
 
-    Ref<Dictionary> attr(new Dictionary());
+    shared_ptr<Dictionary> attr(new Dictionary());
     attr->decode(parts->get(1));
 
-    Ref<Dictionary> par(new Dictionary());
+    shared_ptr<Dictionary> par(new Dictionary());
 
     if (size >= 3)
         par->decode(parts->get(2));
 
-    Ref<Dictionary> opt(new Dictionary());
+    shared_ptr<Dictionary> opt(new Dictionary());
 
     if (size >= 4)
         opt->decode(parts->get(3));
     
-    Ref<CdsResource> resource(new CdsResource(handlerType, attr, par, opt));
+    shared_ptr<CdsResource> resource(new CdsResource(handlerType, attr, par, opt));
     
     return resource;
 }

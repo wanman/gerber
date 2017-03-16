@@ -47,8 +47,8 @@ public:
     virtual ~RExp();
     void compile(zmm::String pattern, int flags = 0);
     void compile(zmm::String pattern, const char *flags);
-    zmm::Ref<Matcher> matcher(zmm::String text, int nmatch = DEFAULT_NMATCH);
-    zmm::Ref<Matcher> match(zmm::String text, int nmatch = DEFAULT_NMATCH);
+    std::shared_ptr<Matcher> matcher(zmm::String text, int nmatch = DEFAULT_NMATCH);
+    std::shared_ptr<Matcher> match(zmm::String text, int nmatch = DEFAULT_NMATCH);
     bool matches(zmm::String text);
     zmm::String getPattern();
 protected:
@@ -68,9 +68,9 @@ public:
     bool next();
     bool matches();
 protected:
-    Matcher(zmm::Ref<RExp> rexp, zmm::String text, int nmatch);
+    Matcher(std::shared_ptr<RExp> rexp, zmm::String text, int nmatch);
 protected:    
-    zmm::Ref<RExp> rexp;
+    std::shared_ptr<RExp> rexp;
     zmm::String text;
     char *ptr;
     int nmatch;

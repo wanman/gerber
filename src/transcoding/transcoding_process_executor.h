@@ -40,7 +40,7 @@ class TranscodingProcessExecutor : public ProcessExecutor
 {
 public:
     TranscodingProcessExecutor(zmm::String command,
-                               zmm::Ref<zmm::Array<zmm::StringBase> > arglist);
+                               std::shared_ptr<zmm::Array<zmm::StringBase> > arglist);
     /// \brief This function adds a filename to a list, files in that list
     /// will be removed once the class is destroyed.
     void removeFile(zmm::String filename);
@@ -50,7 +50,7 @@ public:
 protected:
     /// \brief The files in this list will be removed once the class is no
     /// longer in use.
-    zmm::Ref<zmm::Array<zmm::StringBase> > file_list;
+    std::shared_ptr<zmm::Array<zmm::StringBase> > file_list;
 };
 
 #endif // __TRANSCODING_PROCESS_EXECUTOR_H__

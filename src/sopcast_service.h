@@ -52,7 +52,7 @@ public:
     ~SopCastService();
     /// \brief Retrieves user specified content from the service and adds
     /// the items to the database.
-    virtual bool refreshServiceData(zmm::Ref<Layout> layout);
+    virtual bool refreshServiceData(std::shared_ptr<Layout> layout);
 
     /// \brief Get the type of the service (i.e. SopCast, Shoutcast, etc.)
     virtual service_type_t getServiceType();
@@ -62,7 +62,7 @@ public:
 
     /// \brief Parse the xml fragment from the configuration and gather
     /// the user settings in a service task structure.
-    virtual zmm::Ref<zmm::Object> defineServiceTask(zmm::Ref<mxml::Element> xmlopt, zmm::Ref<zmm::Object> params);
+    virtual std::shared_ptr<zmm::Object> defineServiceTask(std::shared_ptr<mxml::Element> xmlopt, std::shared_ptr<zmm::Object> params);
 
 protected:
     // the handle *must never be used from multiple threads*
@@ -71,10 +71,10 @@ protected:
     pthread_t pid;
 
     // url retriever class
-    zmm::Ref<URL> url;
+    std::shared_ptr<URL> url;
 
     /// \brief This function will retrieve the XML according to the parametrs
-    zmm::Ref<mxml::Element> getData();
+    std::shared_ptr<mxml::Element> getData();
 };
 
 #endif//__ONLINE_SERVICE_H__

@@ -42,12 +42,12 @@
 class ProcListItem : public zmm::Object
 {
 public:
-    ProcListItem(zmm::Ref<Executor> exec, bool abortOnDeath = false);
-    zmm::Ref<Executor> getExecutor();
+    ProcListItem(std::shared_ptr<Executor> exec, bool abortOnDeath = false);
+    std::shared_ptr<Executor> getExecutor();
     bool abortOnDeath();
 
 protected:
-    zmm::Ref<Executor> executor;
+    std::shared_ptr<Executor> executor;
     bool abort;
 };
 
@@ -59,8 +59,8 @@ public:
     /// \param filename to read the data from
     /// \param proclist associated processes that will be terminated once
     /// they are no longer needed
-    ProcessIOHandler(zmm::String filename, zmm::Ref<Executor> main_proc,
-                     zmm::Ref<zmm::Array<ProcListItem> > proclist = nullptr,
+    ProcessIOHandler(zmm::String filename, std::shared_ptr<Executor> main_proc,
+                     std::shared_ptr<zmm::Array<ProcListItem> > proclist = nullptr,
                      bool ignoreSeek = false);
     
     /// \brief Opens file for reading (writing is not supported)
@@ -94,10 +94,10 @@ public:
 
 protected:
     /// \brief List of associated processes.
-    zmm::Ref<zmm::Array<ProcListItem> > proclist;
+    std::shared_ptr<zmm::Array<ProcListItem> > proclist;
 
     /// \brief Main process used for reading
-    zmm::Ref<Executor> main_proc;
+    std::shared_ptr<Executor> main_proc;
 
     /// \brief name of the file or fifo to read the data from
     zmm::String filename;

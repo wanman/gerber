@@ -123,9 +123,9 @@ public:
     virtual void process();
 protected:
     void addContainer(int parentID);
-    zmm::Ref<CdsObject> addItem(int parentID, zmm::Ref<CdsItem> item);
-    zmm::Ref<CdsObject> addUrl(int parentID, zmm::Ref<CdsItemExternalURL> item, bool addProtocol);
-    zmm::Ref<CdsObject> addActiveItem(int parentID);
+    std::shared_ptr<CdsObject> addItem(int parentID, std::shared_ptr<CdsItem> item);
+    std::shared_ptr<CdsObject> addUrl(int parentID, std::shared_ptr<CdsItemExternalURL> item, bool addProtocol);
+    std::shared_ptr<CdsObject> addActiveItem(int parentID);
 };
 
 /// \brief autoscan add and remove
@@ -135,7 +135,7 @@ public:
     autoscan();
     virtual void process();
 protected:
-    void autoscan2XML(zmm::Ref<mxml::Element> element, zmm::Ref<AutoscanDirectory> adir);
+    void autoscan2XML(std::shared_ptr<mxml::Element> element, std::shared_ptr<AutoscanDirectory> adir);
 };
 
 /// \brief nothing :)

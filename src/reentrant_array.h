@@ -44,17 +44,17 @@ public:
     { }
     ReentrantArray(int capacity) : zmm::Array<T>(capacity)
     { }
-    inline void append(zmm::Ref<T> el)
+    inline void append(std::shared_ptr<T> el)
     {
         AutoLock lock(mutex);
         zmm::Array<T>::append(el);
     }
-    inline void set(zmm::Ref<T> el, int index)
+    inline void set(std::shared_ptr<T> el, int index)
     {
         AutoLock lock(mutex);
         zmm::Array<T>::set(el, index);
     }
-    inline zmm::Ref<T> get(int index)
+    inline std::shared_ptr<T> get(int index)
     {
         AutoLock lock(mutex);
         return zmm::Array<T>::get(index);
@@ -69,7 +69,7 @@ public:
         AutoLock lock(mutex);
         zmm::Array<T>::removeUnordered(index);
     }
-    inline void insert(int index, zmm::Ref<T> el)
+    inline void insert(int index, std::shared_ptr<T> el)
     {
         AutoLock lock(mutex);
         zmm::Array<T>::insert(index, el);

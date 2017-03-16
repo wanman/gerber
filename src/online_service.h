@@ -74,7 +74,7 @@ public:
     /// to get. Another call to this function after it returned true will
     /// reset the internal counters and thus make it fetch the content from
     /// the beginning.
-    virtual bool refreshServiceData(zmm::Ref<Layout> layout) = 0;
+    virtual bool refreshServiceData(std::shared_ptr<Layout> layout) = 0;
 
     /// \brief Returns the service type
     virtual service_type_t getServiceType() = 0;
@@ -91,7 +91,7 @@ public:
     /// \brief Parses the service related line from config.xml and creates
     /// a task object, which can be anything that helps the service to
     /// identify what data it has to fetch.
-    virtual zmm::Ref<zmm::Object> defineServiceTask(zmm::Ref<mxml::Element> xmlopt, zmm::Ref<zmm::Object> params) = 0;
+    virtual std::shared_ptr<zmm::Object> defineServiceTask(std::shared_ptr<mxml::Element> xmlopt, std::shared_ptr<zmm::Object> params) = 0;
 
     /// \brief Increments the task count. 
     ///
@@ -110,10 +110,10 @@ public:
     void setTaskCount(int taskCount) { this->taskCount = taskCount; }
 
     /// Parameter that can be used by timerNotify
-    void setTimerParameter(zmm::Ref<Timer::Parameter> param)
+    void setTimerParameter(std::shared_ptr<Timer::Parameter> param)
                            { timer_parameter = param; }
 
-    zmm::Ref<Timer::Parameter> getTimerParameter() { return timer_parameter; }
+    std::shared_ptr<Timer::Parameter> getTimerParameter() { return timer_parameter; }
 
     /// \brief Sets the service refresh interval in seconds
     void setRefreshInterval(int interval) {refresh_interval = interval; }
@@ -131,12 +131,12 @@ protected:
     int taskCount;
     int refresh_interval;
     int purge_interval;
-    zmm::Ref<Timer::Parameter> timer_parameter;
+    std::shared_ptr<Timer::Parameter> timer_parameter;
 
     /// \brief retrieves a required attribute given by the name
-    zmm::String getCheckAttr(zmm::Ref<mxml::Element> xml, zmm::String attrname);
+    zmm::String getCheckAttr(std::shared_ptr<mxml::Element> xml, zmm::String attrname);
     /// \brief retrieves a required positive integer attribute given by the name
-    int getCheckPosIntAttr(zmm::Ref<mxml::Element> xml, zmm::String attrname);
+    int getCheckPosIntAttr(std::shared_ptr<mxml::Element> xml, zmm::String attrname);
 };
 
 class OnlineServiceList : public zmm::Object
@@ -145,13 +145,13 @@ public:
     OnlineServiceList();
 
     /// \brief Adds a service to the service list.
-    void registerService(zmm::Ref<OnlineService> service);
+    void registerService(std::shared_ptr<OnlineService> service);
 
     /// \brief Retrieves a service given by the service ID from the list
-    zmm::Ref<OnlineService> getService(service_type_t service);
+    std::shared_ptr<OnlineService> getService(service_type_t service);
 
 protected:
-    zmm::Ref<zmm::Array<OnlineService> > service_list;
+    std::shared_ptr<zmm::Array<OnlineService> > service_list;
 };
 
 #endif//__ONLINE_SERVICE_H__

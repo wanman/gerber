@@ -42,23 +42,23 @@
 
 using namespace zmm;
 
-void PlayHook::trigger(zmm::Ref<CdsObject> obj)
+void PlayHook::trigger(zmm::shared_ptr<CdsObject> obj)
 {
-    Ref<ConfigManager> cfg = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> cfg = ConfigManager::getInstance();
 
     if (cfg->getBoolOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_ENABLED) && !obj->getFlag(OBJECT_FLAG_PLAYED))
     {
-        Ref<Array<StringBase> > mark_list = cfg->getStringArrayOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_CONTENT_LIST);
+        shared_ptr<Array<StringBase> > mark_list = cfg->getStringArrayOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_CONTENT_LIST);
 
         for (int i = 0; i < mark_list->size(); i++)
         {
-            if (RefCast(obj, CdsItem)->getMimeType().startsWith(mark_list->get(i)))
+            if (dynamic_pointer_cast<CdsItem>(obj)->getMimeType().startsWith(mark_list->get(i)))
             {
                 obj->setFlag(OBJECT_FLAG_PLAYED);
         
                 bool supress = cfg->getBoolOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_SUPPRESS_CDS_UPDATES);
 
-                Ref<ContentManager> cm = ContentManager::getInstance();
+                shared_ptr<ContentManager> cm = ContentManager::getInstance();
                 log_debug("Marking object %s as played\n", obj->getTitle().c_str());
                 cm->updateObject(obj, !supress);
                 break;
@@ -68,8 +68,8 @@ void PlayHook::trigger(zmm::Ref<CdsObject> obj)
 
 #ifdef HAVE_LASTFMLIB
     if (cfg->getBoolOption(CFG_SERVER_EXTOPTS_LASTFM_ENABLED) &&
-        (RefCast(obj, CdsItem)->getMimeType().startsWith("audio")))
-        LastFm::getInstance()->startedPlaying(RefCast(obj, CdsItem));
+        (dynamic_pointer_cast<CdsItem>(obj)->getMimeType().startsWith("audio")))
+        LastFm::getInstance()->startedPlaying(dynamic_pointer_cast<CdsItem>(obj));
 #endif
     
 }

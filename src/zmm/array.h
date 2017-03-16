@@ -32,6 +32,7 @@
 #ifndef __ZMMF_ARRAY_H__
 #define __ZMMF_ARRAY_H__
 
+#include <memory>
 #include "zmm.h"
 
 #define DEFAULT_ARRAY_CAPACITY 16
@@ -80,17 +81,17 @@ public:
         base.init(capacity);
     }
 
-    inline void append(Ref<T> el)
+    inline void append(std::shared_ptr<T> el)
     {
         base.append(el.getPtr());
     }
-    inline void set(Ref<T> el, int index)
+    inline void set(std::shared_ptr<T> el, int index)
     {
         base.set(el.getPtr(), index);
     }
-    inline Ref<T> get(int index)
+    inline std::shared_ptr<T> get(int index)
     {
-        return Ref<T>( (T *)base.get(index) );
+        return std::shared_ptr<T>( (T *)base.get(index) );
     }
     inline void remove(int index, int count=1)
     {
@@ -100,7 +101,7 @@ public:
     {
         base.removeUnordered(index);
     }
-    inline void insert(int index, Ref<T> el)
+    inline void insert(int index, std::shared_ptr<T> el)
     {
         base.insert(index, el.getPtr());
     }
@@ -116,11 +117,7 @@ public:
     {
         base.optimize();
     }
-    
-    inline Object **getObjectArray()
-    {
-        return base.arr;
-    }
+
 };
 
 

@@ -43,10 +43,10 @@ char service_prefixes[] = { '\0', 'Y', 'S', 'W', 'T', '\0' };
 
 OnlineServiceList::OnlineServiceList()
 {
-    service_list = Ref<Array<OnlineService> > (new Array<OnlineService>(OS_Max));
+    service_list = shared_ptr<Array<OnlineService> > (new Array<OnlineService>(OS_Max));
 }
 
-void OnlineServiceList::registerService(Ref<OnlineService> service)
+void OnlineServiceList::registerService(shared_ptr<OnlineService> service)
 {
     if (service == nullptr)
         return;
@@ -59,7 +59,7 @@ void OnlineServiceList::registerService(Ref<OnlineService> service)
     service_list->set(service, service->getServiceType());
 }
 
-Ref<OnlineService> OnlineServiceList::getService(service_type_t service)
+shared_ptr<OnlineService> OnlineServiceList::getService(service_type_t service)
 {
     if ((service > OS_Max) || (service < 0))
         return nullptr;
@@ -87,7 +87,7 @@ char OnlineService::getStoragePrefix()
     return getStoragePrefix(getServiceType()); 
 } 
 
-String OnlineService::getCheckAttr(Ref<Element> xml, String attrname)
+String OnlineService::getCheckAttr(shared_ptr<Element> xml, String attrname)
 {
     String temp = xml->getAttribute(attrname);
     if (string_ok(temp))
@@ -99,7 +99,7 @@ String OnlineService::getCheckAttr(Ref<Element> xml, String attrname)
     return nullptr;
 }
 
-int OnlineService::getCheckPosIntAttr(Ref<Element> xml, String attrname)
+int OnlineService::getCheckPosIntAttr(shared_ptr<Element> xml, String attrname)
 {
     int itmp;
     String temp = xml->getAttribute(attrname);

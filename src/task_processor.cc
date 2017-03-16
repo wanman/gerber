@@ -19,7 +19,7 @@ TaskProcessor::TaskProcessor() : Singleton<TaskProcessor>()
     shutdownFlag = false;
     taskThread = 0;
 
-    taskQueue = Ref<ObjectQueue<GenericTask> >(new ObjectQueue<GenericTask>(TP_INITIAL_QUEUE_SIZE));
+    taskQueue = shared_ptr<ObjectQueue<GenericTask> >(new ObjectQueue<GenericTask>(TP_INITIAL_QUEUE_SIZE));
 }
 
 void TaskProcessor::init()
@@ -55,7 +55,7 @@ void *TaskProcessor::staticThreadProc(void *arg)
 
 void TaskProcessor::threadProc()
 {
-    Ref<GenericTask> task;
+    shared_ptr<GenericTask> task;
     unique_lock<mutex_type> lock(mutex);
     working = true;
 
@@ -97,7 +97,7 @@ void TaskProcessor::threadProc()
     }
 }
 
-void TaskProcessor::addTask(Ref<GenericTask> task)
+void TaskProcessor::addTask(shared_ptr<GenericTask> task)
 {
     AutoLock lock(mutex);
 
@@ -107,9 +107,9 @@ void TaskProcessor::addTask(Ref<GenericTask> task)
     cond.notify_one();
 }
 
-Ref<GenericTask> TaskProcessor::getCurrentTask()
+shared_ptr<GenericTask> TaskProcessor::getCurrentTask()
 {
-    Ref<GenericTask> task;
+    shared_ptr<GenericTask> task;
     AutoLock lock(mutex);
     task = currentTask;
     return task;
@@ -120,7 +120,7 @@ void TaskProcessor::invalidateTask(unsigned int taskID)
     int i;
 
     AutoLock lock(mutex);
-    Ref<GenericTask> t = getCurrentTask();
+    shared_ptr<GenericTask> t = getCurrentTask();
     if (t != nullptr)
     {
         if ((t->getID() == taskID) || (t->getParentID() == taskID))
@@ -133,7 +133,7 @@ void TaskProcessor::invalidateTask(unsigned int taskID)
 
     for (i = 0; i < qsize; i++)
     {
-        Ref<GenericTask> t = taskQueue->get(i);
+        shared_ptr<GenericTask> t = taskQueue->get(i);
         if ((t->getID() == taskID) || (t->getParentID() == taskID))
         {
             t->invalidate();
@@ -141,27 +141,27 @@ void TaskProcessor::invalidateTask(unsigned int taskID)
     }
 }
 
-Ref<Array<GenericTask> > TaskProcessor::getTasklist()
+shared_ptr<Array<GenericTask> > TaskProcessor::getTasklist()
 {
     int i;
-    Ref<Array<GenericTask> > taskList = nullptr;
+    shared_ptr<Array<GenericTask> > taskList = nullptr;
 
     AutoLock lock(mutex);
-    Ref<GenericTask> t = getCurrentTask();
+    shared_ptr<GenericTask> t = getCurrentTask();
 
     // if there is no current task, then the queues are empty
     // and we do not have to allocate the array
     if (t == nullptr)
         return nullptr;
 
-    taskList = Ref<Array<GenericTask> >(new Array<GenericTask>());
+    taskList = shared_ptr<Array<GenericTask> >(new Array<GenericTask>());
     taskList->append(t);
 
     int qsize = taskQueue->size();
 
     for (i = 0; i < qsize; i++)
     {
-        Ref<GenericTask> t = taskQueue->get(i);
+        shared_ptr<GenericTask> t = taskQueue->get(i);
         if (t->isValid())
             taskList->append(t);
     }
@@ -172,8 +172,8 @@ Ref<Array<GenericTask> > TaskProcessor::getTasklist()
 TaskProcessor::~TaskProcessor()
 {}
 
-TPFetchOnlineContentTask::TPFetchOnlineContentTask(Ref<OnlineService> service,
-                                                   Ref<Layout> layout,
+TPFetchOnlineContentTask::TPFetchOnlineContentTask(shared_ptr<OnlineService> service,
+                                                   shared_ptr<Layout> layout,
                                                    bool cancellable,
                                                    bool unscheduled_refresh) : GenericTask(TaskProcessorTask)
 {
@@ -202,7 +202,7 @@ void TPFetchOnlineContentTask::run()
 
             if ((service->getRefreshInterval() > 0) || unscheduled_refresh)
             {
-                Ref<GenericTask> t(new TPFetchOnlineContentTask(service, layout, cancellable, unscheduled_refresh));
+                shared_ptr<GenericTask> t(new TPFetchOnlineContentTask(service, layout, cancellable, unscheduled_refresh));
                 TaskProcessor::getInstance()->addTask(t);
             }
         }

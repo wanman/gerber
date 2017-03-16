@@ -86,13 +86,13 @@ void RExp::compile(zmm::String pattern, const char *sflags)
     compile(pattern, flags);
 }
 
-Ref<Matcher> RExp::matcher(String text, int nmatch)
+shared_ptr<Matcher> RExp::matcher(String text, int nmatch)
 {
-    return Ref<Matcher>(new Matcher(Ref<RExp>(this), text, nmatch));
+    return shared_ptr<Matcher>(new Matcher(shared_ptr<RExp>(this), text, nmatch));
 }
-Ref<Matcher> RExp::match(String text, int nmatch)
+shared_ptr<Matcher> RExp::match(String text, int nmatch)
 {
-    Ref<Matcher> m = matcher(text, nmatch);
+    shared_ptr<Matcher> m = matcher(text, nmatch);
     if (m->next())
         return m;
     else
@@ -101,11 +101,11 @@ Ref<Matcher> RExp::match(String text, int nmatch)
 
 bool RExp::matches(String text)
 {
-    Ref<Matcher> matcher(new Matcher(Ref<RExp>(this), text, 0));
+    shared_ptr<Matcher> matcher(new Matcher(shared_ptr<RExp>(this), text, 0));
     return matcher->next();
 }
 
-Matcher::Matcher(zmm::Ref<RExp> rexp, String text, int nmatch)
+Matcher::Matcher(zmm::shared_ptr<RExp> rexp, String text, int nmatch)
 {
     this->rexp = rexp;
     this->text = text;

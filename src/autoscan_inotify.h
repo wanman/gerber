@@ -61,10 +61,10 @@ public:
     void shutdown();
     
     /// \brief Start monitoring a directory
-    void monitor(zmm::Ref<AutoscanDirectory> dir);
+    void monitor(std::shared_ptr<AutoscanDirectory> dir);
     
     /// \brief Stop monitoring a directory
-    void unmonitor(zmm::Ref<AutoscanDirectory> dir);
+    void unmonitor(std::shared_ptr<AutoscanDirectory> dir);
     
 private:
     static void *staticThreadProc(void *arg);
@@ -72,13 +72,13 @@ private:
     
     pthread_t thread;
     
-    zmm::Ref<Inotify> inotify;
+    std::shared_ptr<Inotify> inotify;
 
     std::mutex mutex;
     using AutoLock = std::lock_guard<std::mutex>;
 
-    zmm::Ref<zmm::ObjectQueue<AutoscanDirectory> > monitorQueue;
-    zmm::Ref<zmm::ObjectQueue<AutoscanDirectory> > unmonitorQueue;
+    std::shared_ptr<zmm::ObjectQueue<AutoscanDirectory> > monitorQueue;
+    std::shared_ptr<zmm::ObjectQueue<AutoscanDirectory> > unmonitorQueue;
     
     // event mask with events to watch for (set by constructor);
     int events;
@@ -104,7 +104,7 @@ private:
     class WatchAutoscan : public Watch
     {
     public:
-        WatchAutoscan(bool startPoint, zmm::Ref<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath) : Watch(WatchAutoscanType)
+        WatchAutoscan(bool startPoint, std::shared_ptr<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath) : Watch(WatchAutoscanType)
         {
             setAutoscanDirectory(adir);
             setNormalizedAutoscanPath(normalizedAutoscanPath);
@@ -112,26 +112,26 @@ private:
             this->startPoint = startPoint;
             this->descendants = nullptr;
         }
-        zmm::Ref<AutoscanDirectory> getAutoscanDirectory() { return adir; }
-        void setAutoscanDirectory(zmm::Ref<AutoscanDirectory> adir) { this->adir = adir; }
+        std::shared_ptr<AutoscanDirectory> getAutoscanDirectory() { return adir; }
+        void setAutoscanDirectory(std::shared_ptr<AutoscanDirectory> adir) { this->adir = adir; }
         zmm::String getNormalizedAutoscanPath() { return normalizedAutoscanPath; }
         void setNormalizedAutoscanPath(zmm::String normalizedAutoscanPath) { this->normalizedAutoscanPath = normalizedAutoscanPath; }
         bool isStartPoint() { return startPoint; }
-        zmm::Ref<zmm::Array<zmm::StringBase> > getNonexistingPathArray() { return nonexistingPathArray; }
-        void setNonexistingPathArray(zmm::Ref<zmm::Array<zmm::StringBase> > nonexistingPathArray) { this->nonexistingPathArray = nonexistingPathArray; }
+        std::shared_ptr<zmm::Array<zmm::StringBase> > getNonexistingPathArray() { return nonexistingPathArray; }
+        void setNonexistingPathArray(std::shared_ptr<zmm::Array<zmm::StringBase> > nonexistingPathArray) { this->nonexistingPathArray = nonexistingPathArray; }
         void addDescendant(int wd)
         {
             if (descendants == nullptr)
-                descendants = zmm::Ref<zmm::IntArray>(new zmm::IntArray());
+                descendants = std::shared_ptr<zmm::IntArray>(new zmm::IntArray());
             descendants->append(wd);
         }
-        zmm::Ref<zmm::IntArray> getDescendants() { return descendants; }
+        std::shared_ptr<zmm::IntArray> getDescendants() { return descendants; }
     private:
-        zmm::Ref<AutoscanDirectory> adir;
+        std::shared_ptr<AutoscanDirectory> adir;
         bool startPoint;
-        zmm::Ref<zmm::IntArray> descendants;
+        std::shared_ptr<zmm::IntArray> descendants;
         zmm::String normalizedAutoscanPath;
-        zmm::Ref<zmm::Array<zmm::StringBase> > nonexistingPathArray;
+        std::shared_ptr<zmm::Array<zmm::StringBase> > nonexistingPathArray;
     };
     
     class WatchMove : public Watch
@@ -151,7 +151,7 @@ private:
     public:
         Wd(zmm::String path, int wd, int parentWd)
         {
-            wdWatches = zmm::Ref<zmm::Array<Watch> >(new zmm::Array<Watch>(1));
+            wdWatches = std::shared_ptr<zmm::Array<Watch> >(new zmm::Array<Watch>(1));
             this->path = path;
             this->wd = wd;
             this->parentWd = parentWd;
@@ -160,41 +160,41 @@ private:
         int getWd() { return wd; }
         int getParentWd() { return parentWd; }
         void setParentWd(int parentWd) { this->parentWd = parentWd; }
-        zmm::Ref<zmm::Array<Watch> > getWdWatches() { return wdWatches; }
+        std::shared_ptr<zmm::Array<Watch> > getWdWatches() { return wdWatches; }
     private:
-        zmm::Ref<zmm::Array<Watch> > wdWatches;
+        std::shared_ptr<zmm::Array<Watch> > wdWatches;
         zmm::String path;
         int parentWd;
         int wd;
     };
 
-    std::shared_ptr<std::unordered_map<int, zmm::Ref<Wd>> > watches;
+    std::shared_ptr<std::unordered_map<int, std::shared_ptr<Wd>> > watches;
     
     zmm::String normalizePathNoEx(zmm::String path);
     
-    void monitorUnmonitorRecursive(zmm::String startPath, bool unmonitor, zmm::Ref<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath, bool startPoint);
-    int monitorDirectory(zmm::String path, zmm::Ref<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath, bool startPoint, zmm::Ref<zmm::Array<zmm::StringBase> > pathArray = nullptr);
-    void unmonitorDirectory(zmm::String path, zmm::Ref<AutoscanDirectory> adir);
+    void monitorUnmonitorRecursive(zmm::String startPath, bool unmonitor, std::shared_ptr<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath, bool startPoint);
+    int monitorDirectory(zmm::String path, std::shared_ptr<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath, bool startPoint, std::shared_ptr<zmm::Array<zmm::StringBase> > pathArray = nullptr);
+    void unmonitorDirectory(zmm::String path, std::shared_ptr<AutoscanDirectory> adir);
     
-    zmm::Ref<WatchAutoscan> getAppropriateAutoscan(zmm::Ref<Wd> wdObj, zmm::Ref<AutoscanDirectory> adir);
-    zmm::Ref<WatchAutoscan> getAppropriateAutoscan(zmm::Ref<Wd> wdObj, zmm::String path);
-    zmm::Ref<WatchAutoscan> getStartPoint(zmm::Ref<Wd> wdObj);
+    std::shared_ptr<WatchAutoscan> getAppropriateAutoscan(std::shared_ptr<Wd> wdObj, std::shared_ptr<AutoscanDirectory> adir);
+    std::shared_ptr<WatchAutoscan> getAppropriateAutoscan(std::shared_ptr<Wd> wdObj, zmm::String path);
+    std::shared_ptr<WatchAutoscan> getStartPoint(std::shared_ptr<Wd> wdObj);
     
-    bool removeFromWdObj(zmm::Ref<Wd> wdObj, zmm::Ref<Watch> toRemove);
-    bool removeFromWdObj(zmm::Ref<Wd> wdObj, zmm::Ref<WatchAutoscan> toRemove);
-    bool removeFromWdObj(zmm::Ref<Wd> wdObj, zmm::Ref<WatchMove> toRemove);
+    bool removeFromWdObj(std::shared_ptr<Wd> wdObj, std::shared_ptr<Watch> toRemove);
+    bool removeFromWdObj(std::shared_ptr<Wd> wdObj, std::shared_ptr<WatchAutoscan> toRemove);
+    bool removeFromWdObj(std::shared_ptr<Wd> wdObj, std::shared_ptr<WatchMove> toRemove);
     
-    void monitorNonexisting(zmm::String path, zmm::Ref<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath);
-    void recheckNonexistingMonitor(int curWd, zmm::Ref<zmm::Array<zmm::StringBase> > nonexistingPathArray, zmm::Ref<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath);
-    void recheckNonexistingMonitors(int wd, zmm::Ref<Wd> wdObj);
-    void removeNonexistingMonitor(int wd, zmm::Ref<Wd> wdObj, zmm::Ref<zmm::Array<zmm::StringBase> > pathAr);
+    void monitorNonexisting(zmm::String path, std::shared_ptr<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath);
+    void recheckNonexistingMonitor(int curWd, std::shared_ptr<zmm::Array<zmm::StringBase> > nonexistingPathArray, std::shared_ptr<AutoscanDirectory> adir, zmm::String normalizedAutoscanPath);
+    void recheckNonexistingMonitors(int wd, std::shared_ptr<Wd> wdObj);
+    void removeNonexistingMonitor(int wd, std::shared_ptr<Wd> wdObj, std::shared_ptr<zmm::Array<zmm::StringBase> > pathAr);
     
     int watchPathForMoves(zmm::String path, int wd);
     int addMoveWatch(zmm::String path, int removeWd, int parentWd);
-    void checkMoveWatches(int wd, zmm::Ref<Wd> wdObj);
+    void checkMoveWatches(int wd, std::shared_ptr<Wd> wdObj);
     void removeWatchMoves(int wd);
     
-    void addDescendant(int startPointWd, int addWd, zmm::Ref<AutoscanDirectory> adir);
+    void addDescendant(int startPointWd, int addWd, std::shared_ptr<AutoscanDirectory> adir);
     void removeDescendants(int wd);
     
     /// \brief is set to true by shutdown() if the inotify thread should terminate

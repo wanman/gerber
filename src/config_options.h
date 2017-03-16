@@ -62,33 +62,33 @@ public:
     };
 
 
-    virtual zmm::Ref<Dictionary> getDictionaryOption()
+    virtual std::shared_ptr<Dictionary> getDictionaryOption()
     {
         throw _Exception(_("Wrong option type"));
     };
 
-    virtual zmm::Ref<AutoscanList> getAutoscanListOption()
+    virtual std::shared_ptr<AutoscanList> getAutoscanListOption()
     {
         throw _Exception(_("Wrong option type"));
     };
 
-    virtual zmm::Ref<zmm::Array<zmm::StringBase> > getStringArrayOption()
+    virtual std::shared_ptr<zmm::Array<zmm::StringBase> > getStringArrayOption()
     {
         throw _Exception(_("Wrong option type"));
     };
 #ifdef EXTERNAL_TRANSCODING
-    virtual zmm::Ref<TranscodingProfileList> getTranscodingProfileListOption()
+    virtual std::shared_ptr<TranscodingProfileList> getTranscodingProfileListOption()
     {
         throw _Exception(_("Wrong option type"));
     };
 #endif
 #ifdef ONLINE_SERVICES
-    virtual zmm::Ref<zmm::Array<zmm::Object> > getObjectArrayOption()
+    virtual std::shared_ptr<zmm::Array<zmm::Object> > getObjectArrayOption()
     {
         throw _Exception(_("Wrong option type"));
     }
 #endif
-    virtual zmm::Ref<ObjectDictionary<zmm::Object> > getObjectDictionaryOption()
+    virtual std::shared_ptr<ObjectDictionary<zmm::Object> > getObjectDictionaryOption()
     {
         throw _Exception(_("Wrong option type"));
     }
@@ -132,60 +132,60 @@ protected:
 class DictionaryOption : public ConfigOption
 {
 public:
-    DictionaryOption(zmm::Ref<Dictionary> option) { this->option = option; };
+    DictionaryOption(std::shared_ptr<Dictionary> option) { this->option = option; };
 
-    virtual zmm::Ref<Dictionary> getDictionaryOption() { return option; };
+    virtual std::shared_ptr<Dictionary> getDictionaryOption() { return option; };
 
 protected:
-    zmm::Ref<Dictionary> option;
+    std::shared_ptr<Dictionary> option;
 };
 
 class StringArrayOption : public ConfigOption
 {
 public:
-    StringArrayOption(zmm::Ref<zmm::Array<zmm::StringBase> > option) 
+    StringArrayOption(std::shared_ptr<zmm::Array<zmm::StringBase> > option) 
     { 
         this->option = option; 
     };
 
-    virtual zmm::Ref<zmm::Array<zmm::StringBase> > getStringArrayOption() 
+    virtual std::shared_ptr<zmm::Array<zmm::StringBase> > getStringArrayOption() 
     { 
         return option; 
     };
 
 protected:
-    zmm::Ref<zmm::Array<zmm::StringBase> > option;
+    std::shared_ptr<zmm::Array<zmm::StringBase> > option;
 };
 
 class AutoscanListOption : public ConfigOption
 {
 public:
-    AutoscanListOption(zmm::Ref<AutoscanList> option) 
+    AutoscanListOption(std::shared_ptr<AutoscanList> option) 
     { 
         this->option = option; 
     };
 
-    virtual zmm::Ref<AutoscanList> getAutoscanListOption() { return option; };
+    virtual std::shared_ptr<AutoscanList> getAutoscanListOption() { return option; };
 
 protected:
-    zmm::Ref<AutoscanList> option;
+    std::shared_ptr<AutoscanList> option;
 };
 
 #ifdef EXTERNAL_TRANSCODING
 class TranscodingProfileListOption : public ConfigOption
 {
 public:
-    TranscodingProfileListOption(zmm::Ref<TranscodingProfileList> option)
+    TranscodingProfileListOption(std::shared_ptr<TranscodingProfileList> option)
     {
         this->option = option;
     };
 
-    virtual zmm::Ref<TranscodingProfileList> getTranscodingProfileListOption()
+    virtual std::shared_ptr<TranscodingProfileList> getTranscodingProfileListOption()
     {
         return option;
     };
 protected:
-    zmm::Ref<TranscodingProfileList> option;
+    std::shared_ptr<TranscodingProfileList> option;
 };
 #endif//EXTERNAL_TRANSCODING
 
@@ -193,18 +193,18 @@ protected:
 class ObjectArrayOption : public ConfigOption
 {
 public:
-    ObjectArrayOption(zmm::Ref<zmm::Array<zmm::Object> > option) 
+    ObjectArrayOption(std::shared_ptr<zmm::Array<zmm::Object> > option) 
     { 
         this->option = option; 
     };
 
-    virtual zmm::Ref<zmm::Array<zmm::Object> > getObjectArrayOption() 
+    virtual std::shared_ptr<zmm::Array<zmm::Object> > getObjectArrayOption() 
     { 
         return option; 
     };
 
 protected:
-    zmm::Ref<zmm::Array<zmm::Object> > option;
+    std::shared_ptr<zmm::Array<zmm::Object> > option;
 };
 
 #endif//ONLINE_SERVICES
@@ -212,17 +212,17 @@ protected:
 class ObjectDictionaryOption : public ConfigOption
 {
 public:
-    ObjectDictionaryOption(zmm::Ref<ObjectDictionary<zmm::Object> > option)
+    ObjectDictionaryOption(std::shared_ptr<ObjectDictionary<zmm::Object> > option)
     {
         this->option = option;
     };
 
-    virtual zmm::Ref<ObjectDictionary<zmm::Object> > getObjectDictionaryOption()
+    virtual std::shared_ptr<ObjectDictionary<zmm::Object> > getObjectDictionaryOption()
     {
         return option;
     };
 protected:
-    zmm::Ref<ObjectDictionary<zmm::Object> > option;
+    std::shared_ptr<ObjectDictionary<zmm::Object> > option;
 };
 
 #endif // __CONFIG_MANAGER_H__

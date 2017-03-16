@@ -65,19 +65,19 @@ int FsObjectComparator(void *arg1, void *arg2)
 
 Filesystem::Filesystem() : Object()
 {
-    includeRules = Ref<Array<RExp> >(new Array<RExp>());
-    Ref<ConfigManager> cm = ConfigManager::getInstance();
+    includeRules = shared_ptr<Array<RExp> >(new Array<RExp>());
+    shared_ptr<ConfigManager> cm = ConfigManager::getInstance();
 /*    
-    Ref<Element> rules = cm->getElement(_("filter"));
+    shared_ptr<Element> rules = cm->getElement(_("filter"));
     if (rules == nullptr)
         return;
     for (int i = 0; i < rules->childCount(); i++)
     {
-        Ref<Element> rule = rules->getChild(i);
+        shared_ptr<Element> rule = rules->getChild(i);
         String pat = rule->getAttribute(_("pattern"));
         /// \todo make patterns from simple wildcards instead of
         /// taking the pattern attribute directly as regexp
-        Ref<RExp> pattern(new RExp());
+        shared_ptr<RExp> pattern(new RExp());
         try
         {
             pattern->compile(pat);
@@ -91,7 +91,7 @@ Filesystem::Filesystem() : Object()
     */
 }
 
-Ref<Array<FsObject> > Filesystem::readDirectory(String path, int mask,
+shared_ptr<Array<FsObject> > Filesystem::readDirectory(String path, int mask,
                                                 int childMask)
 {
     if (path.charAt(0) != '/')
@@ -105,7 +105,7 @@ Ref<Array<FsObject> > Filesystem::readDirectory(String path, int mask,
     struct stat statbuf;
     int ret;
 
-    Ref<Array<FsObject> > files(new Array<FsObject>());
+    shared_ptr<Array<FsObject> > files(new Array<FsObject>());
 
     DIR *dir;
     struct dirent *dent;
@@ -170,7 +170,7 @@ Ref<Array<FsObject> > Filesystem::readDirectory(String path, int mask,
             else
                 continue; // special file
             
-            Ref<FsObject> obj(new FsObject());
+            shared_ptr<FsObject> obj(new FsObject());
             obj->filename = name;
             obj->isDirectory = isDirectory;
             obj->hasContent = hasContent;
@@ -200,7 +200,7 @@ bool Filesystem::have(String path, int mask)
     struct stat statbuf;
     int ret;
 
-    Ref<Array<FsObject> > files(new Array<FsObject>());
+    shared_ptr<Array<FsObject> > files(new Array<FsObject>());
 
     DIR *dir;
     struct dirent *dent;
@@ -275,7 +275,7 @@ bool Filesystem::fileAllowed(String path)
     /*
     for (int i = 0; i < include_rules->size(); i++)
     {
-        Ref<RExp> rule = include_rules->get(i);
+        shared_ptr<RExp> rule = include_rules->get(i);
         if (rule->matches(path))
             return true;
     }

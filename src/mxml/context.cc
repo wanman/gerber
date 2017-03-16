@@ -46,9 +46,9 @@ Context::Context()
     col = 1;
 }
 
-Ref<Context> Context::clone()
+shared_ptr<Context> Context::clone()
 {
-    Ref<Context> copy = Ref<Context>(new Context());
+    shared_ptr<Context> copy = shared_ptr<Context>(new Context());
     copy->location = location;
     copy->parent = parent;
     copy->line = line;
@@ -56,7 +56,7 @@ Ref<Context> Context::clone()
     return copy;
 }
 
-void Context::setParent(Ref<Context> parent)
+void Context::setParent(shared_ptr<Context> parent)
 {
     this->parent = parent;
 }

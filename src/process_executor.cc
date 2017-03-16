@@ -36,7 +36,7 @@
 
 using namespace zmm;
 
-ProcessExecutor::ProcessExecutor(String command, Ref<Array<StringBase> > arglist)
+ProcessExecutor::ProcessExecutor(String command, shared_ptr<Array<StringBase> > arglist)
 {
 #define MAX_ARGS 255
     const char *argv[MAX_ARGS];

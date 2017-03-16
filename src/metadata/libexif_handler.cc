@@ -261,7 +261,7 @@ static int getTagFromString(String tag)
 char exif_entry_buffer[BUFLEN];
 #define exif_egv(arg) exif_entry_get_value(arg, exif_entry_buffer, BUFLEN)
 
-void LibExifHandler::process_ifd (ExifContent *content, Ref<CdsItem> item, Ref<StringConverter> sc, Ref<Array<StringBase> > auxtags)
+void LibExifHandler::process_ifd (ExifContent *content, shared_ptr<CdsItem> item, shared_ptr<StringConverter> sc, shared_ptr<Array<StringBase> > auxtags)
 {
     ExifEntry *e;
     unsigned int i;
@@ -355,12 +355,12 @@ void LibExifHandler::process_ifd (ExifContent *content, Ref<CdsItem> item, Ref<S
 }
 
 
-void LibExifHandler::fillMetadata(Ref<CdsItem> item)
+void LibExifHandler::fillMetadata(shared_ptr<CdsItem> item)
 {
     ExifData    *ed;
-    Ref<Array<StringBase> > aux;
+    shared_ptr<Array<StringBase> > aux;
     
-    Ref<StringConverter> sc = StringConverter::m2i();
+    shared_ptr<StringConverter> sc = StringConverter::m2i();
 
     ed = exif_data_new_from_file(item->getLocation().c_str());
 
@@ -371,7 +371,7 @@ void LibExifHandler::fillMetadata(Ref<CdsItem> item)
         return;
     }
 
-    Ref<ConfigManager> cm = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> cm = ConfigManager::getInstance();
     aux = cm->getStringArrayOption(CFG_IMPORT_LIBOPTS_EXIF_AUXDATA_TAGS_LIST);
     for (int i = 0; i < EXIF_IFD_COUNT; i++)
     {
@@ -394,12 +394,12 @@ void LibExifHandler::fillMetadata(Ref<CdsItem> item)
     {
         try
         {
-            Ref<IOHandler> io_h(new MemIOHandler(ed->data, ed->size));
+            shared_ptr<IOHandler> io_h(new MemIOHandler(ed->data, ed->size));
             io_h->open(UPNP_READ);
             String th_resolution = get_jpeg_resolution(io_h);
             log_debug("RESOLUTION: %s\n", th_resolution.c_str());
 
-            Ref<CdsResource> resource(new CdsResource(CH_LIBEXIF));
+            shared_ptr<CdsResource> resource(new CdsResource(CH_LIBEXIF));
             resource->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO), renderProtocolInfo(item->getMimeType()));
             resource->addAttribute(MetadataHandler::getResAttrName(R_RESOLUTION), th_resolution); 
             resource->addParameter(_(RESOURCE_CONTENT_TYPE), _(EXIF_THUMBNAIL));
@@ -414,10 +414,10 @@ void LibExifHandler::fillMetadata(Ref<CdsItem> item)
     exif_data_unref(ed);
 }
 
-Ref<IOHandler> LibExifHandler::serveContent(Ref<CdsItem> item, int resNum, off_t *data_size)
+shared_ptr<IOHandler> LibExifHandler::serveContent(shared_ptr<CdsItem> item, int resNum, off_t *data_size)
 {
     ExifData    *ed;
-    Ref<CdsResource> res = item->getResource(resNum);
+    shared_ptr<CdsResource> res = item->getResource(resNum);
     
     String ctype = res->getParameters()->get(_(RESOURCE_CONTENT_TYPE));
 
@@ -430,7 +430,7 @@ Ref<IOHandler> LibExifHandler::serveContent(Ref<CdsItem> item, int resNum, off_t
     if (!(ed->size))
         throw _Exception(_("LibExifHandler: resource has no exif thumbnail"));
 
-    Ref<IOHandler> h(new MemIOHandler(ed->data, ed->size));
+    shared_ptr<IOHandler> h(new MemIOHandler(ed->data, ed->size));
     *data_size = ed->size;
 
     exif_data_unref(ed);

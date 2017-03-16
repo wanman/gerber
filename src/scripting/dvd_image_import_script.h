@@ -40,22 +40,22 @@
 class DVDImportScript : public Script
 {
 public:
-    DVDImportScript(zmm::Ref<Runtime> runtime);
+    DVDImportScript(std::shared_ptr<Runtime> runtime);
     ~DVDImportScript();
     /// \brief Adds a DVD object to the database
     /// 
     /// \param title DVD title number
     /// \param chapter DVD chapter 
     /// \param audio track DVD audio track
-    void addDVDObject(zmm::Ref<CdsObject> obj, int title, int chapter, 
+    void addDVDObject(std::shared_ptr<CdsObject> obj, int title, int chapter, 
                       int audio_track, zmm::String chain, 
                       zmm::String containerclass);
-    void processDVDObject(zmm::Ref<CdsObject> obj);
+    void processDVDObject(std::shared_ptr<CdsObject> obj);
     virtual script_class_t whoami() { return S_DVD; }
 
 private:
     int currentObjectID;
-    zmm::Ref<GenericTask> currentTask;
+    std::shared_ptr<GenericTask> currentTask;
     JSObject *root;
     zmm::String mimetype;
 

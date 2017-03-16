@@ -45,14 +45,14 @@
 using namespace zmm;
 using namespace mxml;
 
-bool YouTubeContentHandler::setServiceContent(zmm::Ref<mxml::Element> service)
+bool YouTubeContentHandler::setServiceContent(zmm::shared_ptr<mxml::Element> service)
 {
     String temp;
 
     if (service->getName() != "rss")
         throw _Exception(_("Invalid XML for YouTube service received"));
 
-    Ref<Element> channel = service->getChildByName(_("channel"));
+    shared_ptr<Element> channel = service->getChildByName(_("channel"));
     if (channel == nullptr)
         throw _Exception(_("Invalid XML for YouTube service received - channel not found!"));
 
@@ -78,7 +78,7 @@ bool YouTubeContentHandler::setServiceContent(zmm::Ref<mxml::Element> service)
     int item_node_index = 0;
     while (item_node_index < channel_child_count)
     {
-        Ref<Node> n = service_xml->getChild(item_node_index);
+        shared_ptr<Node> n = service_xml->getChild(item_node_index);
         if (n == nullptr)
             return false;
         
@@ -87,7 +87,7 @@ bool YouTubeContentHandler::setServiceContent(zmm::Ref<mxml::Element> service)
         if (n->getType() != mxml_node_element)
             continue;
 
-        Ref<Element> channel_item = RefCast(n, Element);
+        shared_ptr<Element> channel_item = dynamic_pointer_cast<Element>(n);
         if (channel_item->getName() == "item")
         {
             has_items = true;
@@ -101,7 +101,7 @@ bool YouTubeContentHandler::setServiceContent(zmm::Ref<mxml::Element> service)
 
     current_node_index = 0;
 
-    Ref<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_LIST);
+    shared_ptr<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_LIST);
 
     // this is somewhat a dilemma... we know that YT video thumbs are jpeg
     // but we do not check that; we could probably do a HTTP HEAD request,
@@ -119,15 +119,15 @@ bool YouTubeContentHandler::setServiceContent(zmm::Ref<mxml::Element> service)
     return true;
 }
 
-Ref<YouTubeSubFeed> YouTubeContentHandler::getSubFeed(Ref<Element> feedxml)
+shared_ptr<YouTubeSubFeed> YouTubeContentHandler::getSubFeed(shared_ptr<Element> feedxml)
 {
     String temp;
-     Ref<YouTubeSubFeed> subfeed(new YouTubeSubFeed());
+     shared_ptr<YouTubeSubFeed> subfeed(new YouTubeSubFeed());
 
     if (feedxml->getName() != "rss")
         throw _Exception(_("Invalid XML for YouTube feed received"));
 
-    Ref<Element> channel = feedxml->getChildByName(_("channel"));
+    shared_ptr<Element> channel = feedxml->getChildByName(_("channel"));
     if (channel == nullptr)
         throw _Exception(_("Invalid XML for YouTube service received - channel not found!"));
    
@@ -143,15 +143,15 @@ Ref<YouTubeSubFeed> YouTubeContentHandler::getSubFeed(Ref<Element> feedxml)
     // now cycle through all items and put the links into the array
     for (int i = 0; i < channel->childCount(); i++)
     {
-        Ref<Node> n = channel->getChild(i);
+        shared_ptr<Node> n = channel->getChild(i);
         if (n->getType() != mxml_node_element)
             continue;
 
-        Ref<Element> channel_item = RefCast(n, Element);
+        shared_ptr<Element> channel_item = dynamic_pointer_cast<Element>(n);
         if (channel_item->getName() != "item")
             continue;
 
-        Ref<Element> link = channel_item->getChildByName(_("gd:feedLink"));
+        shared_ptr<Element> link = channel_item->getChildByName(_("gd:feedLink"));
         if (link == nullptr)
             continue;
         temp = link->getAttribute(_("href"));
@@ -164,7 +164,7 @@ Ref<YouTubeSubFeed> YouTubeContentHandler::getSubFeed(Ref<Element> feedxml)
     return subfeed;
 }
 
-Ref<CdsObject> YouTubeContentHandler::getNextObject()
+shared_ptr<CdsObject> YouTubeContentHandler::getNextObject()
 {
 #define DATE_BUF_LEN 12
     String temp;
@@ -174,7 +174,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
 
     while (current_node_index < channel_child_count)
     {
-        Ref<Node> n = service_xml->getChild(current_node_index);
+        shared_ptr<Node> n = service_xml->getChild(current_node_index);
 
         current_node_index++;
       
@@ -184,13 +184,13 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
         if (n->getType() != mxml_node_element)
             continue;
 
-        Ref<Element> channel_item = RefCast(n, Element);
+        shared_ptr<Element> channel_item = dynamic_pointer_cast<Element>(n);
         if (channel_item->getName() != "item")
             continue;
 
         // we know what we are adding
-        Ref<CdsItemExternalURL> item(new CdsItemExternalURL());
-        Ref<CdsResource> resource(new CdsResource(CH_DEFAULT));
+        shared_ptr<CdsItemExternalURL> item(new CdsItemExternalURL());
+        shared_ptr<CdsResource> resource(new CdsResource(CH_DEFAULT));
         item->addResource(resource);
         resource->addParameter(_(ONLINE_SERVICE_AUX_ID), 
                 String::from(OS_YouTube));
@@ -244,7 +244,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
         if (string_ok(temp))
             item->setAuxData(_(YOUTUBE_AUXDATA_AUTHOR), temp);
 
-        Ref<Element> mediagroup = channel_item->getChildByName(_("media:group"));
+        shared_ptr<Element> mediagroup = channel_item->getChildByName(_("media:group"));
         if (mediagroup == nullptr)
             continue;
 
@@ -256,7 +256,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
         int mediagroup_child_count = mediagroup->elementChildCount();
         for (int mcc = 0; mcc < mediagroup_child_count; mcc++)
         {
-            Ref<Element> el = mediagroup->getElementChild(mcc);
+            shared_ptr<Element> el = mediagroup->getElementChild(mcc);
             if (el == nullptr)
                 continue;
 
@@ -324,7 +324,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
                     continue;
                 }
 
-                Ref<CdsResource> thumbnail(new CdsResource(CH_EXTURL));
+                shared_ptr<CdsResource> thumbnail(new CdsResource(CH_EXTURL));
                 thumbnail->addOption(_(RESOURCE_CONTENT_TYPE), _(THUMBNAIL));
                 thumbnail->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO), renderProtocolInfo(thumb_mimetype));
                 thumbnail->addOption(_(RESOURCE_OPTION_URL), temp);
@@ -345,7 +345,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
 
         }
       
-        Ref<Element> stats = channel_item->getChildByName(_("yt:statistics"));
+        shared_ptr<Element> stats = channel_item->getChildByName(_("yt:statistics"));
         if (stats != nullptr)
         {
             temp = stats->getAttribute(_("viewCount"));
@@ -357,7 +357,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
                 item->setAuxData(_(YOUTUBE_AUXDATA_FAVORITE_COUNT), temp);
         }
 
-        Ref<Element> rating = channel_item->getChildByName(_("gd:rating"));
+        shared_ptr<Element> rating = channel_item->getChildByName(_("gd:rating"));
         if (rating != nullptr)
         {
             temp = rating->getAttribute(_("average"));
@@ -379,7 +379,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
         try
         {
             item->validate();
-            return RefCast(item, CdsObject);
+            return dynamic_pointer_cast<CdsObject>(item);
         }
         catch (const Exception & ex)
         {
@@ -393,7 +393,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
 
 YouTubeSubFeed::YouTubeSubFeed()
 {
-    links = Ref<Array<StringBase> >(new Array<StringBase>());
+    links = shared_ptr<Array<StringBase> >(new Array<StringBase>());
     title = nullptr;
 }
 

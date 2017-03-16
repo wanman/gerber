@@ -44,7 +44,7 @@ WebRequestHandler::WebRequestHandler()
     : RequestHandler()
 {
     checkRequestCalled = false;
-    params = Ref<Dictionary>(new Dictionary());
+    params = shared_ptr<Dictionary>(new Dictionary());
 }
 
 int WebRequestHandler::intParam(String name, int invalid)
@@ -125,10 +125,10 @@ void WebRequestHandler::get_info(IN const char* filename, OUT UpnpFileInfo* info
     UpnpFileInfo_set_ExtraHeaders(info, ixmlCloneDOMString("Cache-Control: no-cache, must-revalidate\n"));
 }
 
-Ref<IOHandler> WebRequestHandler::open(IN enum UpnpOpenFileMode mode)
+shared_ptr<IOHandler> WebRequestHandler::open(IN enum UpnpOpenFileMode mode)
 {
-    root = Ref<Element>(new Element(_("root")));
-    out = Ref<StringBuffer>(new StringBuffer());
+    root = shared_ptr<Element>(new Element(_("root")));
+    out = shared_ptr<StringBuffer>(new StringBuffer());
 
     String error = nullptr;
     int error_code = 0;
@@ -174,7 +174,7 @@ Ref<IOHandler> WebRequestHandler::open(IN enum UpnpOpenFileMode mode)
         root->setAttribute(_("success"), _("1"), mxml_bool_type);
     } else {
         root->setAttribute(_("success"), _("0"), mxml_bool_type);
-        Ref<Element> errorEl(new Element(_("error")));
+        shared_ptr<Element> errorEl(new Element(_("error")));
         errorEl->setTextKey(_("text"));
         errorEl->setText(error);
 
@@ -219,12 +219,12 @@ Ref<IOHandler> WebRequestHandler::open(IN enum UpnpOpenFileMode mode)
 
     //root = nullptr;
 
-    Ref<MemIOHandler> io_handler(new MemIOHandler(output));
+    shared_ptr<MemIOHandler> io_handler(new MemIOHandler(output));
     io_handler->open(mode);
-    return RefCast(io_handler, IOHandler);
+    return dynamic_pointer_cast<IOHandler>(io_handler);
 }
 
-Ref<IOHandler> WebRequestHandler::open(IN const char* filename,
+shared_ptr<IOHandler> WebRequestHandler::open(IN const char* filename,
     IN enum UpnpOpenFileMode mode,
     IN String range)
 {
@@ -245,7 +245,7 @@ void WebRequestHandler::handleUpdateIDs()
 
     String updates = param(_("updates"));
     if (string_ok(updates)) {
-        Ref<Element> updateIDs(new Element(_("update_ids")));
+        shared_ptr<Element> updateIDs(new Element(_("update_ids")));
         root->appendElementChild(updateIDs);
         if (updates == "check") {
             updateIDs->setAttribute(_("pending"), session->hasUIUpdateIDs() ? _("1") : _("0"), mxml_bool_type);
@@ -255,7 +255,7 @@ void WebRequestHandler::handleUpdateIDs()
     }
 }
 
-void WebRequestHandler::addUpdateIDs(Ref<Element> updateIDsEl, Ref<Session> session)
+void WebRequestHandler::addUpdateIDs(shared_ptr<Element> updateIDsEl, shared_ptr<Session> session)
 {
     String updateIDs = session->getUIUpdateIDs();
     if (string_ok(updateIDs)) {
@@ -266,11 +266,11 @@ void WebRequestHandler::addUpdateIDs(Ref<Element> updateIDsEl, Ref<Session> sess
     }
 }
 
-void WebRequestHandler::appendTask(Ref<Element> el, Ref<GenericTask> task)
+void WebRequestHandler::appendTask(shared_ptr<Element> el, shared_ptr<GenericTask> task)
 {
     if (task == nullptr || el == nullptr)
         return;
-    Ref<Element> taskEl(new Element(_("task")));
+    shared_ptr<Element> taskEl(new Element(_("task")));
     taskEl->setAttribute(_("id"), String::from(task->getID()), mxml_int_type);
     taskEl->setAttribute(_("cancellable"), task->isCancellable() ? _("1") : _("0"), mxml_bool_type);
     taskEl->setTextKey(_("text"));

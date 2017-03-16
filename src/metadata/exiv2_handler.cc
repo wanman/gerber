@@ -44,9 +44,9 @@ Exiv2Handler::Exiv2Handler() : MetadataHandler()
 {
 }
        
-void Exiv2Handler::fillMetadata(Ref<CdsItem> item)
+void Exiv2Handler::fillMetadata(shared_ptr<CdsItem> item)
 {
-    Ref<StringConverter> sc = StringConverter::m2i();
+    shared_ptr<StringConverter> sc = StringConverter::m2i();
 
     Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(std::string(item->getLocation().c_str()));
     image->readMetadata();
@@ -130,7 +130,7 @@ void Exiv2Handler::fillMetadata(Ref<CdsItem> item)
 
 }
 
-Ref<IOHandler> Exiv2Handler::serveContent(Ref<CdsItem> item, int resNum)
+shared_ptr<IOHandler> Exiv2Handler::serveContent(shared_ptr<CdsItem> item, int resNum)
 {
     return nullptr;
 }

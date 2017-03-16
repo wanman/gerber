@@ -110,12 +110,12 @@ public:
     /// \param query The SQL query string
     SLSelectTask(const char *query);
     virtual void run(sqlite3 **db, Sqlite3Storage *sl);
-    inline zmm::Ref<SQLResult> getResult() { return RefCast(pres, SQLResult); };
+    inline std::shared_ptr<SQLResult> getResult() { return dynamic_pointer_cast<SQLResult>(pres); };
 protected:
     /// \brief The SQL query string
     const char *query;
     /// \brief The Sqlite3Result
-    zmm::Ref<Sqlite3Result> pres;
+    std::shared_ptr<Sqlite3Result> pres;
 };
 
 /// \brief A task for the sqlite3 thread to do a SQL exec.
@@ -150,10 +150,10 @@ protected:
 class Sqlite3Storage : public Timer::Subscriber, private SQLStorage
 {
 public:
-    virtual void timerNotify(zmm::Ref<Timer::Parameter> sqlite3storage);
+    virtual void timerNotify(std::shared_ptr<Timer::Parameter> sqlite3storage);
 private:
     Sqlite3Storage();
-    friend zmm::Ref<Storage> Storage::createInstance();
+    friend std::shared_ptr<Storage> Storage::createInstance();
     virtual void init() override;
     virtual void shutdownDriver() override;
     
@@ -165,7 +165,7 @@ private:
     virtual inline zmm::String quote(bool val) override { return zmm::String(val ? '1' : '0'); }
     virtual inline zmm::String quote(char val) override { return quote(zmm::String(val)); }
     virtual inline zmm::String quote(long long val) override { return zmm::String::from(val); }
-    virtual zmm::Ref<SQLResult> select(const char *query, int length) override;
+    virtual std::shared_ptr<SQLResult> select(const char *query, int length) override;
     virtual int exec(const char *query, int length, bool getLastInsertId = false) override;
     virtual void storeInternalSetting(zmm::String key, zmm::String value) override;
 
@@ -178,7 +178,7 @@ private:
     static void *staticThreadProc(void *arg);
     void threadProc();
     
-    void addTask(zmm::Ref<SLTask> task, bool onlyIfDirty = false);
+    void addTask(std::shared_ptr<SLTask> task, bool onlyIfDirty = false);
     
     pthread_t sqliteThread;
     std::condition_variable cond;
@@ -190,14 +190,14 @@ private:
     bool shutdownFlag;
     
     /// \brief the tasks to be done by the sqlite3 thread
-    zmm::Ref<zmm::ObjectQueue<SLTask> > taskQueue;
+    std::shared_ptr<zmm::ObjectQueue<SLTask> > taskQueue;
     bool taskQueueOpen;
     
     virtual void threadCleanup() override {}
     virtual bool threadCleanupRequired() override { return false; }
     
-    zmm::Ref<zmm::StringBuffer> insertBuffer;
-    virtual void _addToInsertBuffer(zmm::Ref<zmm::StringBuffer> query) override;
+    std::shared_ptr<zmm::StringBuffer> insertBuffer;
+    virtual void _addToInsertBuffer(std::shared_ptr<zmm::StringBuffer> query) override;
     virtual void _flushInsertBuffer() override;
     
     bool dirty;
@@ -214,7 +214,7 @@ class Sqlite3Result : public SQLResult
 private:
     Sqlite3Result();
     virtual ~Sqlite3Result();
-    virtual zmm::Ref<SQLRow> nextRow() override;
+    virtual std::shared_ptr<SQLRow> nextRow() override;
     virtual unsigned long long getNumRows() override { return nrow; }
     
     char **table;
@@ -234,10 +234,10 @@ private:
 class Sqlite3Row : public SQLRow
 {
 private:
-    Sqlite3Row(char **row, zmm::Ref<SQLResult> sqlResult);
+    Sqlite3Row(char **row, std::shared_ptr<SQLResult> sqlResult);
     inline virtual char* col_c_str(int index) { return row[index]; }
     char **row;
-    zmm::Ref<Sqlite3Result> res;
+    std::shared_ptr<Sqlite3Result> res;
     
     friend class Sqlite3Result;
 };

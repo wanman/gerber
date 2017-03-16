@@ -54,13 +54,13 @@ extern "C" {
 /// \param sep separator character
 /// \param treat subsequent separators as empty array elements
 /// \return array of strings
-zmm::Ref<zmm::Array<zmm::StringBase> > split_string(zmm::String str, char sep, 
+std::shared_ptr<zmm::Array<zmm::StringBase> > split_string(zmm::String str, char sep, 
                                                     bool empty = false);
 
 /// \brief splits the given file path into the path to the file and the filename.
 /// \param str the path to split
 /// \return an array with the path at position 0 and the filename at position 1.
-zmm::Ref<zmm::Array<zmm::StringBase> > split_path(zmm::String str);
+std::shared_ptr<zmm::Array<zmm::StringBase> > split_path(zmm::String str);
 
 /// \brief returns str with leading and trailing whitespace removed
 zmm::String trim_string(zmm::String str);
@@ -106,7 +106,7 @@ zmm::String find_in_path(zmm::String exec);
 /// Checks if str is nullptr or ""
 bool string_ok(zmm::String str);
 
-bool string_ok(zmm::Ref<zmm::StringBuffer> str);
+bool string_ok(std::shared_ptr<zmm::StringBuffer> str);
 
 /// \brief Checks if the string contains any data.
 /// \param str String to be checked.
@@ -154,7 +154,7 @@ zmm::String url_unescape(zmm::String str);
 /// \brief Convert an array of strings to a CSV list, with additional protocol information
 /// \param array that needs to be converted
 /// \return string containing the CSV list
-zmm::String mime_types_to_CSV(zmm::Ref<zmm::Array<zmm::StringBase> > mimeTypes);
+zmm::String mime_types_to_CSV(std::shared_ptr<zmm::Array<zmm::StringBase> > mimeTypes);
 
 /// \brief a wrapper for the reentrant strerror_r() function
 /// \param mt_errno the errno to get the error string from
@@ -207,9 +207,9 @@ int HMSToSeconds(zmm::String time);
 
 #ifdef HAVE_MAGIC
 /// \brief Extracts mimetype from a file using filemagic
-zmm::String get_mime_type(magic_set *ms, zmm::Ref<RExp> reMimetype, zmm::String file);
+zmm::String get_mime_type(magic_set *ms, std::shared_ptr<RExp> reMimetype, zmm::String file);
 /// \brief Extracts mimetype from a buffer using filemagic
-zmm::String get_mime_type_from_buffer(magic_set *ms, zmm::Ref<RExp> reMimetype,
+zmm::String get_mime_type_from_buffer(magic_set *ms, std::shared_ptr<RExp> reMimetype,
                                          const void *buffer, size_t length);
 
 #endif // HAVE_MAGIC
@@ -220,10 +220,10 @@ int find_local_port(unsigned short range_min,
                               unsigned short range_max);
 #endif
 /// \brief Extracts resolution from a JPEG image
-zmm::String get_jpeg_resolution(zmm::Ref<IOHandler> ioh);
+zmm::String get_jpeg_resolution(std::shared_ptr<IOHandler> ioh);
 
 /// \brief Sets resolution for a given resource index, item must be a JPEG image
-void set_jpeg_resolution_resource(zmm::Ref<CdsItem> item, int res_num);
+void set_jpeg_resolution_resource(std::shared_ptr<CdsItem> item, int res_num);
 
 /// \brief checks if the given string has the format xr x yr (i.e. 320x200 etc.)
 bool check_resolution(zmm::String resolution, int *x = NULL, int *y = NULL);
@@ -303,7 +303,7 @@ bool validateYesNo(zmm::String value);
 /// separator. In addition special %in and %out tokens are replaced by given
 /// strings.
 /// \todo add escaping
-zmm::Ref<zmm::Array<zmm::StringBase> > parseCommandLine(zmm::String line,
+std::shared_ptr<zmm::Array<zmm::StringBase> > parseCommandLine(zmm::String line,
                                                         zmm::String in,
                                                         zmm::String out,
                                                         zmm::String range);

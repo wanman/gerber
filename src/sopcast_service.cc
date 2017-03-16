@@ -46,7 +46,7 @@ using namespace mxml;
 
 SopCastService::SopCastService()
 {
-    url = Ref<URL>(new URL());
+    url = shared_ptr<URL>(new URL());
     pid = 0;
     curl_handle = curl_easy_init();
     if (!curl_handle)
@@ -69,17 +69,17 @@ String SopCastService::getServiceName()
     return _("SopCast");
 }
 
-Ref<Object> SopCastService::defineServiceTask(Ref<Element> xmlopt, Ref<Object> params)
+shared_ptr<Object> SopCastService::defineServiceTask(shared_ptr<Element> xmlopt, shared_ptr<Object> params)
 {
     return nullptr;
 }
 
-Ref<Element> SopCastService::getData()
+shared_ptr<Element> SopCastService::getData()
 {
     long retcode;
-    Ref<StringConverter> sc = StringConverter::i2i();
+    shared_ptr<StringConverter> sc = StringConverter::i2i();
 
-    Ref<StringBuffer> buffer;
+    shared_ptr<StringBuffer> buffer;
     
     try 
     {
@@ -102,7 +102,7 @@ Ref<Element> SopCastService::getData()
         return nullptr;
 
     log_debug("GOT BUFFER\n%s\n", buffer->toString().c_str()); 
-    Ref<Parser> parser(new Parser());
+    shared_ptr<Parser> parser(new Parser());
     try
     {
         return parser->parseString(sc->convert(buffer->toString()))->getRoot();
@@ -124,7 +124,7 @@ Ref<Element> SopCastService::getData()
     return nullptr;
 }
 
-bool SopCastService::refreshServiceData(Ref<Layout> layout)
+bool SopCastService::refreshServiceData(shared_ptr<Layout> layout)
 {
     log_debug("Refreshing SopCast service\n");
     // the layout is in full control of the service items
@@ -140,9 +140,9 @@ bool SopCastService::refreshServiceData(Ref<Layout> layout)
     if (pid != pthread_self())
         throw _Exception(_("Not allowed to call refreshServiceData from different threads!"));
 
-    Ref<Element> reply = getData();
+    shared_ptr<Element> reply = getData();
 
-    Ref<SopCastContentHandler> sc(new SopCastContentHandler());
+    shared_ptr<SopCastContentHandler> sc(new SopCastContentHandler());
     if (reply != nullptr)
         sc->setServiceContent(reply);
     else
@@ -151,7 +151,7 @@ bool SopCastService::refreshServiceData(Ref<Layout> layout)
         throw _Exception(_("Failed to get XML content from SopCast service"));
     }
 
-    Ref<CdsObject> obj;
+    shared_ptr<CdsObject> obj;
     do
     {
         /// \todo add try/catch here and a possibility do find out if we
@@ -162,7 +162,7 @@ bool SopCastService::refreshServiceData(Ref<Layout> layout)
 
        obj->setVirtual(true);
 
-        Ref<CdsObject> old = Storage::getInstance()->loadObjectByServiceID(RefCast(obj, CdsItem)->getServiceID());
+        shared_ptr<CdsObject> old = Storage::getInstance()->loadObjectByServiceID(dynamic_pointer_cast<CdsItem>(obj)->getServiceID());
         if (old == nullptr)
         {
             log_debug("Adding new SopCast object\n");

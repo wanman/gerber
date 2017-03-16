@@ -48,7 +48,7 @@
 using namespace zmm;
 using namespace mxml;
 
-static Ref<RequestHandler> create_request_handler(const char* filename)
+static shared_ptr<RequestHandler> create_request_handler(const char* filename)
 {
     String path;
     String parameters;
@@ -64,7 +64,7 @@ static Ref<RequestHandler> create_request_handler(const char* filename)
     } else if (link.startsWith(_("/") + SERVER_VIRTUAL_DIR + "/" + CONTENT_UI_HANDLER)) {
         RequestHandler::split_url(filename, URL_UI_PARAM_SEPARATOR, path, parameters);
 
-        Ref<Dictionary> dict(new Dictionary());
+        shared_ptr<Dictionary> dict(new Dictionary());
         dict->decode(parameters);
 
         String r_type = dict->get(_(URL_REQUEST_TYPE));
@@ -93,7 +93,7 @@ static Ref<RequestHandler> create_request_handler(const char* filename)
     else {
         throw _Exception(_("no valid handler type in ") + filename);
     }
-    return Ref<RequestHandler>(ret);
+    return shared_ptr<RequestHandler>(ret);
 }
 
 /// \brief Query information on a file.
@@ -112,7 +112,7 @@ static Ref<RequestHandler> create_request_handler(const char* filename)
 static int web_get_info(IN const char* filename, OUT UpnpFileInfo* info)
 {
     try {
-        Ref<RequestHandler> reqHandler = create_request_handler(filename);
+        shared_ptr<RequestHandler> reqHandler = create_request_handler(filename);
         reqHandler->get_info(filename, info);
     } catch (const ServerShutdownException& se) {
         return -1;
@@ -149,8 +149,8 @@ static UpnpWebFileHandle web_open(IN const char* filename,
     String link = url_unescape((char*)filename);
 
     try {
-        Ref<RequestHandler> reqHandler = create_request_handler(filename);
-        Ref<IOHandler> ioHandler = reqHandler->open(link.c_str(), mode, nullptr);
+        shared_ptr<RequestHandler> reqHandler = create_request_handler(filename);
+        shared_ptr<IOHandler> ioHandler = reqHandler->open(link.c_str(), mode, nullptr);
         ioHandler->retain();
         return (UpnpWebFileHandle)ioHandler.getPtr();
     } catch (const ServerShutdownException& se) {
@@ -240,7 +240,7 @@ static int web_seek(IN UpnpWebFileHandle f, IN off_t offset, IN int whence)
 static int web_close(IN UpnpWebFileHandle f)
 {
 
-    Ref<IOHandler> handler((IOHandler*)f);
+    shared_ptr<IOHandler> handler((IOHandler*)f);
     handler->release();
     try {
         handler->close();

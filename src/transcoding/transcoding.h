@@ -125,7 +125,7 @@ public:
     /// \param value attribute value
     void addAttribute(zmm::String name, zmm::String value);
 
-    zmm::Ref<Dictionary> getAttributes();
+    std::shared_ptr<Dictionary> getAttributes();
 
     /// \brief Override for theora content.
     ///
@@ -159,11 +159,11 @@ public:
     ///
     /// \param list List of FourCC entries.
     /// \param mode Specifies if the FourCCs in the list are accepted or ignored
-    void setAVIFourCCList(zmm::Ref<zmm::Array<zmm::StringBase> > list,
+    void setAVIFourCCList(std::shared_ptr<zmm::Array<zmm::StringBase> > list,
                           avi_fourcc_listmode_t mode = FCC_Ignore);
 
     /// \brief Retrieves the FourCC list
-    zmm::Ref<zmm::Array<zmm::StringBase> > getAVIFourCCList();
+    std::shared_ptr<zmm::Array<zmm::StringBase> > getAVIFourCCList();
     /// \brief Provides information on the mode of the list
     avi_fourcc_listmode_t getAVIFourCCListMode() { return fourcc_mode; }
 
@@ -201,8 +201,8 @@ protected:
     transcoding_type_t tr_type;
     int number_of_channels;
     int sample_frequency;
-    zmm::Ref<Dictionary> attributes;
-    zmm::Ref<zmm::Array<zmm::StringBase> > fourcc_list;
+    std::shared_ptr<Dictionary> attributes;
+    std::shared_ptr<zmm::Array<zmm::StringBase> > fourcc_list;
     avi_fourcc_listmode_t fourcc_mode;
     TranscodingProfile();
 };
@@ -212,16 +212,16 @@ class TranscodingProfileList : public zmm::Object
 {
 public:
     TranscodingProfileList();
-    void add(zmm::String sourceMimeType, zmm::Ref<TranscodingProfile> prof);
-    zmm::Ref<ObjectDictionary<TranscodingProfile> > get(zmm::String sourceMimeType);
-    zmm::Ref<ObjectDictionary<TranscodingProfile> > get(int index);
-    zmm::Ref<TranscodingProfile> getByName(zmm::String name);
+    void add(zmm::String sourceMimeType, std::shared_ptr<TranscodingProfile> prof);
+    std::shared_ptr<ObjectDictionary<TranscodingProfile> > get(zmm::String sourceMimeType);
+    std::shared_ptr<ObjectDictionary<TranscodingProfile> > get(int index);
+    std::shared_ptr<TranscodingProfile> getByName(zmm::String name);
     inline int size() { return list->size(); }
 protected:
     // outer dictionary is keyed by the source mimetype, inner dictionary by 
     // profile name; this whole construction is necessary to allow to transcode
     // to the same output format but vary things like resolution, bitrate, etc.
-    zmm::Ref<ObjectDictionary<ObjectDictionary<TranscodingProfile> > > list;
+    std::shared_ptr<ObjectDictionary<ObjectDictionary<TranscodingProfile> > > list;
 };
 
 class TranscodingProcess : public zmm::Object

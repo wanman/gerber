@@ -59,7 +59,7 @@ protected:
     bool checkRequestCalled;
     
     /// \brief Decoded URL parameters are stored as a dictionary.
-    zmm::Ref<Dictionary> params;
+    std::shared_ptr<Dictionary> params;
     
     /// \brief The original filename from url if anyone needs it.
     zmm::String filename;
@@ -71,14 +71,14 @@ protected:
     ///
     /// The XML or HTML that is the result of a request is put in this buffer,
     /// this is what is being served to the web browser.
-    zmm::Ref<zmm::StringBuffer> out;
+    std::shared_ptr<zmm::StringBuffer> out;
     
     /// \brief This is the root xml element to be populated by process() method.
-    zmm::Ref<mxml::Element> root;
+    std::shared_ptr<mxml::Element> root;
     
     /// \brief The current session, used for this request; will be filled by
     /// check_request()
-    zmm::Ref<Session> session;
+    std::shared_ptr<Session> session;
     
     /// \brief Little support function to access stuff from the dictionary in
     /// in an easier fashion.
@@ -104,12 +104,12 @@ protected:
     /// \brief Prepares the output buffer and calls the process function.
     /// \return IOHandler
     /// \todo Genych, chto tut proishodit, ya tolkom che to ne wrubaus?? 
-    zmm::Ref<IOHandler> open(IN enum UpnpOpenFileMode mode);
+    std::shared_ptr<IOHandler> open(IN enum UpnpOpenFileMode mode);
     
     /// \brief add the ui update ids from the given session as xml tags to the given root element
     /// \param root the xml element to add the elements to
     /// \param session the session from which the ui update ids should be taken
-    void addUpdateIDs(zmm::Ref<mxml::Element> root, zmm::Ref<Session> session);
+    void addUpdateIDs(std::shared_ptr<mxml::Element> root, std::shared_ptr<Session> session);
     
     /// \brief check if ui update ids should be added to the response and add
     /// them in that case.
@@ -119,7 +119,7 @@ protected:
     /// \brief add the content manager task to the given xml element as xml elements
     /// \param el the xml element to add the elements to
     /// \param task the task to add to the given xml element
-    void appendTask(zmm::Ref<mxml::Element> el, zmm::Ref<GenericTask> task);
+    void appendTask(std::shared_ptr<mxml::Element> el, std::shared_ptr<GenericTask> task);
     
     /// \brief check if accounts are enabled in the config
     /// \return true if accounts are enabled, false if not
@@ -145,7 +145,7 @@ public:
     /// \param filename The requested URL
     /// \param mode either UPNP_READ or UPNP_WRITE
     /// \return the appropriate IOHandler for the request.
-    virtual zmm::Ref<IOHandler> open(IN const char *filename,
+    virtual std::shared_ptr<IOHandler> open(IN const char *filename,
                                      IN enum UpnpOpenFileMode mode,
                                      IN zmm::String range);
     

@@ -128,11 +128,11 @@ String DVDHandler::renderKey(dvd_aux_key_names_t name, int title_idx,
     return key;
 }
 
-void DVDHandler::fillMetadata(Ref<CdsItem> item)
+void DVDHandler::fillMetadata(shared_ptr<CdsItem> item)
 {
     try
     {
-        Ref<DVDNavReader> dvd(new DVDNavReader(item->getLocation()));
+        shared_ptr<DVDNavReader> dvd(new DVDNavReader(item->getLocation()));
 
         item->setFlag(OBJECT_FLAG_DVD_IMAGE);
 
@@ -192,7 +192,7 @@ void DVDHandler::fillMetadata(Ref<CdsItem> item)
 
 
 
-Ref<IOHandler> DVDHandler::serveContent(Ref<CdsItem> item, int resNum, off_t *data_size)
+shared_ptr<IOHandler> DVDHandler::serveContent(shared_ptr<CdsItem> item, int resNum, off_t *data_size)
 {
     *data_size = -1;
     return nullptr;

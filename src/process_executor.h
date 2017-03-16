@@ -38,7 +38,7 @@ class ProcessExecutor : public Executor
 {
 public:
     ProcessExecutor(zmm::String command, 
-                    zmm::Ref<zmm::Array<zmm::StringBase> > arglist);
+                    std::shared_ptr<zmm::Array<zmm::StringBase> > arglist);
     virtual bool isAlive();
     virtual bool kill();
     virtual int getStatus();

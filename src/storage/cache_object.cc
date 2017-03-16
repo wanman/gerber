@@ -49,9 +49,9 @@ CacheObject::CacheObject()
 }
 
 
-void CacheObject::setObject(Ref<CdsObject> obj)
+void CacheObject::setObject(shared_ptr<CdsObject> obj)
 {
-    Ref<CdsObject> nObj = CdsObject::createObject(obj->getObjectType());
+    shared_ptr<CdsObject> nObj = CdsObject::createObject(obj->getObjectType());
     obj->copyTo(nObj);
     this->obj = nObj;
     setParentID(nObj->getParentID());

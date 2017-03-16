@@ -63,7 +63,7 @@ public:
     /// further requests (i.e. subscriptions point to an XML which 
     /// only contains the links which have to be used in subsequent 
     /// requests before the actual video data can be retrieved
-    zmm::Ref<zmm::Array<zmm::StringBase> > links;
+    std::shared_ptr<zmm::Array<zmm::StringBase> > links;
     zmm::String title;
 };
 
@@ -74,7 +74,7 @@ class YouTubeContentHandler : public zmm::Object
 public:
     /// \brief Sets the service XML from which we will extract the objects.
     /// \return false if service XML contained an error status.
-    bool setServiceContent(zmm::Ref<mxml::Element> service);
+    bool setServiceContent(std::shared_ptr<mxml::Element> service);
 
     /// \brief retrieves an object from the service.
     ///
@@ -83,7 +83,7 @@ public:
     /// this function will return nullptr.
     ///
     /// \return CdsObject or nullptr if there are no more objects to parse.
-    zmm::Ref<CdsObject> getNextObject();
+    std::shared_ptr<CdsObject> getNextObject();
 
     /// \brief Retrieves a list of feed URLs from a subscription request along
     /// with the feeds name.
@@ -93,10 +93,10 @@ public:
     /// further requests give us the actual video data. So, we will gather
     /// the request links in an array and then walk the array via the
     /// above setServiceContent/getNextObject methods.
-    zmm::Ref<YouTubeSubFeed> getSubFeed(zmm::Ref<mxml::Element> feedxml);
+    std::shared_ptr<YouTubeSubFeed> getSubFeed(std::shared_ptr<mxml::Element> feedxml);
 
 protected:
-    zmm::Ref<mxml::Element> service_xml;
+    std::shared_ptr<mxml::Element> service_xml;
     int current_node_index;
     int channel_child_count;
     zmm::String thumb_mimetype;

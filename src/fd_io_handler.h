@@ -45,8 +45,8 @@ protected:
     /// \brief Handle of the file.
     int fd;
     bool closed;
-    zmm::Ref<IOHandler> other;
-    zmm::Ref<zmm::Array<zmm::Object> > reference_list;
+    std::shared_ptr<IOHandler> other;
+    std::shared_ptr<zmm::Array<zmm::Object> > reference_list;
 public:
     /// \brief Sets the filename to work with.
     FDIOHandler(zmm::String filename);
@@ -55,8 +55,8 @@ public:
     /// open() will be ignored.
     FDIOHandler(int fd);
 
-    void addReference(zmm::Ref<zmm::Object> reference);
-    void closeOther(zmm::Ref<IOHandler> other);
+    void addReference(std::shared_ptr<zmm::Object> reference);
+    void closeOther(std::shared_ptr<IOHandler> other);
 
     /// \brief Opens file for reading (writing is not supported)
     virtual void open(IN enum UpnpOpenFileMode mode);

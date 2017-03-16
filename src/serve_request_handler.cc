@@ -95,8 +95,8 @@ void ServeRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *in
             else
             {
                 /// \TODO we could request the mimetype rex from content manager
-                Ref<RExp> reMimetype;
-                reMimetype = Ref<RExp>(new RExp());
+                shared_ptr<RExp> reMimetype;
+                reMimetype = shared_ptr<RExp>(new RExp());
                 reMimetype->compile(_(MIMETYPE_REGEXP));
 
                 String mime = get_mime_type(ms, reMimetype, path);
@@ -133,7 +133,7 @@ void ServeRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *in
     }
 }
 
-Ref<IOHandler> ServeRequestHandler::open(IN const char *filename,
+shared_ptr<IOHandler> ServeRequestHandler::open(IN const char *filename,
                                          IN enum UpnpOpenFileMode mode,
                                          IN zmm::String range)
 {
@@ -188,8 +188,8 @@ Ref<IOHandler> ServeRequestHandler::open(IN const char *filename,
             else
             {
                 /// \TODO we could request the mimetype rex from content manager
-                Ref<RExp> reMimetype;
-                reMimetype = Ref<RExp>(new RExp());
+                shared_ptr<RExp> reMimetype;
+                reMimetype = shared_ptr<RExp>(new RExp());
                 reMimetype->compile(_(MIMETYPE_REGEXP));
 
                 String mime = get_mime_type(ms, reMimetype, path);
@@ -224,7 +224,7 @@ Ref<IOHandler> ServeRequestHandler::open(IN const char *filename,
     {
          throw _Exception(_("Not a regular file: ") + path);
     }
-    Ref<IOHandler> io_handler(new FileIOHandler(path));
+    shared_ptr<IOHandler> io_handler(new FileIOHandler(path));
     io_handler->open(mode);
 
     return io_handler;

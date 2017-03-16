@@ -38,11 +38,11 @@
 using namespace zmm;
 using namespace mxml;
 
-void MRRegistrarService::upnp_action_IsAuthorized(Ref<ActionRequest> request)
+void MRRegistrarService::upnp_action_IsAuthorized(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
-    Ref<Element> response;
+    shared_ptr<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
     response->appendTextChild(_("Result"), _("1"));
 
@@ -52,7 +52,7 @@ void MRRegistrarService::upnp_action_IsAuthorized(Ref<ActionRequest> request)
     log_debug("end\n");
 }
 
-void MRRegistrarService::upnp_action_RegisterDevice(Ref<ActionRequest> request)
+void MRRegistrarService::upnp_action_RegisterDevice(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
@@ -61,11 +61,11 @@ void MRRegistrarService::upnp_action_RegisterDevice(Ref<ActionRequest> request)
     log_debug("upnp_action_GetCurrentConnectionInfo: end\n");
 }
 
-void MRRegistrarService::upnp_action_IsValidated(Ref<ActionRequest> request)
+void MRRegistrarService::upnp_action_IsValidated(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
  
-    Ref<Element> response;
+    shared_ptr<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
     response->appendTextChild(_("Result"), _("1"));
 
@@ -75,7 +75,7 @@ void MRRegistrarService::upnp_action_IsValidated(Ref<ActionRequest> request)
     log_debug("end\n");
 }
 
-void MRRegistrarService::process_action_request(Ref<ActionRequest> request)
+void MRRegistrarService::process_action_request(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 

@@ -13,14 +13,14 @@
 class TPFetchOnlineContentTask : public GenericTask
 {
 public:
-    TPFetchOnlineContentTask(zmm::Ref<OnlineService> service, 
-                             zmm::Ref<Layout> layout, bool cancellable,
+    TPFetchOnlineContentTask(std::shared_ptr<OnlineService> service, 
+                             std::shared_ptr<Layout> layout, bool cancellable,
                              bool unscheduled_refresh);
     virtual void run();
 
 protected:
-    zmm::Ref<OnlineService> service;
-    zmm::Ref<Layout> layout;
+    std::shared_ptr<OnlineService> service;
+    std::shared_ptr<Layout> layout;
     bool unscheduled_refresh;
 
 };
@@ -30,11 +30,11 @@ class TaskProcessor : public Singleton<TaskProcessor>
 public:    
     TaskProcessor();
     virtual ~TaskProcessor();
-    void addTask(zmm::Ref<GenericTask> task);
+    void addTask(std::shared_ptr<GenericTask> task);
     virtual void init();
     virtual void shutdown();
-    zmm::Ref<zmm::Array<GenericTask> > getTasklist();
-    zmm::Ref<GenericTask> getCurrentTask();
+    std::shared_ptr<zmm::Array<GenericTask> > getTasklist();
+    std::shared_ptr<GenericTask> getCurrentTask();
     void invalidateTask(unsigned int taskID);
 
 protected:
@@ -43,8 +43,8 @@ protected:
     bool shutdownFlag;
     bool working;
     unsigned int taskID;
-    zmm::Ref<zmm::ObjectQueue<GenericTask> > taskQueue;
-    zmm::Ref<GenericTask> currentTask;
+    std::shared_ptr<zmm::ObjectQueue<GenericTask> > taskQueue;
+    std::shared_ptr<GenericTask> currentTask;
 
     static void *staticThreadProc(void *arg);
 

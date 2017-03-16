@@ -41,12 +41,12 @@
 using namespace zmm;
 using namespace mxml;
 
-void MRRegistrarService::process_subscription_request(zmm::Ref<SubscriptionRequest> request)
+void MRRegistrarService::process_subscription_request(zmm::shared_ptr<SubscriptionRequest> request)
 {
     int err;
     IXML_Document *event = NULL;
 
-    Ref<Element> propset, property;
+    shared_ptr<Element> propset, property;
 
     propset = UpnpXML_CreateEventPropertySet();
     property = propset->getFirstElementChild();
@@ -74,7 +74,7 @@ void MRRegistrarService::subscription_update(String sourceProtocol_CSV)
     int err;
     IXML_Document *event = NULL;
 
-    Ref<Element> propset, property;
+    shared_ptr<Element> propset, property;
 
     propset = UpnpXML_CreateEventPropertySet();
     property = propset->getFirstChild();

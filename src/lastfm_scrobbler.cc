@@ -53,7 +53,7 @@ LastFm::~LastFm()
 
 void LastFm::init()
 {
-    Ref<ConfigManager> config = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> config = ConfigManager::getInstance();
     
     if (!config->getBoolOption(CFG_SERVER_EXTOPTS_LASTFM_ENABLED))
         return;
@@ -76,7 +76,7 @@ void LastFm::shutdown()
     scrobbler = NULL;
 }
 
-void LastFm::startedPlaying(Ref<CdsItem> item)
+void LastFm::startedPlaying(shared_ptr<CdsItem> item)
 {
     if (currentTrackId == item->getID() || scrobbler == NULL)
         return;
@@ -115,7 +115,7 @@ void LastFm::startedPlaying(Ref<CdsItem> item)
 
     if (item->getResourceCount() > 0)
     {
-        Ref<CdsResource> resource = item->getResource(0);
+        shared_ptr<CdsResource> resource = item->getResource(0);
         String duration = resource->getAttribute(MetadataHandler::getResAttrName(R_DURATION));
         info->track_length_in_secs = HMSToSeconds(duration.c_str());
     }

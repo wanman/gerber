@@ -113,6 +113,4 @@ protected:
 
 } // namespace
 
-#define RefCast(ref, klass) zmm::Ref< klass >(( klass *)ref.getPtr())
-
 #endif // __ZMM_REF_H__

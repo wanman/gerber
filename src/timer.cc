@@ -35,7 +35,7 @@
 using namespace zmm;
 using namespace std;
 
-void Timer::addTimerSubscriber(Subscriber* timerSubscriber, unsigned int notifyInterval, zmm::Ref<Parameter> parameter, bool once)
+void Timer::addTimerSubscriber(Subscriber* timerSubscriber, unsigned int notifyInterval, zmm::shared_ptr<Parameter> parameter, bool once)
 {
     log_debug("Adding subscriber... interval: %d once: %d \n", notifyInterval, once);
     if (notifyInterval == 0)
@@ -52,7 +52,7 @@ void Timer::addTimerSubscriber(Subscriber* timerSubscriber, unsigned int notifyI
     signal();
 }
 
-void Timer::removeTimerSubscriber(Subscriber* timerSubscriber, zmm::Ref<Parameter> parameter, bool dontFail)
+void Timer::removeTimerSubscriber(Subscriber* timerSubscriber, zmm::shared_ptr<Parameter> parameter, bool dontFail)
 {
     log_debug("Removing subscriber...\n");
     AutoLock lock(mutex);

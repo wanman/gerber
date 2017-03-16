@@ -45,7 +45,7 @@ URL::URL(size_t buffer_hint)
     this->buffer_hint = buffer_hint;
 }
 
-Ref<StringBuffer> URL::download(String URL, long *HTTP_retcode, 
+shared_ptr<StringBuffer> URL::download(String URL, long *HTTP_retcode, 
                                 CURL *curl_handle, bool only_header, 
                                 bool verbose, bool redirect)
 {
@@ -61,7 +61,7 @@ Ref<StringBuffer> URL::download(String URL, long *HTTP_retcode,
             throw _Exception(_("Invalid curl handle!\n"));
     }
 
-    Ref<StringBuffer> buffer(new StringBuffer(buffer_hint));
+    shared_ptr<StringBuffer> buffer(new StringBuffer(buffer_hint));
 
     curl_easy_reset(curl_handle);
     
@@ -130,7 +130,7 @@ Ref<StringBuffer> URL::download(String URL, long *HTTP_retcode,
     return buffer;
 }
 
-Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
+shared_ptr<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
 {
     long retcode;
     bool cleanup = false;
@@ -150,7 +150,7 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
             throw _Exception(_("Invalid curl handle!\n"));
     }
 
-    Ref<StringBuffer> buffer = download(URL, &retcode, curl_handle, true, true, true);
+    shared_ptr<StringBuffer> buffer = download(URL, &retcode, curl_handle, true, true, true);
     if (retcode != 200)
     {
         if (cleanup)
@@ -160,7 +160,7 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
                           String::from(retcode));
     }
 /*    
-    Ref<RExp> getMT(new RExp());
+    shared_ptr<RExp> getMT(new RExp());
     
     try
     {
@@ -174,7 +174,7 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
         throw ex;
     }
 
-    Ref<Matcher> matcher = getMT->matcher(buffer->toString());
+    shared_ptr<Matcher> matcher = getMT->matcher(buffer->toString());
     String mt;
     if (matcher->next())
         mt = trim_string(matcher->group(1));
@@ -183,7 +183,7 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
 
     log_debug("Extracted content type: %s\n", mt.c_str());
 
-    Ref<RExp> getCL(new RExp());
+    shared_ptr<RExp> getCL(new RExp());
 
     try
     {
@@ -243,7 +243,7 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
     else
         used_url = c_url;
 
-    Ref<Stat> st(new Stat(used_url, (off_t)cl, mt));
+    shared_ptr<Stat> st(new Stat(used_url, (off_t)cl, mt));
 
     if (cleanup)
         curl_easy_cleanup(curl_handle);

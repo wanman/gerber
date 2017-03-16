@@ -36,12 +36,12 @@
 using namespace zmm;
 using namespace mxml;
 
-void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
+void ContentDirectoryService::upnp_action_Browse(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
-    Ref<Storage> storage = Storage::getInstance();
+    shared_ptr<Storage> storage = Storage::getInstance();
    
-    Ref<Element> req = request->getRequest();
+    shared_ptr<Element> req = request->getRequest();
    
     String objID = req->getChildText(_("ObjectID"));
     int objectID;
@@ -68,7 +68,7 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
         throw UpnpException(UPNP_SOAP_E_INVALID_ARGS,
                             _("invalid browse flag: ") + BrowseFlag);
 
-    Ref<CdsObject> parent = storage->loadObject(objectID);
+    shared_ptr<CdsObject> parent = storage->loadObject(objectID);
     if ((parent->getClass() == UPNP_DEFAULT_CLASS_MUSIC_ALBUM) ||
         (parent->getClass() == UPNP_DEFAULT_CLASS_PLAYLIST_CONTAINER))
         flag |= BROWSE_TRACK_SORT;
@@ -76,12 +76,12 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
     if (ConfigManager::getInstance()->getBoolOption(CFG_SERVER_HIDE_PC_DIRECTORY))
          flag |= BROWSE_HIDE_FS_ROOT;
 
-    Ref<BrowseParam> param(new BrowseParam(objectID, flag));
+    shared_ptr<BrowseParam> param(new BrowseParam(objectID, flag));
 
     param->setStartingIndex(StartingIndex.toInt());
     param->setRequestedCount(RequestedCount.toInt());
     
-    Ref<Array<CdsObject> > arr;
+    shared_ptr<Array<CdsObject> > arr;
    
     try
     {
@@ -92,7 +92,7 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
         throw UpnpException(UPNP_E_NO_SUCH_ID, _("no such object"));
     }
 
-    Ref<Element> didl_lite (new Element(_("DIDL-Lite")));
+    shared_ptr<Element> didl_lite (new Element(_("DIDL-Lite")));
     didl_lite->setAttribute(_(XML_NAMESPACE_ATTR), 
                             _(XML_DIDL_LITE_NAMESPACE));
     didl_lite->setAttribute(_(XML_DC_NAMESPACE_ATTR), 
@@ -100,7 +100,7 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
     didl_lite->setAttribute(_(XML_UPNP_NAMESPACE_ATTR), 
                             _(XML_UPNP_NAMESPACE));
 
-    Ref<ConfigManager> cfg = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> cfg = ConfigManager::getInstance();
 
 #ifdef EXTEND_PROTOCOLINFO
     if (cfg->getBoolOption(CFG_SERVER_EXTEND_PROTOCOLINFO_SM_HACK))
@@ -112,7 +112,7 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
 
     for(int i = 0; i < arr->size(); i++)
     {
-        Ref<CdsObject> obj = arr->get(i);
+        shared_ptr<CdsObject> obj = arr->get(i);
         if (cfg->getBoolOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_ENABLED) &&
             obj->getFlag(OBJECT_FLAG_PLAYED))
         {
@@ -125,12 +125,12 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
             obj->setTitle(title);
         }
 
-        Ref<Element> didl_object = UpnpXML_DIDLRenderObject(obj, false, stringLimit);
+        shared_ptr<Element> didl_object = UpnpXML_DIDLRenderObject(obj, false, stringLimit);
 
         didl_lite->appendElementChild(didl_object);
     }
 
-    Ref<Element> response;
+    shared_ptr<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
 
     response->appendTextChild(_("Result"), didl_lite->print());
@@ -142,11 +142,11 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
     log_debug("end\n");
 }
 
-void ContentDirectoryService::upnp_action_GetSearchCapabilities(Ref<ActionRequest> request)
+void ContentDirectoryService::upnp_action_GetSearchCapabilities(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
-    Ref<Element> response;
+    shared_ptr<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
     response->appendTextChild(_("SearchCaps"), _(""));
             
@@ -155,11 +155,11 @@ void ContentDirectoryService::upnp_action_GetSearchCapabilities(Ref<ActionReques
     log_debug("end\n");
 }
 
-void ContentDirectoryService::upnp_action_GetSortCapabilities(Ref<ActionRequest> request)
+void ContentDirectoryService::upnp_action_GetSortCapabilities(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
-    Ref<Element> response;
+    shared_ptr<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
     response->appendTextChild(_("SortCaps"), _(""));
             
@@ -168,11 +168,11 @@ void ContentDirectoryService::upnp_action_GetSortCapabilities(Ref<ActionRequest>
     log_debug("end\n");
 }
 
-void ContentDirectoryService::upnp_action_GetSystemUpdateID(Ref<ActionRequest> request)
+void ContentDirectoryService::upnp_action_GetSystemUpdateID(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
-    Ref<Element> response;
+    shared_ptr<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
     response->appendTextChild(_("Id"), String::from(systemUpdateID));
 
@@ -181,7 +181,7 @@ void ContentDirectoryService::upnp_action_GetSystemUpdateID(Ref<ActionRequest> r
     log_debug("end\n");
 }
 
-void ContentDirectoryService::process_action_request(Ref<ActionRequest> request)
+void ContentDirectoryService::process_action_request(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 

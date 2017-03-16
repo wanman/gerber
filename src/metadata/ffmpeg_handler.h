@@ -45,8 +45,8 @@ class FfmpegHandler : public MetadataHandler
 {
 public:
     FfmpegHandler();
-    virtual void fillMetadata(zmm::Ref<CdsItem> item);
-    virtual zmm::Ref<IOHandler> serveContent(zmm::Ref<CdsItem> item, int resNum, off_t *data_size);
+    virtual void fillMetadata(std::shared_ptr<CdsItem> item);
+    virtual std::shared_ptr<IOHandler> serveContent(std::shared_ptr<CdsItem> item, int resNum, off_t *data_size);
     virtual zmm::String getMimeType();
 };
 

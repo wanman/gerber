@@ -42,7 +42,7 @@ Comment::Comment(String text, bool indentWithLFbefore) : Node()
     this->indentWithLFbefore = indentWithLFbefore;
 }
 
-void Comment::print_internal(Ref<StringBuffer> buf, int indent)
+void Comment::print_internal(shared_ptr<StringBuffer> buf, int indent)
 {
     *buf << "<!--" << text << "-->";
 }

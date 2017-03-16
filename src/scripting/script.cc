@@ -176,7 +176,7 @@ js_error_reporter(JSContext *cx, const char *message, JSErrorReport *report)
 
     int reportWarnings = 1; // TODO move to object field
 
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
 
     do
     {
@@ -191,7 +191,7 @@ js_error_reporter(JSContext *cx, const char *message, JSErrorReport *report)
             return;
 
         String prefix;
-        Ref<StringBuffer> prefix_buf(new StringBuffer());
+        shared_ptr<StringBuffer> prefix_buf(new StringBuffer());
 
         if (report->filename)
             *prefix_buf << (char *)report->filename << ":";
@@ -259,7 +259,7 @@ js_error_reporter(JSContext *cx, const char *message, JSErrorReport *report)
 
 /* **************** */
 
-Script::Script(Ref<Runtime> runtime) : Object()
+Script::Script(shared_ptr<Runtime> runtime) : Object()
 {
     gc_counter = 0;
 
@@ -527,7 +527,7 @@ JSObject *Script::_load(zmm::String scriptPath)
     if (!string_ok(scriptText))
         throw _Exception(_("empty script"));
 
-    Ref<StringConverter> j2i = StringConverter::j2i();
+    shared_ptr<StringConverter> j2i = StringConverter::j2i();
     try
     {
         scriptText = j2i->convert(scriptText, true);
@@ -564,13 +564,13 @@ void Script::execute()
     _execute(script);
 }
 
-Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
+shared_ptr<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::shared_ptr<CdsObject> pcd)
 {
     String val;
     int objectType;
     int b;
     int i;
-    Ref<StringConverter> sc;
+    shared_ptr<StringConverter> sc;
 
     if (this->whoami() == S_PLAYLIST)
     {
@@ -586,7 +586,7 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
         return nullptr;
     }
 
-    Ref<CdsObject> obj = CdsObject::createObject(objectType);
+    shared_ptr<CdsObject> obj = CdsObject::createObject(objectType);
     objectType = obj->getObjectType(); // this is important, because the
     // type will be changed appropriately
     // by the create function
@@ -648,10 +648,10 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
                     if (j > 0)
                     {
                         obj->setMetadata(MT_KEYS[i].upnp, val);
-                        RefCast(obj, CdsItem)->setTrackNumber(j);
+                        dynamic_pointer_cast<CdsItem>(obj)->setTrackNumber(j);
                     }
                     else
-                        RefCast(obj, CdsItem)->setTrackNumber(0);
+                        dynamic_pointer_cast<CdsItem>(obj)->setTrackNumber(0);
                 }
                 else
                 {
@@ -674,11 +674,11 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
     // CdsItem
     if (IS_CDS_ITEM(objectType))
     {
-        Ref<CdsItem> item = RefCast(obj, CdsItem);
-        Ref<CdsItem> pcd_item;
+        shared_ptr<CdsItem> item = dynamic_pointer_cast<CdsItem>(obj);
+        shared_ptr<CdsItem> pcd_item;
 
         if (pcd != nullptr)
-            pcd_item = RefCast(pcd, CdsItem);
+            pcd_item = dynamic_pointer_cast<CdsItem>(pcd);
 
         val = getProperty(js, _("mimetype"));
         if (val != nullptr)
@@ -733,10 +733,10 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
 
         if (IS_CDS_ACTIVE_ITEM(objectType))
         {
-            Ref<CdsActiveItem> aitem = RefCast(obj, CdsActiveItem);
-            Ref<CdsActiveItem> pcd_aitem;
+            shared_ptr<CdsActiveItem> aitem = dynamic_pointer_cast<CdsActiveItem>(obj);
+            shared_ptr<CdsActiveItem> pcd_aitem;
             if (pcd != nullptr)
-                pcd_aitem = RefCast(pcd, CdsActiveItem);
+                pcd_aitem = dynamic_pointer_cast<CdsActiveItem>(pcd);
           /// \todo what about character conversion for action and state fields?
             val = getProperty(js, _("action"));
             if (val != nullptr)
@@ -762,7 +762,7 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
             String protocolInfo;
 
             obj->setRestricted(true);
-            Ref<CdsItemExternalURL> item = RefCast(obj, CdsItemExternalURL);
+            shared_ptr<CdsItemExternalURL> item = dynamic_pointer_cast<CdsItemExternalURL>(obj);
             val = getProperty(js, _("protocol"));
             if (val != nullptr)
             {
@@ -776,7 +776,7 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
 
             if (item->getResourceCount() == 0)
             {
-                Ref<CdsResource> resource(new CdsResource(CH_DEFAULT));
+                shared_ptr<CdsResource> resource(new CdsResource(CH_DEFAULT));
                 resource->addAttribute(MetadataHandler::getResAttrName(
                             R_PROTOCOLINFO), protocolInfo);
 
@@ -788,7 +788,7 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
     // CdsDirectory
     if (IS_CDS_CONTAINER(objectType))
     {
-        Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
+        shared_ptr<CdsContainer> cont = dynamic_pointer_cast<CdsContainer>(obj);
         i = getIntProperty(js, _("updateID"), -1);
         if (i >= 0)
             cont->setUpdateID(i);
@@ -801,7 +801,7 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
     return obj;
 }
 
-void Script::cdsObject2jsObject(Ref<CdsObject> obj, JSObject *js)
+void Script::cdsObject2jsObject(shared_ptr<CdsObject> obj, JSObject *js)
 {
     String val;
     int i;
@@ -858,24 +858,24 @@ void Script::cdsObject2jsObject(Ref<CdsObject> obj, JSObject *js)
     {
         JSObject *meta_js = JS_NewObject(cx, nullptr, nullptr, js);
         setObjectProperty(js, _("meta"), meta_js);
-        Ref<Dictionary> meta = obj->getMetadata();
-        Ref<Array<DictionaryElement> > elements = meta->getElements();
+        shared_ptr<Dictionary> meta = obj->getMetadata();
+        shared_ptr<Array<DictionaryElement> > elements = meta->getElements();
         int len = elements->size();
         for (int i = 0; i < len; i++)
         {
-            Ref<DictionaryElement> el = elements->get(i);
+            shared_ptr<DictionaryElement> el = elements->get(i);
             setProperty(meta_js, el->getKey(), el->getValue());
         }
 
-        if (RefCast(obj, CdsItem)->getTrackNumber() > 0)
-            setProperty(meta_js, MetadataHandler::getMetaFieldName(M_TRACKNUMBER), String::from(RefCast(obj, CdsItem)->getTrackNumber())); 
+        if (dynamic_pointer_cast<CdsItem>(obj)->getTrackNumber() > 0)
+            setProperty(meta_js, MetadataHandler::getMetaFieldName(M_TRACKNUMBER), String::from(dynamic_pointer_cast<CdsItem>(obj)->getTrackNumber()));
     }
 
     // setting auxdata
     {
         JSObject *aux_js = JS_NewObject(cx, nullptr, nullptr, js);
         setObjectProperty(js, _("aux"), aux_js);
-        Ref<Dictionary> aux = obj->getAuxData();
+        shared_ptr<Dictionary> aux = obj->getAuxData();
 
 #ifdef HAVE_LIBDVDNAV
         if (obj->getFlag(OBJECT_FLAG_DVD_IMAGE))
@@ -1013,11 +1013,11 @@ void Script::cdsObject2jsObject(Ref<CdsObject> obj, JSObject *js)
             aux->put(_(ATRAILERS_AUXDATA_POST_DATE), tmp);
 #endif
 
-        Ref<Array<DictionaryElement> > elements = aux->getElements();
+        shared_ptr<Array<DictionaryElement> > elements = aux->getElements();
         int len = elements->size();
         for (int i = 0; i < len; i++)
         {
-            Ref<DictionaryElement> el = elements->get(i);
+            shared_ptr<DictionaryElement> el = elements->get(i);
             setProperty(aux_js, el->getKey(), el->getValue());
         }
     }
@@ -1028,7 +1028,7 @@ void Script::cdsObject2jsObject(Ref<CdsObject> obj, JSObject *js)
     // CdsItem
     if (IS_CDS_ITEM(objectType))
     {
-        Ref<CdsItem> item = RefCast(obj, CdsItem);
+        shared_ptr<CdsItem> item = dynamic_pointer_cast<CdsItem>(obj);
         val = item->getMimeType();
         if (val != nullptr)
             setProperty(js, _("mimetype"), val);
@@ -1039,7 +1039,7 @@ void Script::cdsObject2jsObject(Ref<CdsObject> obj, JSObject *js)
 
         if (IS_CDS_ACTIVE_ITEM(objectType))
         {
-            Ref<CdsActiveItem> aitem = RefCast(obj, CdsActiveItem);
+            shared_ptr<CdsActiveItem> aitem = dynamic_pointer_cast<CdsActiveItem>(obj);
             val = aitem->getAction();
             if (val != nullptr)
                 setProperty(js, _("action"), val);
@@ -1052,7 +1052,7 @@ void Script::cdsObject2jsObject(Ref<CdsObject> obj, JSObject *js)
     // CdsDirectory
     if (IS_CDS_CONTAINER(objectType))
     {
-        Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
+        shared_ptr<CdsContainer> cont = dynamic_pointer_cast<CdsContainer>(obj);
         // TODO: boolean type, hide updateID
         i = cont->getUpdateID();
         setIntProperty(js, _("updateID"), i);
@@ -1081,7 +1081,7 @@ String Script::convertToCharset(String str, charset_convert_t chr)
     return nullptr;
 }
 
-Ref<CdsObject> Script::getProcessedObject()
+shared_ptr<CdsObject> Script::getProcessedObject()
 {
     return processed;
 }

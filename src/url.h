@@ -83,14 +83,14 @@ public:
     /// \param only_header set true if you only want the header and not the
     /// body
     /// \param vebose enable curl verbose option
-    zmm::Ref<zmm::StringBuffer> download(zmm::String URL,
+    std::shared_ptr<zmm::StringBuffer> download(zmm::String URL,
                                          long *HTTP_retcode, 
                                          CURL *curl_handle = NULL,
                                          bool only_header=false,
                                          bool verbose=false,
                                          bool redirect=false);
 
-    zmm::Ref<Stat> getInfo(zmm::String URL, CURL *curl_handle = NULL );
+    std::shared_ptr<Stat> getInfo(zmm::String URL, CURL *curl_handle = NULL );
 protected:
     size_t buffer_hint;
     pthread_t pid;

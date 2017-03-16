@@ -91,7 +91,7 @@ void UpdateManager::shutdown()
     log_debug("end\n");
 }
 
-void UpdateManager::containersChanged(Ref<IntArray> objectIDs, int flushPolicy)
+void UpdateManager::containersChanged(shared_ptr<IntArray> objectIDs, int flushPolicy)
 {
     if (objectIDs == nullptr)
         return;

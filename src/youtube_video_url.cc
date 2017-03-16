@@ -54,14 +54,14 @@ YouTubeVideoURL::YouTubeVideoURL()
     if (!curl_handle)
         throw _Exception(_("failed to initialize curl!\n"));
 
-    reVideoURLParams = Ref<RExp>(new RExp());
+    reVideoURLParams = shared_ptr<RExp>(new RExp());
     reVideoURLParams->compile(_(YOUTUBE_URL_PARAMS_REGEXP));
-    redirectLocation = Ref<RExp>(new RExp());
+    redirectLocation = shared_ptr<RExp>(new RExp());
     redirectLocation->compile(_(YOUTUBE_URL_LOCATION_REGEXP));
-    param_t = Ref<RExp>(new RExp());
+    param_t = shared_ptr<RExp>(new RExp());
     param_t->compile(_(YOUTUBE_URL_PARAM_T_REGEXP));
 
-    HD = Ref<RExp>(new RExp());
+    HD = shared_ptr<RExp>(new RExp());
     HD->compile(_(YOUTUBE_IS_HD_AVAILABLE_REGEXP));
 
     // this is a safeguard to ensure that this class is not called from
@@ -86,7 +86,7 @@ String YouTubeVideoURL::getVideoURL(String video_id, bool mp4, bool hd)
 
     String swfargs = read_text_file("/home/jin/Work/UPnP/MediaTomb/YouTube/swf_args_new2.txt");
     
-    Ref<Matcher> m2 = param_t->matcher(swfargs);
+    shared_ptr<Matcher> m2 = param_t->matcher(swfargs);
     
     if (m2->next())
     {

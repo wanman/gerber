@@ -43,7 +43,7 @@ AutoscanDirectory::AutoscanDirectory()
     storageID = INVALID_OBJECT_ID;
     last_mod_previous_scan = 0;
     last_mod_current_scan = 0;
-    timer_parameter = Ref<Timer::Parameter> (new Timer::Parameter(Timer::Parameter::IDAutoscan, INVALID_SCAN_ID));
+    timer_parameter = shared_ptr<Timer::Parameter> (new Timer::Parameter(Timer::Parameter::IDAutoscan, INVALID_SCAN_ID));
 }
 
 AutoscanDirectory::AutoscanDirectory(String location, scan_mode_t mode,
@@ -63,7 +63,7 @@ AutoscanDirectory::AutoscanDirectory(String location, scan_mode_t mode,
     storageID = INVALID_OBJECT_ID;
     last_mod_previous_scan = 0;
     last_mod_current_scan = 0;
-    timer_parameter = Ref<Timer::Parameter>(new Timer::Parameter(Timer::Parameter::IDAutoscan, INVALID_SCAN_ID));
+    timer_parameter = shared_ptr<Timer::Parameter>(new Timer::Parameter(Timer::Parameter::IDAutoscan, INVALID_SCAN_ID));
 }
 
 void AutoscanDirectory::setCurrentLMT(time_t lmt) 
@@ -74,7 +74,7 @@ void AutoscanDirectory::setCurrentLMT(time_t lmt)
 
 AutoscanList::AutoscanList()
 {
-    list = Ref<Array<AutoscanDirectory> > (new Array<AutoscanDirectory>());
+    list = shared_ptr<Array<AutoscanDirectory> > (new Array<AutoscanDirectory>());
 }
 
 void AutoscanList::updateLMinDB()
@@ -83,19 +83,19 @@ void AutoscanList::updateLMinDB()
     for (int i = 0; i < list->size(); i++)
     {
         log_debug("i: %d\n", i);
-        Ref<AutoscanDirectory> ad = list->get(i);
+        shared_ptr<AutoscanDirectory> ad = list->get(i);
         if (ad != nullptr)
             Storage::getInstance()->autoscanUpdateLM(ad);
     }
 }
 
-int AutoscanList::add(Ref<AutoscanDirectory> dir)
+int AutoscanList::add(shared_ptr<AutoscanDirectory> dir)
 {
     AutoLock lock(mutex);
     return _add(dir);
 }
 
-int AutoscanList::_add(Ref<AutoscanDirectory> dir)
+int AutoscanList::_add(shared_ptr<AutoscanDirectory> dir)
 {
 
     String loc = dir->getLocation();
@@ -129,7 +129,7 @@ int AutoscanList::_add(Ref<AutoscanDirectory> dir)
     return dir->getScanID();
 }
 
-void AutoscanList::addList(zmm::Ref<AutoscanList> list)
+void AutoscanList::addList(zmm::shared_ptr<AutoscanList> list)
 {
     AutoLock lock(mutex);
     
@@ -142,17 +142,17 @@ void AutoscanList::addList(zmm::Ref<AutoscanList> list)
     }
 }
 
-Ref<Array<AutoscanDirectory> > AutoscanList::getArrayCopy()
+shared_ptr<Array<AutoscanDirectory> > AutoscanList::getArrayCopy()
 {
     AutoLock lock(mutex);
-    Ref<Array<AutoscanDirectory> > copy(new Array<AutoscanDirectory>(list->size()));
+    shared_ptr<Array<AutoscanDirectory> > copy(new Array<AutoscanDirectory>(list->size()));
     for (int i = 0; i < list->size(); i++)
         copy->append(list->get(i));
 
     return copy;
 }
 
-Ref<AutoscanDirectory> AutoscanList::get(int id)
+shared_ptr<AutoscanDirectory> AutoscanList::get(int id)
 {
     AutoLock lock(mutex);
 
@@ -162,7 +162,7 @@ Ref<AutoscanDirectory> AutoscanList::get(int id)
     return list->get(id);
 }
 
-Ref<AutoscanDirectory> AutoscanList::getByObjectID(int objectID)
+shared_ptr<AutoscanDirectory> AutoscanList::getByObjectID(int objectID)
 {
     AutoLock lock(mutex);
 
@@ -174,7 +174,7 @@ Ref<AutoscanDirectory> AutoscanList::getByObjectID(int objectID)
     return nullptr;
 }
 
-Ref<AutoscanDirectory> AutoscanList::get(String location)
+shared_ptr<AutoscanDirectory> AutoscanList::get(String location)
 {
     AutoLock lock(mutex);
     for (int i = 0; i < list->size(); i++)
@@ -196,7 +196,7 @@ void AutoscanList::remove(int id)
         return;
     }
    
-    Ref<AutoscanDirectory> dir = list->get(id);
+    shared_ptr<AutoscanDirectory> dir = list->get(id);
     dir->setScanID(INVALID_SCAN_ID);
 
     if (id == list->size()-1)
@@ -219,7 +219,7 @@ int AutoscanList::removeByObjectID(int objectID)
     {
         if (list->get(i) != nullptr && objectID == list->get(i)->getObjectID())
         {
-            Ref<AutoscanDirectory> dir = list->get(i);
+            shared_ptr<AutoscanDirectory> dir = list->get(i);
             dir->setScanID(INVALID_SCAN_ID);
             if (i == list->size()-1)
             {
@@ -243,7 +243,7 @@ int AutoscanList::remove(String location)
     {
         if (list->get(i) != nullptr && location == list->get(i)->getLocation())
         {
-            Ref<AutoscanDirectory> dir = list->get(i);
+            shared_ptr<AutoscanDirectory> dir = list->get(i);
             dir->setScanID(INVALID_SCAN_ID);
             if (i == list->size()-1)
             {
@@ -259,24 +259,24 @@ int AutoscanList::remove(String location)
     return INVALID_SCAN_ID;
 }
 
-Ref<AutoscanList> AutoscanList::removeIfSubdir(String parent, bool persistent)
+shared_ptr<AutoscanList> AutoscanList::removeIfSubdir(String parent, bool persistent)
 {
     AutoLock lock(mutex);
 
-    Ref<AutoscanList> rm_id_list(new AutoscanList());
+    shared_ptr<AutoscanList> rm_id_list(new AutoscanList());
 
     for (int i = 0; i < list->size(); i++)
     {
         if (list->get(i) != nullptr && (list->get(i)->getLocation().startsWith(parent)))
         {
-            Ref<AutoscanDirectory> dir = list->get(i);
+            shared_ptr<AutoscanDirectory> dir = list->get(i);
             if (dir == nullptr)
                 continue;
             if (dir->persistent() && !persistent)
             {
                 continue;
             }
-            Ref<AutoscanDirectory> copy(new AutoscanDirectory());
+            shared_ptr<AutoscanDirectory> copy(new AutoscanDirectory());
             dir->copyTo(copy);
             rm_id_list->add(copy);
             copy->setScanID(dir->getScanID());
@@ -300,7 +300,7 @@ void AutoscanList::notifyAll(Timer::Subscriber *sub)
     if (sub == nullptr) return;
     AutoLock lock(mutex);
     
-    Ref<Timer> timer = Timer::getInstance();
+    shared_ptr<Timer> timer = Timer::getInstance();
     for (int i = 0; i < list->size(); i++)
     {
         if (list->get(i) == nullptr)
@@ -370,7 +370,7 @@ scan_level_t AutoscanDirectory::remapScanlevel(String scanlevel)
         throw _Exception(_("illegal scanlevel (") + scanlevel + ") given to remapScanlevel()");
 }
 
-void AutoscanDirectory::copyTo(Ref<AutoscanDirectory> copy)
+void AutoscanDirectory::copyTo(shared_ptr<AutoscanDirectory> copy)
 {
     copy->location = location;
     copy->mode = mode;
@@ -388,7 +388,7 @@ void AutoscanDirectory::copyTo(Ref<AutoscanDirectory> copy)
     copy->timer_parameter = timer_parameter;
 }
 
-Ref<Timer::Parameter> AutoscanDirectory::getTimerParameter()
+shared_ptr<Timer::Parameter> AutoscanDirectory::getTimerParameter()
 {
     return timer_parameter; 
 }

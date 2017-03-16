@@ -42,7 +42,7 @@
 
 using namespace zmm;
 
-Ref<Storage> Storage::getInstance()
+shared_ptr<Storage> Storage::getInstance()
 {
     if (! instance->singletonActive)
             throw _Exception(_("singleton is currently inactive!"));
@@ -53,7 +53,7 @@ Ref<Storage> Storage::getInstance()
                 throw _Exception(_("singleton is currently inactive!"));
         if (instance == nullptr)
         {
-            Ref<Storage> tmpInstance = createInstance();
+            shared_ptr<Storage> tmpInstance = createInstance();
             tmpInstance->init();
             tmpInstance->registerSingleton();
             instance = tmpInstance;
@@ -63,12 +63,12 @@ Ref<Storage> Storage::getInstance()
 }
 
 
-Ref<Storage> Storage::createInstance()
+shared_ptr<Storage> Storage::createInstance()
 {
     String type;
-    Ref<Storage> storage;
+    shared_ptr<Storage> storage;
 
-    Ref<ConfigManager> config = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> config = ConfigManager::getInstance();
     type = config->getOption(CFG_SERVER_STORAGE_DRIVER);
 
     do
@@ -76,7 +76,7 @@ Ref<Storage> Storage::createInstance()
 #ifdef HAVE_SQLITE3
         if (type == "sqlite3")
         {
-            storage = Ref<Storage>(new Sqlite3Storage());
+            storage = shared_ptr<Storage>(new Sqlite3Storage());
             break;
         }
 #endif
@@ -84,7 +84,7 @@ Ref<Storage> Storage::createInstance()
 #ifdef HAVE_MYSQL
         if (type == "mysql")
         {
-            storage = Ref<Storage>(new MysqlStorage());
+            storage = shared_ptr<Storage>(new MysqlStorage());
             break;
         }
 #endif

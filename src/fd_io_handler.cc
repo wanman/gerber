@@ -47,7 +47,7 @@ FDIOHandler::FDIOHandler(String filename) : IOHandler()
     this->filename = filename;
     this->fd = -1;
     this->other = nullptr;
-    this->reference_list = Ref<Array<Object> >(new Array<Object >(4));
+    this->reference_list = shared_ptr<Array<Object> >(new Array<Object >(4));
     this->closed = false;
 }
 
@@ -56,16 +56,16 @@ FDIOHandler::FDIOHandler(int fd) : IOHandler()
     this->filename = nullptr;
     this->fd = fd;
     this->other = nullptr;
-    this->reference_list = Ref<Array<Object> >(new Array<Object >(4));
+    this->reference_list = shared_ptr<Array<Object> >(new Array<Object >(4));
     this->closed = false;
 }
 
-void FDIOHandler::addReference(Ref<Object> reference)
+void FDIOHandler::addReference(shared_ptr<Object> reference)
 {
     reference_list->append(reference);
 }
 
-void FDIOHandler::closeOther(Ref<IOHandler> other)
+void FDIOHandler::closeOther(shared_ptr<IOHandler> other)
 {
     this->other = other;
 }

@@ -139,7 +139,7 @@ void MysqlStorage::init()
     mysql_server_init(0, nullptr, nullptr);
     pthread_setspecific(mysql_init_key, (void *) 1);
     
-    Ref<ConfigManager> config = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> config = ConfigManager::getInstance();
     
     String dbHost = config->getOption(CFG_SERVER_STORAGE_MYSQL_HOST);
     String dbName = config->getOption(CFG_SERVER_STORAGE_MYSQL_DATABASE);
@@ -312,14 +312,14 @@ String MysqlStorage::quote(String value)
 
 String MysqlStorage::getError(MYSQL *db)
 {
-    Ref<StringBuffer> err_buf(new StringBuffer());
+    shared_ptr<StringBuffer> err_buf(new StringBuffer());
     *err_buf << "mysql_error (" << String::from(mysql_errno(db));
     *err_buf << "): \"" << mysql_error(db) << "\"";
     log_debug("%s\n", err_buf->c_str());
     return err_buf->toString();
 }
 
-Ref<SQLResult> MysqlStorage::select(const char *query, int length)
+shared_ptr<SQLResult> MysqlStorage::select(const char *query, int length)
 {
 #ifdef MYSQL_SELECT_DEBUG
     log_debug("%s\n", query);
@@ -344,7 +344,7 @@ Ref<SQLResult> MysqlStorage::select(const char *query, int length)
         String myError = getError(&db);
         throw _StorageException(myError, _("Mysql: mysql_store_result() failed: ") + myError + "; query: " + query);
     }
-    return Ref<SQLResult> (new MysqlResult(mysql_res));
+    return shared_ptr<SQLResult> (new MysqlResult(mysql_res));
 }
 
 int MysqlStorage::exec(const char *query, int length, bool getLastInsertId)
@@ -377,7 +377,7 @@ void MysqlStorage::shutdownDriver()
 void MysqlStorage::storeInternalSetting(String key, String value)
 {
     String quotedValue = quote(value);
-    Ref<StringBuffer> q(new StringBuffer());
+    shared_ptr<StringBuffer> q(new StringBuffer());
     *q << "INSERT INTO " << QTB << INTERNAL_SETTINGS_TABLE << QTE << " (`key`, `value`) "
     "VALUES (" << quote(key) << ", "<< quotedValue << ") "
     "ON DUPLICATE KEY UPDATE `value` = " << quotedValue;
@@ -393,14 +393,14 @@ void MysqlStorage::_exec(const char *query, int length)
     }
 }
 
-void MysqlStorage::_addToInsertBuffer(Ref<StringBuffer> query)
+void MysqlStorage::_addToInsertBuffer(shared_ptr<StringBuffer> query)
 {
     if (insertBuffer == nullptr)
     {
-        insertBuffer = Ref<Array<StringBase> >(new Array<StringBase>());
+        insertBuffer = shared_ptr<Array<StringBase> >(new Array<StringBase>());
         insertBuffer->append(_("BEGIN"));
     }
-    Ref<StringBase> sb (new StringBase(query->c_str()));
+    shared_ptr<StringBase> sb (new StringBase(query->c_str()));
     insertBuffer->append(sb);
 }
 
@@ -444,13 +444,13 @@ MysqlResult::~MysqlResult()
     }
 }
 
-Ref<SQLRow> MysqlResult::nextRow()
+shared_ptr<SQLRow> MysqlResult::nextRow()
 {   
     MYSQL_ROW mysql_row;
     mysql_row = mysql_fetch_row(mysql_res);
     if(mysql_row)
     {
-        return Ref<SQLRow>(new MysqlRow(mysql_row, Ref<SQLResult>(this)));
+        return shared_ptr<SQLRow>(new MysqlRow(mysql_row, shared_ptr<SQLResult>(this)));
     }
     nullRead = true;
     mysql_free_result(mysql_res);
@@ -460,7 +460,7 @@ Ref<SQLRow> MysqlResult::nextRow()
 
 /* MysqlRow */
 
-MysqlRow::MysqlRow(MYSQL_ROW mysql_row, Ref<SQLResult> sqlResult) : SQLRow(sqlResult)
+MysqlRow::MysqlRow(MYSQL_ROW mysql_row, shared_ptr<SQLResult> sqlResult) : SQLRow(sqlResult)
 {
     this->mysql_row = mysql_row;
 }

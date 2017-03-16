@@ -45,7 +45,7 @@ protected:
     zmm::String dvdname;
 
     /// \brief Handle of the DVD.
-    zmm::Ref<DVDNavReader> dvd;
+    std::shared_ptr<DVDNavReader> dvd;
 
     off_t total_size;
 

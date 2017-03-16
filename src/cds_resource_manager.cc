@@ -74,16 +74,16 @@ String CdsResourceManager::renderExtension(String contentType, String location)
     return nullptr;
 }
 
-void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
+void CdsResourceManager::addResources(shared_ptr<CdsItem> item, shared_ptr<Element> element)
 {
-    Ref<UrlBase> urlBase = addResources_getUrlBase(item);
-    Ref<ConfigManager> config = ConfigManager::getInstance();
+    shared_ptr<UrlBase> urlBase = addResources_getUrlBase(item);
+    shared_ptr<ConfigManager> config = ConfigManager::getInstance();
     bool skipURL = ((IS_CDS_ITEM_INTERNAL_URL(item->getObjectType()) || 
                     IS_CDS_ITEM_EXTERNAL_URL(item->getObjectType())) &&
                     (!item->getFlag(OBJECT_FLAG_PROXY_URL)));
 
     bool isExtThumbnail = false; // this sucks
-    Ref<Dictionary> mappings = config->getDictionaryOption(
+    shared_ptr<Dictionary> mappings = config->getDictionaryOption(
                         CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
 
 #if defined(HAVE_FFMPEG) && defined(HAVE_FFMPEGTHUMBNAILER)
@@ -102,7 +102,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
             if (!string_ok(thumb_mimetype))
                 thumb_mimetype = _("image/jpeg");
 
-            Ref<CdsResource> ffres(new CdsResource(CH_FFTH));
+            shared_ptr<CdsResource> ffres(new CdsResource(CH_FFTH));
             ffres->addParameter(_(RESOURCE_HANDLER), String::from(CH_FFTH));
             ffres->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO),
                     renderProtocolInfo(thumb_mimetype));
@@ -126,7 +126,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
     bool hide_original_resource = false;
     int original_resource = 0;
     
-    Ref<UrlBase> urlBase_tr;
+    shared_ptr<UrlBase> urlBase_tr;
 
     // once proxying is a feature that can be turned off or on in
     // config manager we should use that setting 
@@ -134,15 +134,15 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
     // TODO: allow transcoding for URLs
         
     // now get the profile
-    Ref<TranscodingProfileList> tlist = config->getTranscodingProfileListOption(
+    shared_ptr<TranscodingProfileList> tlist = config->getTranscodingProfileListOption(
             CFG_TRANSCODING_PROFILE_LIST);
-    Ref<ObjectDictionary<TranscodingProfile> > tp_mt = tlist->get(item->getMimeType());
+    shared_ptr<ObjectDictionary<TranscodingProfile> > tp_mt = tlist->get(item->getMimeType());
     if (tp_mt != nullptr)
     {
-        Ref<Array<ObjectDictionaryElement<TranscodingProfile> > > profiles = tp_mt->getElements();
+        shared_ptr<Array<ObjectDictionaryElement<TranscodingProfile> > > profiles = tp_mt->getElements();
         for (int p = 0; p < profiles->size(); p++)
         {
-            Ref<TranscodingProfile> tp = profiles->get(p)->getValue();
+            shared_ptr<TranscodingProfile> tp = profiles->get(p)->getValue();
 
             if (tp == nullptr)
                 throw _Exception(_("Invalid profile encountered!"));
@@ -163,7 +163,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
             {
                 avi_fourcc_listmode_t fcc_mode = tp->getAVIFourCCListMode();
 
-                Ref<Array<StringBase> > fcc_list = tp->getAVIFourCCList();
+                shared_ptr<Array<StringBase> > fcc_list = tp->getAVIFourCCList();
                 // mode is either process or ignore, so we will have to take a
                 // look at the settings
                 if (fcc_mode != FCC_None)
@@ -202,7 +202,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
             if (!item->getFlag(OBJECT_FLAG_DVD_IMAGE) && (tp->onlyDVD()))
                 continue;
 
-            Ref<CdsResource> t_res(new CdsResource(CH_TRANSCODE));
+            shared_ptr<CdsResource> t_res(new CdsResource(CH_TRANSCODE));
             t_res->addParameter(_(URL_PARAM_TRANSCODE_PROFILE_NAME), tp->getName());
             // after transcoding resource was added we can not rely on
             // index 0, so we will make sure the ogg option is there
@@ -291,9 +291,9 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
         /*        String mimeType = item->getMimeType();
                   if (!string_ok(mimeType)) mimeType = DEFAULT_MIMETYPE; */
 
-        Ref<CdsResource> res = item->getResource(i);
-        Ref<Dictionary> res_attrs = res->getAttributes();
-        Ref<Dictionary> res_params = res->getParameters();
+        shared_ptr<CdsResource> res = item->getResource(i);
+        shared_ptr<Dictionary> res_attrs = res->getAttributes();
+        shared_ptr<Dictionary> res_params = res->getParameters();
         String protocolInfo = res_attrs->get(MetadataHandler::getResAttrName(R_PROTOCOLINFO));
         String mimeType = getMTFromProtocolInfo(protocolInfo);
 
@@ -385,7 +385,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
                 else
                     rct = res->getParameter(_(RESOURCE_CONTENT_TYPE));
                 if (rct == ID3_ALBUM_ART) {
-                    Ref<Element> aa(new Element(MetadataHandler::getMetaFieldName(M_ALBUMARTURI)));
+                    shared_ptr<Element> aa(new Element(MetadataHandler::getMetaFieldName(M_ALBUMARTURI)));
                     aa->setText(url);
 #ifdef EXTEND_PROTOCOLINFO
                     if (config->getBoolOption(CFG_SERVER_EXTEND_PROTOCOLINFO)) {
@@ -505,14 +505,14 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
     }
 }
 
-Ref<CdsResourceManager::UrlBase> CdsResourceManager::addResources_getUrlBase(Ref<CdsItem> item, bool forceLocal)
+shared_ptr<CdsResourceManager::UrlBase> CdsResourceManager::addResources_getUrlBase(shared_ptr<CdsItem> item, bool forceLocal)
 {
-    Ref<Element> res;
+    shared_ptr<Element> res;
 
-    Ref<UrlBase> urlBase(new UrlBase);
+    shared_ptr<UrlBase> urlBase(new UrlBase);
     /// \todo resource options must be read from configuration files
 
-    Ref<Dictionary> dict(new Dictionary());
+    shared_ptr<Dictionary> dict(new Dictionary());
     dict->put(_(URL_OBJECT_ID), String::from(item->getID()));
 
     urlBase->addResID = false;
@@ -571,9 +571,9 @@ Ref<CdsResourceManager::UrlBase> CdsResourceManager::addResources_getUrlBase(Ref
     return urlBase;
 }
 
-String CdsResourceManager::getFirstResource(Ref<CdsItem> item)
+String CdsResourceManager::getFirstResource(shared_ptr<CdsItem> item)
 {
-    Ref<UrlBase> urlBase = addResources_getUrlBase(item);
+    shared_ptr<UrlBase> urlBase = addResources_getUrlBase(item);
 
     if (urlBase->addResID)
         return urlBase->urlBase + 0;
@@ -581,11 +581,11 @@ String CdsResourceManager::getFirstResource(Ref<CdsItem> item)
         return urlBase->urlBase;
 }
 
-String CdsResourceManager::getArtworkUrl(zmm::Ref<CdsItem> item) {
+String CdsResourceManager::getArtworkUrl(zmm::shared_ptr<CdsItem> item) {
     // FIXME: This is temporary until we do artwork properly.
     log_debug("Building Art url for %d\n", item->getID());
 
-    Ref<UrlBase> urlBase = addResources_getUrlBase(item);
+    shared_ptr<UrlBase> urlBase = addResources_getUrlBase(item);
 
     if (urlBase->addResID)
         return urlBase->urlBase + 1 + "/rct/aa";

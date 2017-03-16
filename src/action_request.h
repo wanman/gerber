@@ -71,12 +71,12 @@ protected:
     /// \brief XML holding the request that comes to us.
     ///
     /// Returned by getRequest()
-    zmm::Ref<mxml::Element> request;
+    std::shared_ptr<mxml::Element> request;
 
     /// \brief XML holding the response, we fill it in.
     ///
     /// Set by setResponse()
-    zmm::Ref<mxml::Element> response;
+    std::shared_ptr<mxml::Element> response;
 
 public:
     /// \brief The Constructor takes the values from the upnp_request and fills in internal variables.
@@ -93,11 +93,11 @@ public:
     zmm::String getServiceID();
 
     /// \brief Returns the XML representation of the request.
-    zmm::Ref<mxml::Element> getRequest();
+    std::shared_ptr<mxml::Element> getRequest();
 
     /// \brief Sets the response (XML created outside as the answer to the request)
     /// \param response XML holding the action response.
-    void setResponse(zmm::Ref<mxml::Element> response);
+    void setResponse(std::shared_ptr<mxml::Element> response);
 
     /// \brief Set the error code for the SDK.
     /// \param errCode UPnP error code.

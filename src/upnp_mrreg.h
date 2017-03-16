@@ -64,7 +64,7 @@ protected:
     /// IsAuthorized(string DeviceID, i4 Result)
     ///
     /// This is currently unsupported (always returns 1)
-    void upnp_action_IsAuthorized(zmm::Ref<ActionRequest> request);
+    void upnp_action_IsAuthorized(std::shared_ptr<ActionRequest> request);
 
     /// \brief Media Receiver Registrar service action: RegisterDevice() 
     /// \param request Incoming ActionRequest.
@@ -72,13 +72,13 @@ protected:
     /// RegisterDevice(bin.base64 RegistrationReqMsg, bin.base64 RegistrationRespMsg)
     ///
     /// This action is currently unsupported.
-    void upnp_action_RegisterDevice(zmm::Ref<ActionRequest> request);
+    void upnp_action_RegisterDevice(std::shared_ptr<ActionRequest> request);
 
     /// \brief Media Receiver Registrar service action: IsValidated()
     /// \param request Incoming ActionRequest.
     ///
     /// IsValidated(string DeviceID, i4 Result)
-    void upnp_action_IsValidated(zmm::Ref<ActionRequest> request);
+    void upnp_action_IsValidated(std::shared_ptr<ActionRequest> request);
     
 public:
     /// \brief Constructor for the CMS, saves the service type and service id
@@ -94,14 +94,14 @@ public:
     ///
     /// This function looks at the incoming ActionRequest and passes it on
     /// to the appropriate action for processing.
-    void process_action_request(zmm::Ref<ActionRequest> request);
+    void process_action_request(std::shared_ptr<ActionRequest> request);
 
     /// \brief Processes an incoming SubscriptionRequest.
     /// \param request Incoming SubscriptionRequest.
     ///
     /// Looks at the incoming SubscriptionRequest and accepts the subscription
     /// if everything is ok. Currently we do not support any updates.
-    void process_subscription_request(zmm::Ref<SubscriptionRequest> request);
+    void process_subscription_request(std::shared_ptr<SubscriptionRequest> request);
 
     // subscriptions for this service are not supporte  // subscriptions for this service are not supportedd
 

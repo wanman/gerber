@@ -187,39 +187,39 @@ zmm::String StringConverter::_convert(String str, bool validate,
 }
 
 /// \todo iconv caching
-Ref<StringConverter> StringConverter::i2f()
+shared_ptr<StringConverter> StringConverter::i2f()
 {
-    Ref<StringConverter> conv(new StringConverter(
+    shared_ptr<StringConverter> conv(new StringConverter(
         _(DEFAULT_INTERNAL_CHARSET), ConfigManager::getInstance()->getOption(CFG_IMPORT_FILESYSTEM_CHARSET)));
 //        INTERNAL_CHARSET, ConfigManager::getInstance()->getFilesystemCharset()));
     return conv;
 }
-Ref<StringConverter> StringConverter::f2i()
+shared_ptr<StringConverter> StringConverter::f2i()
 {
-    Ref<StringConverter> conv(new StringConverter(
+    shared_ptr<StringConverter> conv(new StringConverter(
         ConfigManager::getInstance()->getOption(CFG_IMPORT_FILESYSTEM_CHARSET), _(DEFAULT_INTERNAL_CHARSET)));
     return conv;
 }
-Ref<StringConverter> StringConverter::m2i()
+shared_ptr<StringConverter> StringConverter::m2i()
 {
-    Ref<StringConverter> conv(new StringConverter(
+    shared_ptr<StringConverter> conv(new StringConverter(
         ConfigManager::getInstance()->getOption(CFG_IMPORT_METADATA_CHARSET),
         _(DEFAULT_INTERNAL_CHARSET)));
     return conv;
 }
 
 #ifdef HAVE_JS
-Ref<StringConverter> StringConverter::j2i()
+shared_ptr<StringConverter> StringConverter::j2i()
 {
-    Ref<StringConverter> conv(new StringConverter(
+    shared_ptr<StringConverter> conv(new StringConverter(
         ConfigManager::getInstance()->getOption(CFG_IMPORT_SCRIPTING_CHARSET),
         _(DEFAULT_INTERNAL_CHARSET)));
     return conv;
 }
 
-Ref<StringConverter> StringConverter::p2i()
+shared_ptr<StringConverter> StringConverter::p2i()
 {
-    Ref<StringConverter> conv(new StringConverter(
+    shared_ptr<StringConverter> conv(new StringConverter(
         ConfigManager::getInstance()->getOption(CFG_IMPORT_PLAYLIST_CHARSET),
         _(DEFAULT_INTERNAL_CHARSET)));
     return conv;
@@ -228,9 +228,9 @@ Ref<StringConverter> StringConverter::p2i()
 
 #if defined (HAVE_JS) || defined(HAVE_TAGLIB) || defined(YOUTUBE) || defined(HAVE_LIBMP4V2)
 
-Ref<StringConverter> StringConverter::i2i()
+shared_ptr<StringConverter> StringConverter::i2i()
 {
-    Ref<StringConverter> conv(new StringConverter(_(DEFAULT_INTERNAL_CHARSET),
+    shared_ptr<StringConverter> conv(new StringConverter(_(DEFAULT_INTERNAL_CHARSET),
                                                   _(DEFAULT_INTERNAL_CHARSET)));
     return conv;
 }

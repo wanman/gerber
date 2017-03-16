@@ -56,7 +56,7 @@ DVDIOHandler::DVDIOHandler(String dvdname, int track, int chapter,
     small_buffer[0] = '\0';
     small_buffer_pos = NULL;
     last_read = false;
-    dvd = Ref<DVDNavReader>(new DVDNavReader(dvdname));
+    dvd = shared_ptr<DVDNavReader>(new DVDNavReader(dvdname));
     dvd->selectPGC(track, chapter);
 }
 

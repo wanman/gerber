@@ -49,12 +49,12 @@ Exception::Exception(String message, const char* file, int line, const char* fun
     void *b[100];
     int size = backtrace(b, 100);
 
-    stackTrace = Ref<Array<StringBase> >(new Array<StringBase>(size));
+    stackTrace = shared_ptr<Array<StringBase> >(new Array<StringBase>(size));
 
     char **s = backtrace_symbols(b, size);
     for(int i = 0; i < size; i++)
     {
-        Ref<StringBase> trace(new StringBase(s[i]));
+        shared_ptr<StringBase> trace(new StringBase(s[i]));
         stackTrace->append(trace);
     }
     if (s)
@@ -72,12 +72,12 @@ Exception::Exception(String message)
     void *b[100];
     int size = backtrace(b, 100);
 
-    stackTrace = Ref<Array<StringBase> >(new Array<StringBase>(size));
+    stackTrace = shared_ptr<Array<StringBase> >(new Array<StringBase>(size));
 
     char **s = backtrace_symbols(b, size);
     for(int i = 0; i < size; i++)
     {
-        Ref<StringBase> trace(new StringBase(s[i]));
+        shared_ptr<StringBase> trace(new StringBase(s[i]));
         stackTrace->append(trace);
     }
     free(s);
@@ -89,7 +89,7 @@ String Exception::getMessage() const
     return message;
 }
 
-Ref<Array<StringBase> > Exception::getStackTrace()
+shared_ptr<Array<StringBase> > Exception::getStackTrace()
 {
     return stackTrace;
 }
@@ -109,7 +109,7 @@ void Exception::printStackTrace(FILE *file) const
 #if defined HAVE_BACKTRACE && defined HAVE_BACKTRACE_SYMBOLS
     for (int i = 0; i < stackTrace->size(); i++)
     {
-        Ref<StringBase> trace = stackTrace->get(i);
+        shared_ptr<StringBase> trace = stackTrace->get(i);
         fprintf(file, "%s %i %s\n", STRACE_TAG, i, trace->data);
         fflush(file);
     }

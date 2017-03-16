@@ -64,9 +64,9 @@ using namespace std;
 
 static const char *HEX_CHARS = "0123456789abcdef";
 
-Ref<Array<StringBase> > split_string(String str, char sep, bool empty)
+shared_ptr<Array<StringBase> > split_string(String str, char sep, bool empty)
 {
-    Ref<Array<StringBase> > ret(new Array<StringBase>());
+    shared_ptr<Array<StringBase> > ret(new Array<StringBase>());
     const char *data = str.c_str();
     const char *end = data + str.length();
     while (data < end)
@@ -94,11 +94,11 @@ Ref<Array<StringBase> > split_string(String str, char sep, bool empty)
     return ret;
 }
 
-Ref<Array<StringBase> > split_path(String str)
+shared_ptr<Array<StringBase> > split_path(String str)
 {
     if (! string_ok(str))
         throw _Exception(_("invalid path given to split_path"));
-    Ref<Array<StringBase> > ret(new Array<StringBase>());
+    shared_ptr<Array<StringBase> > ret(new Array<StringBase>());
     int pos = str.rindex(DIR_SEPARATOR);
     const char *data = str.c_str();
     
@@ -216,7 +216,7 @@ String find_in_path(String exec)
     if (!string_ok(PATH))
         return nullptr;
 
-    Ref<StringTokenizer> st(new StringTokenizer(PATH));
+    shared_ptr<StringTokenizer> st(new StringTokenizer(PATH));
     String path = nullptr;
     String next;
     do
@@ -256,7 +256,7 @@ bool string_ok(String str)
     return true;
 }
 
-bool string_ok(Ref<StringBuffer> str)
+bool string_ok(shared_ptr<StringBuffer> str)
 {
     
     if ((str == nullptr) || (str->length()<=0))
@@ -282,7 +282,7 @@ String hex_encode(const void *data, int len)
     int i;
     unsigned char hi, lo;
 
-    Ref<StringBuffer> buf(new StringBuffer(len * 2));
+    shared_ptr<StringBuffer> buf(new StringBuffer(len * 2));
     
     chars = (unsigned char *)data;
     for (i = 0; i < len; i++)
@@ -301,7 +301,7 @@ String hex_decode_string(String encoded)
     char *ptr = const_cast<char *>(encoded.c_str());
     int len = encoded.length();
     
-    Ref<StringBuffer> buf(new StringBuffer(len / 2));
+    shared_ptr<StringBuffer> buf(new StringBuffer(len / 2));
     for (int i = 0; i < len; i += 2)
     {
         const char *chi = strchr(const_cast<char *>(HEX_CHARS), ptr[i]);
@@ -358,7 +358,7 @@ String url_escape(String str)
 {
     const char *data = str.c_str();
     int len = str.length();
-    Ref<StringBuffer> buf(new StringBuffer(len));
+    shared_ptr<StringBuffer> buf(new StringBuffer(len));
     for (int i = 0; i < len; i++)
     {
         unsigned char c = (unsigned char)data[i];
@@ -384,7 +384,7 @@ String url_unescape(String str)
 {
     char *data = const_cast<char *>(str.c_str());
     int len = str.length();
-    Ref<StringBuffer> buf(new StringBuffer(len));
+    shared_ptr<StringBuffer> buf(new StringBuffer(len));
 
     int i = 0;
     while (i < len)
@@ -427,9 +427,9 @@ String url_unescape(String str)
     return buf->toString();
 }
 
-String mime_types_to_CSV(Ref<Array<StringBase> > mimeTypes)
+String mime_types_to_CSV(shared_ptr<Array<StringBase> > mimeTypes)
 {
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
     for (int i = 0; i < mimeTypes->size(); i++)
     {
         if (i > 0)
@@ -472,7 +472,7 @@ String read_text_file(String path)
         throw _Exception(_("read_text_file: could not open ") +
                         path + " : " + mt_strerror(errno));
     }
-    Ref<StringBuffer> buf(new StringBuffer()); 
+    shared_ptr<StringBuffer> buf(new StringBuffer()); 
     char *buffer = (char *)MALLOC(1024);
     size_t bytesRead;    
     while((bytesRead = fread(buffer, 1, 1024, f)) > 0)
@@ -635,7 +635,7 @@ String renderProtocolInfo(String mimetype, String protocol, String extend)
 
 String getMTFromProtocolInfo(String protocol)
 {
-    Ref<Array<StringBase> > parts = split_string(protocol, ':');
+    shared_ptr<Array<StringBase> > parts = split_string(protocol, ':');
     if (parts->size() > 2)
         return parts->get(2);
     else
@@ -691,7 +691,7 @@ int HMSToSeconds(String time)
 }
 
 #ifdef HAVE_MAGIC
-String get_mime_type(magic_set *ms, Ref<RExp> reMimetype, String file)
+String get_mime_type(magic_set *ms, shared_ptr<RExp> reMimetype, String file)
 {
     if (ms == nullptr)
         return nullptr;
@@ -705,7 +705,7 @@ String get_mime_type(magic_set *ms, Ref<RExp> reMimetype, String file)
 
     String mime_type = mt;
 
-    Ref<Matcher> matcher = reMimetype->matcher(mime_type, 2);
+    shared_ptr<Matcher> matcher = reMimetype->matcher(mime_type, 2);
     if (matcher->next())
         return matcher->group(1);
 
@@ -714,7 +714,7 @@ String get_mime_type(magic_set *ms, Ref<RExp> reMimetype, String file)
     return nullptr;
 }
 
-String get_mime_type_from_buffer(magic_set *ms, Ref<RExp> reMimetype, 
+String get_mime_type_from_buffer(magic_set *ms, shared_ptr<RExp> reMimetype, 
                                  const void *buffer, size_t length)
 {
     if (ms == nullptr)
@@ -729,7 +729,7 @@ String get_mime_type_from_buffer(magic_set *ms, Ref<RExp> reMimetype,
 
     String mime_type = mt;
 
-    Ref<Matcher> matcher = reMimetype->matcher(mime_type, 2);
+    shared_ptr<Matcher> matcher = reMimetype->matcher(mime_type, 2);
     if (matcher->next())
         return matcher->group(1);
 
@@ -738,11 +738,11 @@ String get_mime_type_from_buffer(magic_set *ms, Ref<RExp> reMimetype,
 }
 #endif 
 
-void set_jpeg_resolution_resource(Ref<CdsItem> item, int res_num)
+void set_jpeg_resolution_resource(shared_ptr<CdsItem> item, int res_num)
 {
     try
     {
-        Ref<IOHandler> fio_h(new FileIOHandler(item->getLocation()));
+        shared_ptr<IOHandler> fio_h(new FileIOHandler(item->getLocation()));
         fio_h->open(UPNP_READ);
         String resolution = get_jpeg_resolution(fio_h);
 
@@ -765,7 +765,7 @@ bool check_resolution(String resolution, int *x, int *y)
     if (y != nullptr)
         *y = 0;
 
-    Ref<Array<StringBase> > parts = split_string(resolution, 'x');
+    shared_ptr<Array<StringBase> > parts = split_string(resolution, 'x');
     if (parts->size() != 2)
         return false;
 
@@ -793,7 +793,7 @@ bool check_resolution(String resolution, int *x, int *y)
 
 String escape(String string, char escape_char, char to_escape)
 {
-    Ref<StringBase> stringBase(new StringBase(string.length() * 2));
+    shared_ptr<StringBase> stringBase(new StringBase(string.length() * 2));
     char *str = stringBase->data;
     int len = string.length();
     
@@ -849,7 +849,7 @@ String escape(String string, char escape_char, char to_escape)
 
 String unescape(String string, char escape)
 {
-    Ref<StringBase> stringBase(new StringBase(string.length()));
+    shared_ptr<StringBase> stringBase(new StringBase(string.length()));
     char *str = stringBase->data;
     int len = string.length();
     
@@ -878,7 +878,7 @@ String unescape(String string, char escape)
 /*
 String xml_unescape(String string)
 {
-    Ref<StringBuffer> buf(new StringBuffer(string.length()));
+    shared_ptr<StringBuffer> buf(new StringBuffer(string.length()));
     signed char *ptr = (signed char *)string.c_str();
     while (*ptr)
     {
@@ -935,7 +935,7 @@ String unescape_amp(String string)
 {
     if (string == nullptr)
         return nullptr;
-    Ref<StringBase> stringBase(new StringBase(string.length()));
+    shared_ptr<StringBase> stringBase(new StringBase(string.length()));
     char *str = stringBase->data;
     int len = string.length();
 
@@ -993,7 +993,7 @@ String toCSV(shared_ptr<unordered_set<int> > array)
 {
     if (array->empty())
         return nullptr;
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
     for (const auto &i: *array) {
         *buf << ',' << i;
     }
@@ -1048,12 +1048,12 @@ String normalizePath(String path)
     
     int length = path.length();
     
-    Ref<StringBase> result(new StringBase(length));
+    shared_ptr<StringBase> result(new StringBase(length));
     
     int avarageExpectedSlashes = length/5;
     if (avarageExpectedSlashes < 3)
         avarageExpectedSlashes = 3;
-    Ref<BaseStack<int> > separatorLocations(new BaseStack<int>(avarageExpectedSlashes, -1));
+    shared_ptr<BaseStack<int> > separatorLocations(new BaseStack<int>(avarageExpectedSlashes, -1));
     char *str = result->data;
     //int len = string.length();
 
@@ -1245,10 +1245,10 @@ bool validateYesNo(String value)
         return true;
 }
 
-Ref<Array<StringBase> > parseCommandLine(String line, String in, String out,
+shared_ptr<Array<StringBase> > parseCommandLine(String line, String in, String out,
                                          String range)
 {
-    Ref<Array<StringBase> > params = split_string(line, ' ');
+    shared_ptr<Array<StringBase> > params = split_string(line, ' ');
     if ((in == nullptr) && (out == nullptr))
         return params;
 

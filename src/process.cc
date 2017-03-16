@@ -57,7 +57,7 @@ String run_simple_process(String prog, String param, String input)
     char temp_in[] = "mt_in_XXXXXX";
     char temp_out[] = "mt_out_XXXXXX";
         
-    Ref<ConfigManager> cfg = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> cfg = ConfigManager::getInstance();
     String input_file = tempName(cfg->getOption(CFG_SERVER_TMPDIR), temp_in);
     fd = open(input_file.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     if (fd == -1)
@@ -110,7 +110,7 @@ String run_simple_process(String prog, String param, String input)
         throw _Exception(_("Failed to open output file ")+output_file +_(" ") + 
                 strerror(errno));
     }
-    Ref<StringBuffer> output(new StringBuffer());
+    shared_ptr<StringBuffer> output(new StringBuffer());
 
     int bytesRead;
     char buf[BUF_SIZE];

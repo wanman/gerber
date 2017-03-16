@@ -75,9 +75,9 @@ TranscodeExternalHandler::TranscodeExternalHandler() : TranscodeHandler()
 {
 }
 
-Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile, 
+shared_ptr<IOHandler> TranscodeExternalHandler::open(shared_ptr<TranscodingProfile> profile, 
                                               String location, 
-                                              Ref<CdsObject> obj,
+                                              shared_ptr<CdsObject> obj,
                                               String range)
 {
     bool isURL = false;
@@ -97,8 +97,8 @@ Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile,
 
     if (IS_CDS_ITEM(obj->getObjectType()))
     {
-        Ref<CdsItem> it = RefCast(obj, CdsItem);
-        Ref<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(
+        shared_ptr<CdsItem> it = dynamic_pointer_cast<CdsItem>(obj);
+        shared_ptr<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(
                 CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
 
         if (mappings->get(mimeType) == CONTENT_TYPE_PCM)
@@ -127,15 +127,15 @@ Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile,
     //info->file_length = UNKNOWN_CONTENT_LENGTH;
     //info->force_chunked = (int)profile->getChunked();
 
-    Ref<ConfigManager> cfg = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> cfg = ConfigManager::getInstance();
    
     String fifo_name = normalizePath(tempName(cfg->getOption(CFG_SERVER_TMPDIR),
                                      fifo_template));
     String arguments;
     String temp;
     String command;
-    Ref<Array<StringBase> > arglist;
-    Ref<Array<ProcListItem> > proc_list = nullptr;
+    shared_ptr<Array<StringBase> > arglist;
+    shared_ptr<Array<ProcListItem> > proc_list = nullptr;
 
 #ifdef SOPCAST
     service_type_t service = OS_None;
@@ -146,15 +146,15 @@ Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile,
     
     if (service == OS_SopCast)
     {
-        Ref<Array<StringBase> > sop_args;
+        shared_ptr<Array<StringBase> > sop_args;
         int p1 = find_local_port(45000,65500);
         int p2 = find_local_port(45000,65500);
         sop_args = parseCommandLine(location + " " + String::from(p1) + " " +
                    String::from(p2), nullptr, nullptr);
-        Ref<ProcessExecutor> spsc(new ProcessExecutor(_("sp-sc-auth"), 
+        shared_ptr<ProcessExecutor> spsc(new ProcessExecutor(_("sp-sc-auth"), 
                                                       sop_args));
-        proc_list = Ref<Array<ProcListItem> >(new Array<ProcListItem>(1));
-        Ref<ProcListItem> pr_item(new ProcListItem(RefCast(spsc, Executor)));
+        proc_list = shared_ptr<Array<ProcListItem> >(new Array<ProcListItem>(1));
+        shared_ptr<ProcListItem> pr_item(new ProcListItem(dynamic_pointer_cast<Executor>(spsc)));
         proc_list->append(pr_item);
         location = _("http://localhost:") + String::from(p2) + "/tv.asf";
 #warning check if socket is ready 
@@ -182,14 +182,14 @@ Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile,
             {
                 chmod(location.c_str(), S_IWUSR | S_IRUSR);
 
-                Ref<IOHandler> c_ioh(new CurlIOHandler(url, nullptr, 
+                shared_ptr<IOHandler> c_ioh(new CurlIOHandler(url, nullptr, 
                    cfg->getIntOption(CFG_EXTERNAL_TRANSCODING_CURL_BUFFER_SIZE),
                    cfg->getIntOption(CFG_EXTERNAL_TRANSCODING_CURL_FILL_SIZE)));
 
-                Ref<IOHandler> p_ioh(new ProcessIOHandler(location, nullptr));
-                Ref<Executor> ch(new IOHandlerChainer(c_ioh, p_ioh, 16384));
-                proc_list = Ref<Array<ProcListItem> >(new Array<ProcListItem>(1));
-                Ref<ProcListItem> pr_item(new ProcListItem(ch));
+                shared_ptr<IOHandler> p_ioh(new ProcessIOHandler(location, nullptr));
+                shared_ptr<Executor> ch(new IOHandlerChainer(c_ioh, p_ioh, 16384));
+                proc_list = shared_ptr<Array<ProcListItem> >(new Array<ProcListItem>(1));
+                shared_ptr<ProcListItem> pr_item(new ProcListItem(ch));
                 proc_list->append(pr_item);
             }
             catch (const Exception & ex)
@@ -247,7 +247,7 @@ Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile,
 
             chmod(location.c_str(), S_IWUSR | S_IRUSR);
             
-            Ref<IOHandler> dvd_ioh(new DVDIOHandler(obj->getLocation(), title, chapter, audio_track));
+            shared_ptr<IOHandler> dvd_ioh(new DVDIOHandler(obj->getLocation(), title, chapter, audio_track));
 
             int from_dvd_fd[2];
             if (pipe(from_dvd_fd) == -1)
@@ -261,28 +261,28 @@ Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile,
                 throw _Exception(_("Failed to create remux output pipe!"));
             }
 
-            Ref<IOHandler> fd_writer(new FDIOHandler(from_dvd_fd[1]));
-            Ref<Executor> from_dvd(new IOHandlerChainer(dvd_ioh,
+            shared_ptr<IOHandler> fd_writer(new FDIOHandler(from_dvd_fd[1]));
+            shared_ptr<Executor> from_dvd(new IOHandlerChainer(dvd_ioh,
                                                         fd_writer, 16384));
 
-            Ref<IOHandler> fd_reader(new FDIOHandler(from_remux_fd[0]));
+            shared_ptr<IOHandler> fd_reader(new FDIOHandler(from_remux_fd[0]));
 
-            Ref<MPEGRemuxProcessor> remux(new MPEGRemuxProcessor(from_dvd_fd[0],
+            shared_ptr<MPEGRemuxProcessor> remux(new MPEGRemuxProcessor(from_dvd_fd[0],
                                           from_remux_fd[1],
                                           (unsigned char)audio_track));
 
-            RefCast(fd_reader, FDIOHandler)->addReference(RefCast(remux, Object));
-            RefCast(fd_reader, FDIOHandler)->addReference(RefCast(from_dvd, Object));
-            RefCast(fd_reader, FDIOHandler)->addReference(RefCast(fd_writer, Object));
-            RefCast(fd_reader, FDIOHandler)->closeOther(fd_writer);
+            dynamic_pointer_cast<FDIOHandler>(fd_reader)->addReference(dynamic_pointer_cast<Object>(remux));
+            dynamic_pointer_cast<FDIOHandler>(fd_reader)->addReference(dynamic_pointer_cast<Object>(from_dvd));
+            dynamic_pointer_cast<FDIOHandler>(fd_reader)->addReference(dynamic_pointer_cast<Object>(fd_writer));
+            dynamic_pointer_cast<FDIOHandler>(fd_reader)->closeOther(fd_writer);
             
 
-            Ref<IOHandler> p_ioh(new ProcessIOHandler(location, nullptr));
-            Ref<Executor> ch(new IOHandlerChainer(fd_reader, p_ioh, 16384));
-            proc_list = Ref<Array<ProcListItem> >(new Array<ProcListItem>(2));
-            Ref<ProcListItem> pr_item(new ProcListItem(ch));
+            shared_ptr<IOHandler> p_ioh(new ProcessIOHandler(location, nullptr));
+            shared_ptr<Executor> ch(new IOHandlerChainer(fd_reader, p_ioh, 16384));
+            proc_list = shared_ptr<Array<ProcListItem> >(new Array<ProcListItem>(2));
+            shared_ptr<ProcListItem> pr_item(new ProcListItem(ch));
             proc_list->append(pr_item);
-            Ref<ProcListItem> pr2_item(new ProcListItem(from_dvd));
+            shared_ptr<ProcListItem> pr2_item(new ProcListItem(from_dvd));
             proc_list->append(pr2_item);
         }
         catch (const Exception & ex)
@@ -330,7 +330,7 @@ Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile,
 
     log_debug("Command: %s\n", profile->getCommand().c_str());
     log_debug("Arguments: %s\n", profile->getArguments().c_str());
-    Ref<TranscodingProcessExecutor> main_proc(new TranscodingProcessExecutor(profile->getCommand(), arglist));
+    shared_ptr<TranscodingProcessExecutor> main_proc(new TranscodingProcessExecutor(profile->getCommand(), arglist));
     main_proc->removeFile(fifo_name);
     if (isURL && (!profile->acceptURL()))
     {
@@ -342,7 +342,7 @@ Ref<IOHandler> TranscodeExternalHandler::open(Ref<TranscodingProfile> profile,
         main_proc->removeFile(location);
     }
 #endif    
-    Ref<IOHandler> io_handler(new BufferedIOHandler(Ref<IOHandler> (new ProcessIOHandler(fifo_name, RefCast(main_proc, Executor), proc_list)), profile->getBufferSize(), profile->getBufferChunkSize(), profile->getBufferInitialFillSize()));
+    shared_ptr<IOHandler> io_handler(new BufferedIOHandler(shared_ptr<IOHandler> (new ProcessIOHandler(fifo_name, dynamic_pointer_cast<Executor>(main_proc), proc_list)), profile->getBufferSize(), profile->getBufferChunkSize(), profile->getBufferInitialFillSize()));
 
     io_handler->open(UPNP_READ);
     PlayHook::getInstance()->trigger(obj);

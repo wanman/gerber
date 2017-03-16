@@ -39,18 +39,18 @@
 using namespace zmm;
 using namespace mxml;
 
-Ref<Element> UpnpXML_CreateResponse(String actionName, String serviceType)
+shared_ptr<Element> UpnpXML_CreateResponse(String actionName, String serviceType)
 {
-    Ref<Element> response(new Element(_("u:") + actionName +
+    shared_ptr<Element> response(new Element(_("u:") + actionName +
                                       "Response"));
     response->setAttribute(_("xmlns:u"), serviceType);
 
     return response; 
 }
 
-Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, int stringLimit)
+shared_ptr<Element> UpnpXML_DIDLRenderObject(shared_ptr<CdsObject> obj, bool renderActions, int stringLimit)
 {
-    Ref<Element> result(new Element(_("")));
+    shared_ptr<Element> result(new Element(_("")));
     
     result->setAttribute(_("id"), String::from(obj->getID()));
     result->setAttribute(_("parentID"), String::from(obj->getParentID()));
@@ -71,10 +71,10 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
     int objectType = obj->getObjectType();
     if (IS_CDS_ITEM(objectType))
     {
-        Ref<CdsItem> item = RefCast(obj, CdsItem);
+        shared_ptr<CdsItem> item = dynamic_pointer_cast<CdsItem>(obj);
         
-        Ref<Dictionary> meta = obj->getMetadata();
-        Ref<Array<DictionaryElement> > elements = meta->getElements();
+        shared_ptr<Dictionary> meta = obj->getMetadata();
+        shared_ptr<Array<DictionaryElement> > elements = meta->getElements();
         int len = elements->size();
         
         String key;
@@ -82,7 +82,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
         
         for (int i = 0; i < len; i++)
         {
-            Ref<DictionaryElement> el = elements->get(i);
+            shared_ptr<DictionaryElement> el = elements->get(i);
             key = el->getKey();
             if (key == MetadataHandler::getMetaFieldName(M_DESCRIPTION))
             {
@@ -109,7 +109,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
         CdsResourceManager::addResources(item, result);
         
         if (upnp_class == UPNP_DEFAULT_CLASS_MUSIC_TRACK) {
-            Ref<Storage> storage = Storage::getInstance();
+            shared_ptr<Storage> storage = Storage::getInstance();
             // extract extension-less, lowercase track name to search for corresponding
             // image as cover alternative
             String dctl = item->getTitle().toLower();
@@ -121,7 +121,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
             String aa_id = storage->findFolderImage(item->getParentID(), trackArtBase);
             if (aa_id != nullptr) {
                 String url;
-                Ref<Dictionary> dict(new Dictionary());
+                shared_ptr<Dictionary> dict(new Dictionary());
                 dict->put(_(URL_OBJECT_ID), aa_id);
 
                 url = Server::getInstance()->getVirtualURL() +
@@ -130,7 +130,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
                         dict->encodeSimple() + _(_URL_PARAM_SEPARATOR) +
                         _(URL_RESOURCE_ID) + _(_URL_PARAM_SEPARATOR) + "0";
                 log_debug("UpnpXML_DIDLRenderObject: url: %s\n", url.c_str());
-                Ref<Element> aa(new Element(MetadataHandler::getMetaFieldName(M_ALBUMARTURI)));
+                shared_ptr<Element> aa(new Element(MetadataHandler::getMetaFieldName(M_ALBUMARTURI)));
                 aa->setText(url);
                 result->appendElementChild(aa);
             }
@@ -139,7 +139,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
     }
     else if (IS_CDS_CONTAINER(objectType))
     {
-        Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
+        shared_ptr<CdsContainer> cont = dynamic_pointer_cast<CdsContainer>(obj);
         
         result->setName(_("container"));
         int childCount = cont->getChildCount();
@@ -149,8 +149,8 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
         String upnp_class = obj->getClass();
         log_debug("container is class: %s\n", upnp_class.c_str());
         if (upnp_class == UPNP_DEFAULT_CLASS_MUSIC_ALBUM) {
-            Ref<Dictionary> meta = obj->getMetadata();
-            Ref<Array<DictionaryElement> > elements = meta->getElements();
+            shared_ptr<Dictionary> meta = obj->getMetadata();
+            shared_ptr<Array<DictionaryElement> > elements = meta->getElements();
             int len = elements->size();
             String key;
 
@@ -158,7 +158,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
 
             for (int i = 0; i < len; i++)
             {
-                Ref<DictionaryElement> el = elements->get(i);
+                shared_ptr<DictionaryElement> el = elements->get(i);
                 key = el->getKey();
                 //log_debug("Container %s\n", key.c_str());
 
@@ -168,14 +168,14 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
             }
         }
         if (upnp_class == UPNP_DEFAULT_CLASS_MUSIC_ALBUM || upnp_class == UPNP_DEFAULT_CLASS_CONTAINER) {
-            Ref<Storage> storage = Storage::getInstance();
+            shared_ptr<Storage> storage = Storage::getInstance();
             String aa_id = storage->findFolderImage(cont->getID(), String());
 
             if (aa_id != nullptr) {
                 log_debug("Using folder image as artwork for container\n");
 
                 String url;
-                Ref<Dictionary> dict(new Dictionary());
+                shared_ptr<Dictionary> dict(new Dictionary());
                 dict->put(_(URL_OBJECT_ID), aa_id);
 
                 url = Server::getInstance()->getVirtualURL() +
@@ -196,11 +196,11 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
                         if (artAdded)
                             break;
 
-                        Ref<CdsObject> obj = storage->loadObject(id);
+                        shared_ptr<CdsObject> obj = storage->loadObject(id);
                         if (obj->getClass() != UPNP_DEFAULT_CLASS_MUSIC_TRACK)
                             continue;
 
-                        Ref<CdsItem> item = RefCast(obj, CdsItem);
+                        shared_ptr<CdsItem> item = dynamic_pointer_cast<CdsItem>(obj);
 
                         auto resources = item->getResources();
 
@@ -230,7 +230,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
     
     if (renderActions && IS_CDS_ACTIVE_ITEM(objectType))
     {
-        Ref<CdsActiveItem> aitem = RefCast(obj, CdsActiveItem);
+        shared_ptr<CdsActiveItem> aitem = dynamic_pointer_cast<CdsActiveItem>(obj);
         result->appendTextChild(_("action"), aitem->getAction());
         result->appendTextChild(_("state"), aitem->getState());
         result->appendTextChild(_("location"), aitem->getLocation());
@@ -242,15 +242,15 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
     return result;
 }
 
-void UpnpXML_DIDLUpdateObject(Ref<CdsObject> obj, String text)
+void UpnpXML_DIDLUpdateObject(shared_ptr<CdsObject> obj, String text)
 {
-    Ref<Parser> parser(new Parser());
-    Ref<Element> root = parser->parseString(text)->getRoot();
+    shared_ptr<Parser> parser(new Parser());
+    shared_ptr<Element> root = parser->parseString(text)->getRoot();
     int objectType = obj->getObjectType();
     
     if (IS_CDS_ACTIVE_ITEM(objectType))
     {
-        Ref<CdsActiveItem> aitem = RefCast(obj, CdsActiveItem);
+        shared_ptr<CdsActiveItem> aitem = dynamic_pointer_cast<CdsActiveItem>(obj);
 
         String title = root->getChildText(_("dc:title"));
         if (title != nullptr && title != "")
@@ -283,39 +283,39 @@ void UpnpXML_DIDLUpdateObject(Ref<CdsObject> obj, String text)
         
 }
 
-Ref<Element> UpnpXML_CreateEventPropertySet()
+shared_ptr<Element> UpnpXML_CreateEventPropertySet()
 {
-    Ref<Element> propset(new Element(_("e:propertyset")));
+    shared_ptr<Element> propset(new Element(_("e:propertyset")));
     propset->setAttribute(_("xmlns:e"), _("urn:schemas-upnp-org:event-1-0"));
 
-    Ref<Element> property(new Element(_("e:property")));
+    shared_ptr<Element> property(new Element(_("e:property")));
 
     propset->appendElementChild(property);
     return propset;
 }
 
-Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
+shared_ptr<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
 {
 
     log_debug("start\n");
-    Ref<ConfigManager> config = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> config = ConfigManager::getInstance();
 
-    Ref<Element> root(new Element(_("root"))); 
+    shared_ptr<Element> root(new Element(_("root"))); 
     root->setAttribute(_("xmlns"), _(DESC_DEVICE_NAMESPACE));
      
-    Ref<Element> specVersion(new Element(_("specVersion")));
+    shared_ptr<Element> specVersion(new Element(_("specVersion")));
     specVersion->appendTextChild(_("major"), _(DESC_SPEC_VERSION_MAJOR));
     specVersion->appendTextChild(_("minor"), _(DESC_SPEC_VERSION_MINOR));
 
     root->appendElementChild(specVersion);
 
-    Ref<Element> device(new Element(_("device")));
+    shared_ptr<Element> device(new Element(_("device")));
     
 #ifdef EXTEND_PROTOCOLINFO 
     if (config->getBoolOption(CFG_SERVER_EXTEND_PROTOCOLINFO))
     {
         //we do not do DLNA yet but this is needed for bravia tv (v5500)
-        Ref<Element> DLNADOC(new Element(_("dlna:X_DLNADOC")));
+        shared_ptr<Element> DLNADOC(new Element(_("dlna:X_DLNADOC")));
         DLNADOC->setText(_("DMS-1.50"));
 //      DLNADOC->setText(_("M-DMS-1.50"));
         DLNADOC->setAttribute(_("xmlns:dlna"), 
@@ -346,9 +346,9 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
                               config->getOption(CFG_SERVER_SERIAL_NUMBER));
     device->appendTextChild(_("UDN"), config->getOption(CFG_SERVER_UDN));
 
-    Ref<Element> iconList(new Element(_("iconList")));
+    shared_ptr<Element> iconList(new Element(_("iconList")));
 
-    Ref<Element> icon120_png(new Element(_("icon")));
+    shared_ptr<Element> icon120_png(new Element(_("icon")));
     icon120_png->appendTextChild(_("mimetype"), _(DESC_ICON_PNG_MIMETYPE));
     icon120_png->appendTextChild(_("width"), _("120"));
     icon120_png->appendTextChild(_("height"), _("120"));
@@ -356,7 +356,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     icon120_png->appendTextChild(_("url"), _(DESC_ICON120_PNG));
     iconList->appendElementChild(icon120_png);
 
-    Ref<Element> icon120_bmp(new Element(_("icon")));
+    shared_ptr<Element> icon120_bmp(new Element(_("icon")));
     icon120_bmp->appendTextChild(_("mimetype"), _(DESC_ICON_BMP_MIMETYPE));
     icon120_bmp->appendTextChild(_("width"), _("120"));
     icon120_bmp->appendTextChild(_("height"), _("120"));
@@ -364,7 +364,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     icon120_bmp->appendTextChild(_("url"), _(DESC_ICON120_BMP));
     iconList->appendElementChild(icon120_bmp);
 
-    Ref<Element> icon120_jpg(new Element(_("icon")));
+    shared_ptr<Element> icon120_jpg(new Element(_("icon")));
     icon120_jpg->appendTextChild(_("mimetype"), _(DESC_ICON_JPG_MIMETYPE));
     icon120_jpg->appendTextChild(_("width"), _("120"));
     icon120_jpg->appendTextChild(_("height"), _("120"));
@@ -372,7 +372,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     icon120_jpg->appendTextChild(_("url"), _(DESC_ICON120_JPG));
     iconList->appendElementChild(icon120_jpg);
 
-    Ref<Element> icon48_png(new Element(_("icon")));
+    shared_ptr<Element> icon48_png(new Element(_("icon")));
     icon48_png->appendTextChild(_("mimetype"), _(DESC_ICON_PNG_MIMETYPE));
     icon48_png->appendTextChild(_("width"), _("48"));
     icon48_png->appendTextChild(_("height"), _("48"));
@@ -380,7 +380,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     icon48_png->appendTextChild(_("url"), _(DESC_ICON48_PNG));
     iconList->appendElementChild(icon48_png);
 
-    Ref<Element> icon48_bmp(new Element(_("icon")));
+    shared_ptr<Element> icon48_bmp(new Element(_("icon")));
     icon48_bmp->appendTextChild(_("mimetype"), _(DESC_ICON_BMP_MIMETYPE));
     icon48_bmp->appendTextChild(_("width"), _("48"));
     icon48_bmp->appendTextChild(_("height"), _("48"));
@@ -388,7 +388,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     icon48_bmp->appendTextChild(_("url"), _(DESC_ICON48_BMP));
     iconList->appendElementChild(icon48_bmp);
 
-    Ref<Element> icon48_jpg(new Element(_("icon")));
+    shared_ptr<Element> icon48_jpg(new Element(_("icon")));
     icon48_jpg->appendTextChild(_("mimetype"), _(DESC_ICON_JPG_MIMETYPE));
     icon48_jpg->appendTextChild(_("width"), _("48"));
     icon48_jpg->appendTextChild(_("height"), _("48"));
@@ -396,7 +396,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     icon48_jpg->appendTextChild(_("url"), _(DESC_ICON48_JPG));
     iconList->appendElementChild(icon48_jpg);
 
-    Ref<Element> icon32_png(new Element(_("icon")));
+    shared_ptr<Element> icon32_png(new Element(_("icon")));
     icon32_png->appendTextChild(_("mimetype"), _(DESC_ICON_PNG_MIMETYPE));
     icon32_png->appendTextChild(_("width"), _("32"));
     icon32_png->appendTextChild(_("height"), _("32"));
@@ -404,7 +404,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     icon32_png->appendTextChild(_("url"), _(DESC_ICON32_PNG));
     iconList->appendElementChild(icon32_png);
 
-    Ref<Element> icon32_bmp(new Element(_("icon")));
+    shared_ptr<Element> icon32_bmp(new Element(_("icon")));
     icon32_bmp->appendTextChild(_("mimetype"), _(DESC_ICON_BMP_MIMETYPE));
     icon32_bmp->appendTextChild(_("width"), _("32"));
     icon32_bmp->appendTextChild(_("height"), _("32"));
@@ -412,7 +412,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     icon32_bmp->appendTextChild(_("url"), _(DESC_ICON32_BMP));
     iconList->appendElementChild(icon32_bmp);
 
-    Ref<Element> icon32_jpg(new Element(_("icon")));
+    shared_ptr<Element> icon32_jpg(new Element(_("icon")));
     icon32_jpg->appendTextChild(_("mimetype"), _(DESC_ICON_JPG_MIMETYPE));
     icon32_jpg->appendTextChild(_("width"), _("32"));
     icon32_jpg->appendTextChild(_("height"), _("32"));
@@ -422,9 +422,9 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
 
     device->appendElementChild(iconList);
 
-    Ref<Element> serviceList(new Element(_("serviceList")));
+    shared_ptr<Element> serviceList(new Element(_("serviceList")));
 
-    Ref<Element> serviceCM(new Element(_("service")));
+    shared_ptr<Element> serviceCM(new Element(_("service")));
     serviceCM->appendTextChild(_("serviceType"), _(DESC_CM_SERVICE_TYPE));
     serviceCM->appendTextChild(_("serviceId"), _(DESC_CM_SERVICE_ID));
     serviceCM->appendTextChild(_("SCPDURL"), _(DESC_CM_SCPD_URL));
@@ -433,7 +433,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
 
     serviceList->appendElementChild(serviceCM);
 
-    Ref<Element> serviceCDS(new Element(_("service")));
+    shared_ptr<Element> serviceCDS(new Element(_("service")));
     serviceCDS->appendTextChild(_("serviceType"), _(DESC_CDS_SERVICE_TYPE));
     serviceCDS->appendTextChild(_("serviceId"), _(DESC_CDS_SERVICE_ID));
     serviceCDS->appendTextChild(_("SCPDURL"), _(DESC_CDS_SCPD_URL));
@@ -444,7 +444,7 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
 
 #if defined(ENABLE_MRREG)
     // media receiver registrar service for the Xbox 360
-    Ref<Element> serviceMRREG(new Element(_("service")));
+    shared_ptr<Element> serviceMRREG(new Element(_("service")));
     serviceMRREG->appendTextChild(_("serviceType"), _(DESC_MRREG_SERVICE_TYPE));
     serviceMRREG->appendTextChild(_("serviceId"), _(DESC_MRREG_SERVICE_ID));
     serviceMRREG->appendTextChild(_("SCPDURL"), _(DESC_MRREG_SCPD_URL));
@@ -461,20 +461,20 @@ Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
     return root;
 }
 
-Ref<Element> UpnpXML_DIDLRenderResource(String URL, Ref<Dictionary> attributes)
+shared_ptr<Element> UpnpXML_DIDLRenderResource(String URL, shared_ptr<Dictionary> attributes)
 {
-    Ref<Element> res(new Element(_("res")));
+    shared_ptr<Element> res(new Element(_("res")));
 
     res->setText(URL);
 
-    Ref<Array<DictionaryElement> > elements = attributes->getElements();
+    shared_ptr<Array<DictionaryElement> > elements = attributes->getElements();
     int len = elements->size();
 
     String attribute;
 
     for (int i = 0; i < len; i++)
     {
-        Ref<DictionaryElement> el = elements->get(i);
+        shared_ptr<DictionaryElement> el = elements->get(i);
         attribute = el->getKey();
         res->setAttribute(attribute, el->getValue());
     }
@@ -482,8 +482,8 @@ Ref<Element> UpnpXML_DIDLRenderResource(String URL, Ref<Dictionary> attributes)
     return res;
 }
 
-Ref<Element> UpnpXML_DIDLRenderCaptionInfo(String URL) {
-    Ref<Element> cap(new Element(_("sec:CaptionInfoEx")));
+shared_ptr<Element> UpnpXML_DIDLRenderCaptionInfo(String URL) {
+    shared_ptr<Element> cap(new Element(_("sec:CaptionInfoEx")));
 
     // Samsung DLNA clients don't follow this URL and
     // obtain subtitle location from video HTTP headers.
@@ -499,16 +499,16 @@ Ref<Element> UpnpXML_DIDLRenderCaptionInfo(String URL) {
     return cap;
 }
 
-Ref<Element> UpnpXML_DIDLRenderCreator(String creator) {
-    Ref<Element> out(new Element(_("dc:creator")));
+shared_ptr<Element> UpnpXML_DIDLRenderCreator(String creator) {
+    shared_ptr<Element> out(new Element(_("dc:creator")));
 
     out->setText(creator);
 
     return out;
 }
 
-Ref<Element> UpnpXML_DIDLRenderAlbumArtURI(String uri) {
-    Ref<Element> out(new Element(_("upnp:albumArtURI")));
+shared_ptr<Element> UpnpXML_DIDLRenderAlbumArtURI(String uri) {
+    shared_ptr<Element> out(new Element(_("upnp:albumArtURI")));
     out->setText(uri);
     return out;
 }

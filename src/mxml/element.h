@@ -45,8 +45,8 @@ class Element : public Node
 {
 protected:
     zmm::String name;
-    zmm::Ref<zmm::Array<Attribute> > attributes;
-    void addAttribute(zmm::Ref<Attribute> attr);
+    std::shared_ptr<zmm::Array<Attribute> > attributes;
+    void addAttribute(std::shared_ptr<Attribute> attr);
     void addAttribute(zmm::String name, zmm::String value, enum mxml_value_type type = mxml_string_type);
     bool arrayType; // for JSON support
     zmm::String arrayName; // for JSON support
@@ -54,7 +54,7 @@ protected:
     
 public:
     Element(zmm::String name);
-    Element(zmm::String name, zmm::Ref<Context> context);
+    Element(zmm::String name, std::shared_ptr<Context> context);
     zmm::String getAttribute(zmm::String name);
     void setAttribute(zmm::String name, zmm::String value, enum mxml_value_type type = mxml_string_type);
     zmm::String getText();
@@ -64,32 +64,32 @@ public:
     void setName(zmm::String name) { this->name = name; }
 
     int attributeCount();
-    zmm::Ref<Attribute> getAttribute(int index);
+    std::shared_ptr<Attribute> getAttribute(int index);
         
     void setText(zmm::String text, enum mxml_value_type type = mxml_string_type);
 
     int childCount(enum mxml_node_types type = mxml_node_all);
-    zmm::Ref<Node> getChild(int index, enum mxml_node_types type = mxml_node_all, bool remove = false);
-    zmm::Ref<Node> getFirstChild(enum mxml_node_types type = mxml_node_all) { return getChild(0, type); }
+    std::shared_ptr<Node> getChild(int index, enum mxml_node_types type = mxml_node_all, bool remove = false);
+    std::shared_ptr<Node> getFirstChild(enum mxml_node_types type = mxml_node_all) { return getChild(0, type); }
     void removeChild(int index, enum mxml_node_types type = mxml_node_all);
-    void appendChild(zmm::Ref<Node> child);
-    void insertChild(int index, zmm::Ref<Node> child);
+    void appendChild(std::shared_ptr<Node> child);
+    void insertChild(int index, std::shared_ptr<Node> child);
     
     void removeWhitespace();
     void indent(int level = 0);
     
-    zmm::Ref<Element> getFirstElementChild() { return getElementChild(0); }
-    zmm::Ref<Element> getElementChild(int index) { return RefCast(getChild(index, mxml_node_element), Element); }
+    std::shared_ptr<Element> getFirstElementChild() { return getElementChild(0); }
+    std::shared_ptr<Element> getElementChild(int index) { return std::dynamic_pointer_cast<Element>(getChild(index, mxml_node_element)); }
     int elementChildCount() { return childCount(mxml_node_element); }
     
     void removeElementChild(int index) { removeChild(index, mxml_node_element); }
     bool removeElementChild(zmm::String name, bool removeAll);
     
-    void appendElementChild(zmm::Ref<Element> child) { appendChild(RefCast(child, Node)); };
+    void appendElementChild(std::shared_ptr<Element> child) { appendChild(std::dynamic_pointer_cast<Node>(child)); };
     void appendTextChild(zmm::String name, zmm::String text, enum mxml_value_type type = mxml_string_type);
 
     int getChildIdByName(zmm::String name);
-    zmm::Ref<Element> getChildByName(zmm::String name);
+    std::shared_ptr<Element> getChildByName(zmm::String name);
     zmm::String getChildText(zmm::String name);
     
     bool isArrayType() { return arrayType; }
@@ -102,7 +102,7 @@ public:
     void setTextKey(zmm::String textKey) { this->textKey = textKey; }
     
 protected:
-    virtual void print_internal(zmm::Ref<zmm::StringBuffer> buf, int indent);
+    virtual void print_internal(std::shared_ptr<zmm::StringBuffer> buf, int indent);
     
     friend class Parser;
 };

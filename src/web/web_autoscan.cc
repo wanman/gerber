@@ -58,8 +58,8 @@ void web::autoscan::process()
     if (! string_ok(action))
         throw _Exception(_("web:autoscan called with illegal action"));
     
-    Ref<ContentManager> cm = ContentManager::getInstance();
-    Ref<Storage> storage = Storage::getInstance();
+    shared_ptr<ContentManager> cm = ContentManager::getInstance();
+    shared_ptr<Storage> storage = Storage::getInstance();
     
     
     bool fromFs = boolParam(_("from_fs"));
@@ -75,20 +75,20 @@ void web::autoscan::process()
     
     if (action == "as_edit_load")
     {
-        Ref<Element> autoscan (new Element(_("autoscan")));
+        shared_ptr<Element> autoscan (new Element(_("autoscan")));
         root->appendElementChild(autoscan);
         if (fromFs)
         {
             autoscan->appendTextChild(_("from_fs"), _("1"), mxml_bool_type);
             autoscan->appendTextChild(_("object_id"), objID);
-            Ref<AutoscanDirectory> adir = cm->getAutoscanDirectory(path);
+            shared_ptr<AutoscanDirectory> adir = cm->getAutoscanDirectory(path);
             autoscan2XML(autoscan, adir);
         }
         else
         {
             autoscan->appendTextChild(_("from_fs"), _("0"), mxml_bool_type);
             autoscan->appendTextChild(_("object_id"), objID);
-            Ref<AutoscanDirectory> adir = storage->getAutoscanDirectory(intParam(_("object_id")));
+            shared_ptr<AutoscanDirectory> adir = storage->getAutoscanDirectory(intParam(_("object_id")));
             autoscan2XML(autoscan, adir);
         }
     }
@@ -134,7 +134,7 @@ void web::autoscan::process()
             //    location.c_str(), AutoscanDirectory::mapScanmode(scan_mode).c_str(),
             //    AutoscanDirectory::mapScanlevel(scan_level).c_str(), recursive, interval, hidden);
             
-            Ref<AutoscanDirectory> autoscan(new AutoscanDirectory(
+            shared_ptr<AutoscanDirectory> autoscan(new AutoscanDirectory(
                 nullptr, //location
                 scan_mode,
                 scan_level,
@@ -150,7 +150,7 @@ void web::autoscan::process()
     }
     else if (action == "list")
     {
-        Ref<Array<AutoscanDirectory> > autoscanList = cm->getAutoscanDirectories();
+        shared_ptr<Array<AutoscanDirectory> > autoscanList = cm->getAutoscanDirectories();
         int size = autoscanList->size();
         
         // --- sorting autoscans
@@ -160,12 +160,12 @@ void web::autoscan::process()
         
         // ---
         
-        Ref<Element> autoscansEl (new Element(_("autoscans")));
+        shared_ptr<Element> autoscansEl (new Element(_("autoscans")));
         autoscansEl->setArrayName(_("autoscan"));
         for (int i = 0; i < size; i++)
         {
-            Ref<AutoscanDirectory> autoscanDir = autoscanList->get(i);
-            Ref<Element> autoscanEl (new Element(_("autoscan")));
+            shared_ptr<AutoscanDirectory> autoscanDir = autoscanList->get(i);
+            shared_ptr<Element> autoscanEl (new Element(_("autoscan")));
             autoscanEl->setAttribute(_("objectID"), String::from(autoscanDir->getObjectID()));
             autoscanEl->appendTextChild(_("location"), autoscanDir->getLocation());
             autoscanEl->appendTextChild(_("scan_mode"), AutoscanDirectory::mapScanmode(autoscanDir->getScanMode()));
@@ -179,7 +179,7 @@ void web::autoscan::process()
         throw _Exception(_("web:autoscan called with illegal action"));
 }
 
-void web::autoscan::autoscan2XML(Ref<Element> element, Ref<AutoscanDirectory> adir)
+void web::autoscan::autoscan2XML(shared_ptr<Element> element, shared_ptr<AutoscanDirectory> adir)
 {
     if (adir == nullptr)
     {

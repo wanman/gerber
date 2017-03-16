@@ -45,7 +45,7 @@
 /// <u:actionNameResponse xmlns:u="serviceType"/>
 /// Further response information (various parameters, DIDL-Lite or
 /// whatever can then be adapted to it.
-zmm::Ref<mxml::Element> UpnpXML_CreateResponse(zmm::String actionName, zmm::String serviceType);
+std::shared_ptr<mxml::Element> UpnpXML_CreateResponse(zmm::String actionName, zmm::String serviceType);
 
 /// \brief Renders the DIDL-Lite representation of an object in the content directory.
 /// \param obj Object to be rendered as XML.
@@ -56,32 +56,32 @@ zmm::Ref<mxml::Element> UpnpXML_CreateResponse(zmm::String actionName, zmm::Stri
 /// either a container or an item. The renderActions parameter tells us whether to also
 /// show the special fields of an active item in the XML. This is currently used when
 /// providing the XML representation of an active item to a trigger/toggle script.
-zmm::Ref<mxml::Element> UpnpXML_DIDLRenderObject(zmm::Ref<CdsObject> obj, bool renderActions = false, int stringLimit = -1);
+std::shared_ptr<mxml::Element> UpnpXML_DIDLRenderObject(std::shared_ptr<CdsObject> obj, bool renderActions = false, int stringLimit = -1);
 
 /// \todo change the text string to element, parsing should be done outside
-void UpnpXML_DIDLUpdateObject(zmm::Ref<CdsObject> obj, zmm::String text);
+void UpnpXML_DIDLUpdateObject(std::shared_ptr<CdsObject> obj, zmm::String text);
 
 /// \brief Renders XML for the event property set.
 /// \return mxml::Element representing the newly created XML.
-zmm::Ref<mxml::Element> UpnpXML_CreateEventPropertySet();
+std::shared_ptr<mxml::Element> UpnpXML_CreateEventPropertySet();
 
 /// \brief Renders the device description XML.
 /// \return mxml::Element representing the newly created device description.
 ///
 /// Some elements are statically defined in common.h, others are loaded
 /// from the config with the help of the ConfigManager.
-zmm::Ref<mxml::Element> UpnpXML_RenderDeviceDescription(zmm::String presentationUTL = nullptr);
+std::shared_ptr<mxml::Element> UpnpXML_RenderDeviceDescription(zmm::String presentationUTL = nullptr);
 
 /// \brief Renders a resource tag (part of DIDL-Lite XML)
 /// \param URL download location of the item (will be child element of the <res> tag)
 /// \param attributes Dictionary containing the <res> tag attributes (like resolution, etc.)
-zmm::Ref<mxml::Element> UpnpXML_DIDLRenderResource(zmm::String URL, zmm::Ref<Dictionary> attributes);
+std::shared_ptr<mxml::Element> UpnpXML_DIDLRenderResource(zmm::String URL, std::shared_ptr<Dictionary> attributes);
 
 /// \brief Renders a subtitle resource tag (Samsung proprietary extension)
 /// \param URL download location of the video item
-zmm::Ref<mxml::Element> UpnpXML_DIDLRenderCaptionInfo(zmm::String URL);
+std::shared_ptr<mxml::Element> UpnpXML_DIDLRenderCaptionInfo(zmm::String URL);
 
-zmm::Ref<mxml::Element> UpnpXML_DIDLRenderCreator(zmm::String creator);
+std::shared_ptr<mxml::Element> UpnpXML_DIDLRenderCreator(zmm::String creator);
 
-zmm::Ref<mxml::Element> UpnpXML_DIDLRenderAlbumArtURI(zmm::String uri);
+std::shared_ptr<mxml::Element> UpnpXML_DIDLRenderAlbumArtURI(zmm::String uri);
 #endif // __UPNP_XML_H__

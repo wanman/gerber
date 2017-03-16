@@ -31,6 +31,7 @@
 
 #include "action_request.h"
 
+using namespace std;
 using namespace zmm;
 using namespace mxml;
 
@@ -47,7 +48,7 @@ ActionRequest::ActionRequest(UpnpActionRequest *upnp_request) : Object()
     String xml = cxml;
     ixmlFreeDOMString(cxml);
    
-    Ref<Parser> parser(new Parser());
+    shared_ptr<Parser> parser(new Parser());
 
     request = parser->parseString(xml)->getRoot();
 }
@@ -64,12 +65,12 @@ String ActionRequest::getServiceID()
 {
     return serviceID;
 }
-Ref<Element> ActionRequest::getRequest()
+shared_ptr<Element> ActionRequest::getRequest()
 {
     return request;
 }
 
-void ActionRequest::setResponse(Ref<Element> response)
+void ActionRequest::setResponse(shared_ptr<Element> response)
 {
     this->response = response;
 }

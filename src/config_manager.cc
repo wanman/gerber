@@ -100,7 +100,7 @@ void ConfigManager::setStaticArgs(String _filename, String _userhome,
 ConfigManager::ConfigManager()
     : Singleton<ConfigManager, std::mutex>()
 {
-    options = Ref<Array<ConfigOption> >(new Array<ConfigOption>(CFG_MAX));
+    options = shared_ptr<Array<ConfigOption> >(new Array<ConfigOption>(CFG_MAX));
 
     String home = userhome + DIR_SEPARATOR + config_dir;
     bool home_ok = true;
@@ -155,56 +155,56 @@ String ConfigManager::construct_path(String path)
         return home + DIR_SEPARATOR + path;
 }
 
-Ref<Element> ConfigManager::map_from_to(String from, String to)
+shared_ptr<Element> ConfigManager::map_from_to(String from, String to)
 {
-    Ref<Element> map(new Element(_("map")));
+    shared_ptr<Element> map(new Element(_("map")));
     map->setAttribute(_("from"), from);
     map->setAttribute(_("to"), to);
     return map;
 }
 
-Ref<Element> ConfigManager::treat_as(String mimetype, String as)
+shared_ptr<Element> ConfigManager::treat_as(String mimetype, String as)
 {
-    Ref<Element> treat(new Element(_("treat")));
+    shared_ptr<Element> treat(new Element(_("treat")));
     treat->setAttribute(_("mimetype"), mimetype);
     treat->setAttribute(_("as"), as);
     return treat;
 }
 
 #ifdef EXTERNAL_TRANSCODING
-Ref<Element> ConfigManager::renderTranscodingSection()
+shared_ptr<Element> ConfigManager::renderTranscodingSection()
 {
-    Ref<Element> transcoding(new Element(_("transcoding")));
+    shared_ptr<Element> transcoding(new Element(_("transcoding")));
     transcoding->setAttribute(_("enabled"), _(DEFAULT_TRANSCODING_ENABLED));
 
-    Ref<Element> mt_prof_map(new Element(_("mimetype-profile-mappings")));
+    shared_ptr<Element> mt_prof_map(new Element(_("mimetype-profile-mappings")));
 
-    Ref<Element> prof_flv(new Element(_("transcode")));
+    shared_ptr<Element> prof_flv(new Element(_("transcode")));
     prof_flv->setAttribute(_("mimetype"), _("video/x-flv"));
     prof_flv->setAttribute(_("using"), _("vlcmpeg"));
 
     mt_prof_map->appendElementChild(prof_flv);
 
-    Ref<Element> prof_theora(new Element(_("transcode")));
+    shared_ptr<Element> prof_theora(new Element(_("transcode")));
     prof_theora->setAttribute(_("mimetype"), _("application/ogg"));
     prof_theora->setAttribute(_("using"), _("vlcmpeg"));
     mt_prof_map->appendElementChild(prof_theora);
 
-    Ref<Element> prof_ogg(new Element(_("transcode")));
+    shared_ptr<Element> prof_ogg(new Element(_("transcode")));
     prof_ogg->setAttribute(_("mimetype"), _("application/ogg"));
     prof_ogg->setAttribute(_("using"), _("oggflac2raw"));
     mt_prof_map->appendElementChild(prof_ogg);
 
-    Ref<Element> prof_flac(new Element(_("transcode")));
+    shared_ptr<Element> prof_flac(new Element(_("transcode")));
     prof_flac->setAttribute(_("mimetype"), _("audio/x-flac"));
     prof_flac->setAttribute(_("using"), _("oggflac2raw"));
     mt_prof_map->appendElementChild(prof_flac);
 
     transcoding->appendElementChild(mt_prof_map);
 
-    Ref<Element> profiles(new Element(_("profiles")));
+    shared_ptr<Element> profiles(new Element(_("profiles")));
 
-    Ref<Element> oggflac(new Element(_("profile")));
+    shared_ptr<Element> oggflac(new Element(_("profile")));
     oggflac->setAttribute(_("name"), _("oggflac2raw"));
     oggflac->setAttribute(_("enabled"), _(NO));
     oggflac->setAttribute(_("type"), _("external"));
@@ -214,12 +214,12 @@ Ref<Element> ConfigManager::renderTranscodingSection()
     oggflac->appendTextChild(_("first-resource"), _(YES));
     oggflac->appendTextChild(_("accept-ogg-theora"), _(NO));
 
-    Ref<Element> oggflac_agent(new Element(_("agent")));
+    shared_ptr<Element> oggflac_agent(new Element(_("agent")));
     oggflac_agent->setAttribute(_("command"), _("ogg123"));
     oggflac_agent->setAttribute(_("arguments"), _("-d raw -o byteorder:big -f %out %in"));
     oggflac->appendElementChild(oggflac_agent);
 
-    Ref<Element> oggflac_buffer(new Element(_("buffer")));
+    shared_ptr<Element> oggflac_buffer(new Element(_("buffer")));
     oggflac_buffer->setAttribute(_("size"),
         String::from(DEFAULT_AUDIO_BUFFER_SIZE));
     oggflac_buffer->setAttribute(_("chunk-size"),
@@ -230,7 +230,7 @@ Ref<Element> ConfigManager::renderTranscodingSection()
 
     profiles->appendElementChild(oggflac);
 
-    Ref<Element> vlcmpeg(new Element(_("profile")));
+    shared_ptr<Element> vlcmpeg(new Element(_("profile")));
     vlcmpeg->setAttribute(_("name"), _("vlcmpeg"));
     vlcmpeg->setAttribute(_("enabled"), _(NO));
     vlcmpeg->setAttribute(_("type"), _("external"));
@@ -240,12 +240,12 @@ Ref<Element> ConfigManager::renderTranscodingSection()
     vlcmpeg->appendTextChild(_("first-resource"), _(YES));
     vlcmpeg->appendTextChild(_("accept-ogg-theora"), _(YES));
 
-    Ref<Element> vlcmpeg_agent(new Element(_("agent")));
+    shared_ptr<Element> vlcmpeg_agent(new Element(_("agent")));
     vlcmpeg_agent->setAttribute(_("command"), _("vlc"));
     vlcmpeg_agent->setAttribute(_("arguments"), _("-I dummy %in --sout #transcode{venc=ffmpeg,vcodec=mp2v,vb=4096,fps=25,aenc=ffmpeg,acodec=mpga,ab=192,samplerate=44100,channels=2}:standard{access=file,mux=ps,dst=%out} vlc:quit"));
     vlcmpeg->appendElementChild(vlcmpeg_agent);
 
-    Ref<Element> vlcmpeg_buffer(new Element(_("buffer")));
+    shared_ptr<Element> vlcmpeg_buffer(new Element(_("buffer")));
     vlcmpeg_buffer->setAttribute(_("size"),
         String::from(DEFAULT_VIDEO_BUFFER_SIZE));
     vlcmpeg_buffer->setAttribute(_("chunk-size"),
@@ -262,11 +262,11 @@ Ref<Element> ConfigManager::renderTranscodingSection()
 }
 #endif
 
-Ref<Element> ConfigManager::renderExtendedRuntimeSection()
+shared_ptr<Element> ConfigManager::renderExtendedRuntimeSection()
 {
-    Ref<Element> extended(new Element(_("extended-runtime-options")));
+    shared_ptr<Element> extended(new Element(_("extended-runtime-options")));
 #if defined(HAVE_FFMPEG) && defined(HAVE_FFMPEGTHUMBNAILER)
-    Ref<Element> ffth(new Element(_("ffmpegthumbnailer")));
+    shared_ptr<Element> ffth(new Element(_("ffmpegthumbnailer")));
     ffth->setAttribute(_("enabled"), _(DEFAULT_FFMPEGTHUMBNAILER_ENABLED));
 
     ffth->appendTextChild(_("thumbnail-size"),
@@ -283,25 +283,25 @@ Ref<Element> ConfigManager::renderExtendedRuntimeSection()
     extended->appendElementChild(ffth);
 #endif
 
-    Ref<Element> mark(new Element(_("mark-played-items")));
+    shared_ptr<Element> mark(new Element(_("mark-played-items")));
     mark->setAttribute(_("enabled"), _(DEFAULT_MARK_PLAYED_ITEMS_ENABLED));
     mark->setAttribute(_("suppress-cds-updates"),
         _(DEFAULT_MARK_PLAYED_ITEMS_SUPPRESS_CDS_UPDATES));
-    Ref<Element> mark_string(new Element(_("string")));
+    shared_ptr<Element> mark_string(new Element(_("string")));
     mark_string->setAttribute(_("mode"),
         _(DEFAULT_MARK_PLAYED_ITEMS_STRING_MODE));
     mark_string->setText(_(DEFAULT_MARK_PLAYED_ITEMS_STRING));
     mark->appendElementChild(mark_string);
 
-    Ref<Element> mark_content_section(new Element(_("mark")));
-    Ref<Element> content_video(new Element(_("content")));
+    shared_ptr<Element> mark_content_section(new Element(_("mark")));
+    shared_ptr<Element> content_video(new Element(_("content")));
     content_video->setText(_(DEFAULT_MARK_PLAYED_CONTENT_VIDEO));
     mark_content_section->appendElementChild(content_video);
     mark->appendElementChild(mark_content_section);
     extended->appendElementChild(mark);
 
 #ifdef HAVE_LASTFMLIB
-    Ref<Element> lastfm(new Element(_("lastfm")));
+    shared_ptr<Element> lastfm(new Element(_("lastfm")));
     lastfm->setAttribute(_("enabled"), _(DEFAULT_LASTFM_ENABLED));
     lastfm->appendTextChild(_("username"), _(DEFAULT_LASTFM_USERNAME));
     lastfm->appendTextChild(_("password"), _(DEFAULT_LASTFM_PASSWORD));
@@ -312,14 +312,14 @@ Ref<Element> ConfigManager::renderExtendedRuntimeSection()
 }
 
 #ifdef ONLINE_SERVICES
-Ref<Element> ConfigManager::renderOnlineSection()
+shared_ptr<Element> ConfigManager::renderOnlineSection()
 {
-    Ref<Element> onlinecontent(new Element(_("online-content")));
+    shared_ptr<Element> onlinecontent(new Element(_("online-content")));
 #ifdef YOUTUBE
-    //    Ref<Comment> ytinfo(new Comment(_(" Make sure to setup a transcoding profile for flv "), true));
-    //    onlinecontent->appendChild(RefCast(ytinfo, Node));
+    //    shared_ptr<Comment> ytinfo(new Comment(_(" Make sure to setup a transcoding profile for flv "), true));
+    //    onlinecontent->appendChild(dynamic_pointer_cast<Node>(ytinfo));
 
-    Ref<Element> yt(new Element(_("YouTube")));
+    shared_ptr<Element> yt(new Element(_("YouTube")));
     yt->setAttribute(_("enabled"), _(DEFAULT_YOUTUBE_ENABLED));
     // 8 hours refresh cycle
     yt->setAttribute(_("refresh"), String::from(DEFAULT_YOUTUBE_REFRESH));
@@ -331,24 +331,24 @@ Ref<Element> ConfigManager::renderOnlineSection()
     yt->setAttribute(_("format"), _(DEFAULT_YOUTUBE_FORMAT));
     yt->setAttribute(_("hd"), _(DEFAULT_YOUTUBE_HD));
 
-    Ref<Element> favs(new Element(_("favorites")));
+    shared_ptr<Element> favs(new Element(_("favorites")));
     favs->setAttribute(_("user"), _("mediatomb"));
     yt->appendElementChild(favs);
 
-    Ref<Element> most_viewed(new Element(_("standardfeed")));
+    shared_ptr<Element> most_viewed(new Element(_("standardfeed")));
     most_viewed->setAttribute(_("feed"), _("most_viewed"));
     most_viewed->setAttribute(_("time-range"), _("today"));
     yt->appendElementChild(most_viewed);
 
-    Ref<Element> playlist(new Element(_("playlists")));
+    shared_ptr<Element> playlist(new Element(_("playlists")));
     playlist->setAttribute(_("user"), _("mediatomb"));
     yt->appendElementChild(playlist);
 
-    Ref<Element> ytuser(new Element(_("uploads")));
+    shared_ptr<Element> ytuser(new Element(_("uploads")));
     ytuser->setAttribute(_("user"), _("mediatomb"));
     yt->appendElementChild(ytuser);
 
-    Ref<Element> ytfeatured(new Element(_("standardfeed")));
+    shared_ptr<Element> ytfeatured(new Element(_("standardfeed")));
     ytfeatured->setAttribute(_("feed"), _("recently_featured"));
     ytfeatured->setAttribute(_("time-range"), _("today"));
     yt->appendElementChild(ytfeatured);
@@ -357,7 +357,7 @@ Ref<Element> ConfigManager::renderOnlineSection()
 #endif
 
 #ifdef ATRAILERS
-    Ref<Element> at(new Element(_("AppleTrailers")));
+    shared_ptr<Element> at(new Element(_("AppleTrailers")));
     at->setAttribute(_("enabled"), _(DEFAULT_ATRAILERS_ENABLED));
     at->setAttribute(_("refresh"), String::from(DEFAULT_ATRAILERS_REFRESH));
     at->setAttribute(_("update-at-start"), _(DEFAULT_ATRAILERS_UPDATE_AT_START));
@@ -383,30 +383,30 @@ String ConfigManager::createDefaultConfig(String userhome)
 
     String config_filename = homepath + DIR_SEPARATOR + DEFAULT_CONFIG_NAME;
 
-    Ref<Element> config(new Element(_("config")));
+    shared_ptr<Element> config(new Element(_("config")));
     config->setAttribute(_("version"), String::from(CONFIG_XML_VERSION));
     config->setAttribute(_("xmlns"), _(XML_XMLNS) + CONFIG_XML_VERSION);
     config->setAttribute(_("xmlns:xsi"), _(XML_XMLNS_XSI));
     config->setAttribute(_("xsi:schemaLocation"), _(XML_XMLNS) + CONFIG_XML_VERSION + " " + XML_XMLNS + CONFIG_XML_VERSION + ".xsd");
 
-    Ref<Comment> docinfo(new Comment(_("\n\
+    shared_ptr<Comment> docinfo(new Comment(_("\n\
      Read /usr/share/doc/mediatomb-common/README.gz section 6 for more\n\
      information on creating and using config.xml configration files.\n\
     "),
         true));
-    config->appendChild(RefCast(docinfo, Node));
+    config->appendChild(dynamic_pointer_cast<Node>(docinfo));
 
-    Ref<Element> server(new Element(_("server")));
+    shared_ptr<Element> server(new Element(_("server")));
 
-    Ref<Element> ui(new Element(_("ui")));
+    shared_ptr<Element> ui(new Element(_("ui")));
     ui->setAttribute(_("enabled"), _(DEFAULT_UI_EN_VALUE));
     ui->setAttribute(_("show-tooltips"), _(DEFAULT_UI_SHOW_TOOLTIPS_VALUE));
 
-    Ref<Element> accounts(new Element(_("accounts")));
+    shared_ptr<Element> accounts(new Element(_("accounts")));
     accounts->setAttribute(_("enabled"), _(DEFAULT_ACCOUNTS_EN_VALUE));
     accounts->setAttribute(_("session-timeout"), String::from(DEFAULT_SESSION_TIMEOUT));
 
-    Ref<Element> account(new Element(_("account")));
+    shared_ptr<Element> account(new Element(_("account")));
     account->setAttribute(_("user"), _(DEFAULT_ACCOUNT_USER));
     account->setAttribute(_("password"), _(DEFAULT_ACCOUNT_PASSWORD));
     accounts->appendElementChild(account);
@@ -416,12 +416,12 @@ String ConfigManager::createDefaultConfig(String userhome)
     server->appendElementChild(ui);
     server->appendTextChild(_("name"), _(PACKAGE_NAME));
 
-    Ref<Element> udn(new Element(_("udn")));
+    shared_ptr<Element> udn(new Element(_("udn")));
     server->appendElementChild(udn);
 
     server->appendTextChild(_("home"), homepath);
     server->appendTextChild(_("webroot"), prefix_dir + DIR_SEPARATOR + _(DEFAULT_WEB_DIR));
-    Ref<Comment> aliveinfo(new Comment(
+    shared_ptr<Comment> aliveinfo(new Comment(
         _("\n\
         How frequently (in seconds) to send ssdp:alive advertisements.\n\
         Minimum alive value accepted is: ")
@@ -432,17 +432,17 @@ String ConfigManager::createDefaultConfig(String userhome)
         in an SSDP advertisement being sent every second.\n\
     "),
         true));
-    server->appendChild(RefCast(aliveinfo, Node));
+    server->appendChild(dynamic_pointer_cast<Node>(aliveinfo));
     server->appendTextChild(_("alive"), String::from(DEFAULT_ALIVE_INTERVAL));
 
-    Ref<Element> storage(new Element(_("storage")));
+    shared_ptr<Element> storage(new Element(_("storage")));
 #ifdef HAVE_SQLITE3
-    Ref<Element> sqlite3(new Element(_("sqlite3")));
+    shared_ptr<Element> sqlite3(new Element(_("sqlite3")));
     sqlite3->setAttribute(_("enabled"), _(DEFAULT_SQLITE_ENABLED));
     sqlite3->appendTextChild(_("database-file"), _(DEFAULT_SQLITE3_DB_FILENAME));
 #ifdef SQLITE_BACKUP_ENABLED
     //    <backup enabled="no" interval="6000"/>
-    Ref<Element> backup(new Element(_("backup")));
+    shared_ptr<Element> backup(new Element(_("backup")));
     backup->setAttribute(_("enabled"), _(YES));
     backup->setAttribute(_("interval"), String::from(DEFAULT_SQLITE_BACKUP_INTERVAL));
     sqlite3->appendElementChild(backup);
@@ -450,7 +450,7 @@ String ConfigManager::createDefaultConfig(String userhome)
     storage->appendElementChild(sqlite3);
 #endif
 #ifdef HAVE_MYSQL
-    Ref<Element> mysql(new Element(_("mysql")));
+    shared_ptr<Element> mysql(new Element(_("mysql")));
 #ifndef HAVE_SQLITE3
     mysql->setAttribute(_("enabled"), _(DEFAULT_MYSQL_ENABLED));
     mysql_flag = true;
@@ -466,21 +466,21 @@ String ConfigManager::createDefaultConfig(String userhome)
 #endif
     server->appendElementChild(storage);
 
-    Ref<Element> protocolinfo(new Element(_("protocolInfo")));
+    shared_ptr<Element> protocolinfo(new Element(_("protocolInfo")));
     protocolinfo->setAttribute(_("extend"), _(DEFAULT_EXTEND_PROTOCOLINFO));
 
     server->appendElementChild(protocolinfo);
 
-    Ref<Comment> ps3protinfo(new Comment(_(" For PS3 support change to \"yes\" ")));
-    server->appendChild(RefCast(ps3protinfo, Node));
+    shared_ptr<Comment> ps3protinfo(new Comment(_(" For PS3 support change to \"yes\" ")));
+    server->appendChild(dynamic_pointer_cast<Node>(ps3protinfo));
 
-    Ref<Comment> redinfo(new Comment(_("\n\
+    shared_ptr<Comment> redinfo(new Comment(_("\n\
        Uncomment the lines below to get rid of jerky avi playback on the\n\
        DSM320 or to enable subtitles support on the DSM units\n\
     "),
         true));
 
-    Ref<Comment> redsonic(new Comment(_("\n\
+    shared_ptr<Comment> redsonic(new Comment(_("\n\
     <custom-http-headers>\n\
       <add header=\"X-User-Agent: redsonic\"/>\n\
     </custom-http-headers>\n\
@@ -490,37 +490,37 @@ String ConfigManager::createDefaultConfig(String userhome)
     "),
         true));
 
-    Ref<Comment> tg100info(new Comment(_(" Uncomment the line below if you have a Telegent TG100 "), true));
-    Ref<Comment> tg100(new Comment(_("\n\
+    shared_ptr<Comment> tg100info(new Comment(_(" Uncomment the line below if you have a Telegent TG100 "), true));
+    shared_ptr<Comment> tg100(new Comment(_("\n\
        <upnp-string-limit>101</upnp-string-limit>\n\
     "),
         true));
 
-    server->appendChild(RefCast(redinfo, Node));
-    server->appendChild(RefCast(redsonic, Node));
-    server->appendChild(RefCast(tg100info, Node));
-    server->appendChild(RefCast(tg100, Node));
+    server->appendChild(dynamic_pointer_cast<Node>(redinfo));
+    server->appendChild(dynamic_pointer_cast<Node>(redsonic));
+    server->appendChild(dynamic_pointer_cast<Node>(tg100info));
+    server->appendChild(dynamic_pointer_cast<Node>(tg100));
 
     server->appendElementChild(renderExtendedRuntimeSection());
 
     config->appendElementChild(server);
 
-    Ref<Element> import(new Element(_("import")));
+    shared_ptr<Element> import(new Element(_("import")));
     import->setAttribute(_("hidden-files"), _(DEFAULT_HIDDEN_FILES_VALUE));
 
 #ifdef HAVE_MAGIC
     if (string_ok(magic)) {
-        Ref<Element> magicfile(new Element(_("magic-file")));
+        shared_ptr<Element> magicfile(new Element(_("magic-file")));
         magicfile->setText(magic);
         import->appendElementChild(magicfile);
     }
 #endif
 
-    Ref<Element> scripting(new Element(_("scripting")));
+    shared_ptr<Element> scripting(new Element(_("scripting")));
     scripting->setAttribute(_("script-charset"), _(DEFAULT_JS_CHARSET));
     import->appendElementChild(scripting);
 
-    Ref<Element> layout(new Element(_("virtual-layout")));
+    shared_ptr<Element> layout(new Element(_("virtual-layout")));
     layout->setAttribute(_("type"), _(DEFAULT_LAYOUT_TYPE));
 #ifdef HAVE_JS
     layout->appendTextChild(_("import-script"), prefix_dir + DIR_SEPARATOR + _(DEFAULT_JS_DIR) + DIR_SEPARATOR + _(DEFAULT_IMPORT_SCRIPT));
@@ -538,8 +538,8 @@ String ConfigManager::createDefaultConfig(String userhome)
 
     String map_file = prefix_dir + DIR_SEPARATOR + CONFIG_MAPPINGS_TEMPLATE;
 
-    Ref<Element> mappings(new Element(_("mappings")));
-    Ref<Element> ext2mt(new Element(_("extension-mimetype")));
+    shared_ptr<Element> mappings(new Element(_("mappings")));
+    shared_ptr<Element> ext2mt(new Element(_("extension-mimetype")));
     ext2mt->setAttribute(_("ignore-unknown"), _(DEFAULT_IGNORE_UNKNOWN_EXTENSIONS));
     ext2mt->appendElementChild(map_from_to(_("mp3"), _("audio/mpeg")));
     ext2mt->appendElementChild(map_from_to(_("ogx"), _("application/ogg")));
@@ -561,19 +561,19 @@ String ConfigManager::createDefaultConfig(String userhome)
     ext2mt->appendElementChild(map_from_to(_("mkv"), _("video/x-matroska")));
     ext2mt->appendElementChild(map_from_to(_("mka"), _("audio/x-matroska")));
 
-    Ref<Comment> ps3info(new Comment(_(" Uncomment the line below for PS3 divx support "), true));
-    Ref<Comment> ps3avi(new Comment(_(" <map from=\"avi\" to=\"video/divx\"/> "), true));
-    ext2mt->appendChild(RefCast(ps3info, Node));
-    ext2mt->appendChild(RefCast(ps3avi, Node));
+    shared_ptr<Comment> ps3info(new Comment(_(" Uncomment the line below for PS3 divx support "), true));
+    shared_ptr<Comment> ps3avi(new Comment(_(" <map from=\"avi\" to=\"video/divx\"/> "), true));
+    ext2mt->appendChild(dynamic_pointer_cast<Node>(ps3info));
+    ext2mt->appendChild(dynamic_pointer_cast<Node>(ps3avi));
 
-    Ref<Comment> dsmzinfo(new Comment(_(" Uncomment the line below for D-Link DSM / ZyXEL DMA-1000 "), true));
-    Ref<Comment> dsmzavi(new Comment(_(" <map from=\"avi\" to=\"video/avi\"/> "), true));
-    ext2mt->appendChild(RefCast(dsmzinfo, Node));
-    ext2mt->appendChild(RefCast(dsmzavi, Node));
+    shared_ptr<Comment> dsmzinfo(new Comment(_(" Uncomment the line below for D-Link DSM / ZyXEL DMA-1000 "), true));
+    shared_ptr<Comment> dsmzavi(new Comment(_(" <map from=\"avi\" to=\"video/avi\"/> "), true));
+    ext2mt->appendChild(dynamic_pointer_cast<Node>(dsmzinfo));
+    ext2mt->appendChild(dynamic_pointer_cast<Node>(dsmzavi));
 
     mappings->appendElementChild(ext2mt);
 
-    Ref<Element> mtupnp(new Element(_("mimetype-upnpclass")));
+    shared_ptr<Element> mtupnp(new Element(_("mimetype-upnpclass")));
     mtupnp->appendElementChild(map_from_to(_("audio/*"),
         _(UPNP_DEFAULT_CLASS_MUSIC_TRACK)));
     mtupnp->appendElementChild(map_from_to(_("video/*"),
@@ -585,7 +585,7 @@ String ConfigManager::createDefaultConfig(String userhome)
 
     mappings->appendElementChild(mtupnp);
 
-    Ref<Element> mtcontent(new Element(_("mimetype-contenttype")));
+    shared_ptr<Element> mtcontent(new Element(_("mimetype-contenttype")));
     mtcontent->appendElementChild(treat_as(_("audio/mpeg"),
         _(CONTENT_TYPE_MP3)));
     mtcontent->appendElementChild(treat_as(_("application/ogg"),
@@ -664,18 +664,18 @@ void ConfigManager::migrate()
         root->setAttribute(_("xsi:schemaLocation"),
             _(XML_XMLNS) + CONFIG_XML_VERSION_0_11_0 + " " + XML_XMLNS + CONFIG_XML_VERSION + ".xsd");
 
-        Ref<Element> server = root->getChildByName(_("server"));
+        shared_ptr<Element> server = root->getChildByName(_("server"));
         if (server == nullptr)
             throw _Exception(_("Migration failed! Could not find <server> tag!"));
 
         checkOptionString(_("/server/storage/attribute::driver"));
         String dbDriver = getOption(_("/server/storage/attribute::driver"));
-        Ref<Element> storage(new Element(_("storage")));
+        shared_ptr<Element> storage(new Element(_("storage")));
 #ifdef HAVE_SQLITE3
         if (dbDriver == "sqlite3") {
             String dbFile = getOption(_("/server/storage/database-file"));
 
-            Ref<Element> sqlite3(new Element(_("sqlite3")));
+            shared_ptr<Element> sqlite3(new Element(_("sqlite3")));
             sqlite3->setAttribute(_("enabled"), _(YES));
             sqlite3->appendTextChild(_("database-file"), dbFile);
             storage->appendElementChild(sqlite3);
@@ -701,7 +701,7 @@ void ConfigManager::migrate()
             if (server->getChildByName(_("storage"))->getChildByName(_("password")) != nullptr)
                 password = getOption(_("/server/storage/password"));
 
-            Ref<Element> mysql(new Element(_("mysql")));
+            shared_ptr<Element> mysql(new Element(_("mysql")));
             mysql->setAttribute(_("enabled"), _(YES));
 
             mysql->appendTextChild(_("host"), host);
@@ -728,19 +728,19 @@ void ConfigManager::migrate()
             root->appendElementChild(renderTranscodingSection());
 #endif
 
-        Ref<Element> import = root->getChildByName(_("import"));
+        shared_ptr<Element> import = root->getChildByName(_("import"));
         if (import != nullptr) {
 #ifdef ONLINE_SERVICES
             if (import->getChildByName(_("online-content")) == nullptr)
                 import->appendElementChild(renderOnlineSection());
 #endif
-            Ref<Element> map = import->getChildByName(_("mappings"));
+            shared_ptr<Element> map = import->getChildByName(_("mappings"));
             if (map != nullptr) {
-                Ref<Element> mtct = map->getChildByName(_("mimetype-contenttype"));
+                shared_ptr<Element> mtct = map->getChildByName(_("mimetype-contenttype"));
                 if ((mtct != nullptr) && (mtct->elementChildCount() > 0)) {
                     bool add_avi = true;
                     for (int mc = 0; mc < mtct->elementChildCount(); mc++) {
-                        Ref<Element> treat = mtct->getElementChild(mc);
+                        shared_ptr<Element> treat = mtct->getElementChild(mc);
                         if (treat->getAttribute(_("as")) == "avi")
                             add_avi = false;
                     }
@@ -763,7 +763,7 @@ void ConfigManager::migrate()
         root->setAttribute(_("xsi:schemaLocation"),
             _(XML_XMLNS) + CONFIG_XML_VERSION + " " + XML_XMLNS + CONFIG_XML_VERSION + ".xsd");
 
-        Ref<Element> server = root->getChildByName(_("server"));
+        shared_ptr<Element> server = root->getChildByName(_("server"));
         if (server == nullptr)
             throw _Exception(_("Migration failed! Could not find <server> tag!"));
 
@@ -771,7 +771,7 @@ void ConfigManager::migrate()
         try {
             temp = getOption(_("/server/ui/attribute::show-tooltips"));
         } catch (const Exception& e) {
-            Ref<Element> ui = server->getChildByName(_("ui"));
+            shared_ptr<Element> ui = server->getChildByName(_("ui"));
             if (ui != nullptr)
                 ui->setAttribute(_("show-tooltips"),
                     _(DEFAULT_UI_SHOW_TOOLTIPS_VALUE));
@@ -780,7 +780,7 @@ void ConfigManager::migrate()
         try {
             temp = getOption(_("/server/storage/attribute::caching"));
         } catch (const Exception& e) {
-            Ref<Element> storage = server->getChildByName(_("storage"));
+            shared_ptr<Element> storage = server->getChildByName(_("storage"));
             if (storage != nullptr)
                 storage->setAttribute(_("caching"),
                     _(DEFAULT_STORAGE_CACHING_ENABLED));
@@ -789,13 +789,13 @@ void ConfigManager::migrate()
         if (server->getChildByName(_("extended-runtime-options")) == nullptr)
             server->appendElementChild(renderExtendedRuntimeSection());
 
-        Ref<Element> import = root->getChildByName(_("import"));
+        shared_ptr<Element> import = root->getChildByName(_("import"));
         if (import != nullptr) {
             // add ext 2 mimetype stuff
-            Ref<Element> mappings = import->getChildByName(_("mappings"));
+            shared_ptr<Element> mappings = import->getChildByName(_("mappings"));
 
 #ifdef ONLINE_SERVICES
-            Ref<Element> online = import->getChildByName(_("online-content"));
+            shared_ptr<Element> online = import->getChildByName(_("online-content"));
             if (online == nullptr)
                 import->appendElementChild(renderOnlineSection());
 #endif
@@ -810,60 +810,60 @@ void ConfigManager::migrate()
     }
 }
 
-#define NEW_OPTION(optval) opt = Ref<Option>(new Option(optval));
-#define SET_OPTION(opttype) options->set(RefCast(opt, ConfigOption), opttype);
+#define NEW_OPTION(optval) opt = shared_ptr<Option>(new Option(optval));
+#define SET_OPTION(opttype) options->set(dynamic_pointer_cast<ConfigOption>(opt), opttype);
 
-#define NEW_INT_OPTION(optval) int_opt = Ref<IntOption>(new IntOption(optval));
+#define NEW_INT_OPTION(optval) int_opt = shared_ptr<IntOption>(new IntOption(optval));
 #define SET_INT_OPTION(opttype) \
-    options->set(RefCast(int_opt, ConfigOption), opttype);
+    options->set(dynamic_pointer_cast<ConfigOption>(int_opt), opttype);
 
-#define NEW_BOOL_OPTION(optval) bool_opt = Ref<BoolOption>(new BoolOption(optval));
+#define NEW_BOOL_OPTION(optval) bool_opt = shared_ptr<BoolOption>(new BoolOption(optval));
 #define SET_BOOL_OPTION(opttype) \
-    options->set(RefCast(bool_opt, ConfigOption), opttype);
+    options->set(dynamic_pointer_cast<ConfigOption>(bool_opt), opttype);
 
-#define NEW_DICT_OPTION(optval) dict_opt = Ref<DictionaryOption>(new DictionaryOption(optval));
+#define NEW_DICT_OPTION(optval) dict_opt = shared_ptr<DictionaryOption>(new DictionaryOption(optval));
 #define SET_DICT_OPTION(opttype) \
-    options->set(RefCast(dict_opt, ConfigOption), opttype);
+    options->set(dynamic_pointer_cast<ConfigOption>(dict_opt), opttype);
 
-#define NEW_STRARR_OPTION(optval) str_array_opt = Ref<StringArrayOption>(new StringArrayOption(optval));
+#define NEW_STRARR_OPTION(optval) str_array_opt = shared_ptr<StringArrayOption>(new StringArrayOption(optval));
 #define SET_STRARR_OPTION(opttype) \
-    options->set(RefCast(str_array_opt, ConfigOption), opttype);
+    options->set(dynamic_pointer_cast<ConfigOption>(str_array_opt), opttype);
 
-#define NEW_AUTOSCANLIST_OPTION(optval) alist_opt = Ref<AutoscanListOption>(new AutoscanListOption(optval));
+#define NEW_AUTOSCANLIST_OPTION(optval) alist_opt = shared_ptr<AutoscanListOption>(new AutoscanListOption(optval));
 #define SET_AUTOSCANLIST_OPTION(opttype) \
-    options->set(RefCast(alist_opt, ConfigOption), opttype);
+    options->set(dynamic_pointer_cast<ConfigOption>(alist_opt), opttype);
 #ifdef EXTERNAL_TRANSCODING
-#define NEW_TRANSCODING_PROFILELIST_OPTION(optval) trlist_opt = Ref<TranscodingProfileListOption>(new TranscodingProfileListOption(optval));
+#define NEW_TRANSCODING_PROFILELIST_OPTION(optval) trlist_opt = shared_ptr<TranscodingProfileListOption>(new TranscodingProfileListOption(optval));
 #define SET_TRANSCODING_PROFILELIST_OPTION(opttype) \
-    options->set(RefCast(trlist_opt, ConfigOption), opttype);
+    options->set(dynamic_pointer_cast<ConfigOption>(trlist_opt), opttype);
 #endif //TRANSCODING
 #ifdef ONLINE_SERVICES
-#define NEW_OBJARR_OPTION(optval) obj_array_opt = Ref<ObjectArrayOption>(new ObjectArrayOption(optval));
+#define NEW_OBJARR_OPTION(optval) obj_array_opt = shared_ptr<ObjectArrayOption>(new ObjectArrayOption(optval));
 #define SET_OBJARR_OPTION(opttype) \
-    options->set(RefCast(obj_array_opt, ConfigOption), opttype);
+    options->set(dynamic_pointer_cast<ConfigOption>(obj_array_opt), opttype);
 #endif //ONLINE_SERVICES
 
-#define NEW_OBJDICT_OPTION(optval) obj_dict_opt = Ref<ObjectDictionaryOption>(new ObjectDictionaryOption(optval));
+#define NEW_OBJDICT_OPTION(optval) obj_dict_opt = shared_ptr<ObjectDictionaryOption>(new ObjectDictionaryOption(optval));
 #define SET_OBJDICT_OPTION(opttype) \
-    options->set(RefCast(obj_dict_opt, ConfigOption), opttype);
+    options->set(dynamic_pointer_cast<ConfigOption>(obj_dict_opt), opttype);
 
 void ConfigManager::validate(String serverhome)
 {
     String temp;
     int temp_int;
-    Ref<Element> tmpEl;
+    shared_ptr<Element> tmpEl;
 
-    Ref<Option> opt;
-    Ref<BoolOption> bool_opt;
-    Ref<IntOption> int_opt;
-    Ref<DictionaryOption> dict_opt;
-    Ref<StringArrayOption> str_array_opt;
-    Ref<AutoscanListOption> alist_opt;
+    shared_ptr<Option> opt;
+    shared_ptr<BoolOption> bool_opt;
+    shared_ptr<IntOption> int_opt;
+    shared_ptr<DictionaryOption> dict_opt;
+    shared_ptr<StringArrayOption> str_array_opt;
+    shared_ptr<AutoscanListOption> alist_opt;
 #ifdef EXTERNAL_TRANSCODING
-    Ref<TranscodingProfileListOption> trlist_opt;
+    shared_ptr<TranscodingProfileListOption> trlist_opt;
 #endif
 #ifdef ONLINE_SERVICES
-    Ref<ObjectArrayOption> obj_array_opt;
+    shared_ptr<ObjectArrayOption> obj_array_opt;
 #endif
 
     log_info("Checking configuration...\n");
@@ -1126,7 +1126,7 @@ void ConfigManager::validate(String serverhome)
     SET_INT_OPTION(CFG_SERVER_UI_DEFAULT_ITEMS_PER_PAGE);
 
     // now get the option list for the drop down menu
-    Ref<Element> element = getElement(_("/server/ui/items-per-page"));
+    shared_ptr<Element> element = getElement(_("/server/ui/items-per-page"));
     // create default structure
     if (element->elementChildCount() == 0) {
         if ((temp_int != DEFAULT_ITEMS_PER_PAGE_1) && (temp_int != DEFAULT_ITEMS_PER_PAGE_2) && (temp_int != DEFAULT_ITEMS_PER_PAGE_3) && (temp_int != DEFAULT_ITEMS_PER_PAGE_4)) {
@@ -1148,7 +1148,7 @@ void ConfigManager::validate(String serverhome)
         int i;
         bool default_found = false;
         for (int j = 0; j < element->elementChildCount(); j++) {
-            Ref<Element> child = element->getElementChild(j);
+            shared_ptr<Element> child = element->getElementChild(j);
             if (child->getName() == "option") {
                 i = child->getText().toInt();
                 if (i < 1)
@@ -1167,9 +1167,9 @@ void ConfigManager::validate(String serverhome)
     }
 
     // create the array from either user or default settings
-    Ref<Array<StringBase> > menu_opts(new Array<StringBase>());
+    shared_ptr<Array<StringBase> > menu_opts(new Array<StringBase>());
     for (int j = 0; j < element->elementChildCount(); j++) {
-        Ref<Element> child = element->getElementChild(j);
+        shared_ptr<Element> child = element->getElementChild(j);
         if (child->getName() == "option")
             menu_opts->append(child->getText());
     }
@@ -1243,7 +1243,7 @@ void ConfigManager::validate(String serverhome)
         mime_content = createDictionaryFromNodeset(tmpEl, _("treat"),
             _("mimetype"), _("as"));
     } else {
-        mime_content = Ref<Dictionary>(new Dictionary());
+        mime_content = shared_ptr<Dictionary>(new Dictionary());
         mime_content->put(_("audio/mpeg"), _(CONTENT_TYPE_MP3));
         mime_content->put(_("audio/mp4"), _(CONTENT_TYPE_MP4));
         mime_content->put(_("video/mp4"), _(CONTENT_TYPE_MP4));
@@ -1281,14 +1281,14 @@ void ConfigManager::validate(String serverhome)
 #endif
     // check if the one we take as default is actually available
     try {
-        Ref<StringConverter> conv(new StringConverter(temp,
+        shared_ptr<StringConverter> conv(new StringConverter(temp,
             _(DEFAULT_INTERNAL_CHARSET)));
     } catch (const Exception& e) {
         temp = _(DEFAULT_FALLBACK_CHARSET);
     }
     String charset = getOption(_("/import/filesystem-charset"), temp);
     try {
-        Ref<StringConverter> conv(new StringConverter(charset,
+        shared_ptr<StringConverter> conv(new StringConverter(charset,
             _(DEFAULT_INTERNAL_CHARSET)));
     } catch (const Exception& e) {
         throw _Exception(_("Error in config file: unsupported "
@@ -1302,7 +1302,7 @@ void ConfigManager::validate(String serverhome)
 
     charset = getOption(_("/import/metadata-charset"), temp);
     try {
-        Ref<StringConverter> conv(new StringConverter(charset,
+        shared_ptr<StringConverter> conv(new StringConverter(charset,
             _(DEFAULT_INTERNAL_CHARSET)));
     } catch (const Exception& e) {
         throw _Exception(_("Error in config file: unsupported "
@@ -1316,7 +1316,7 @@ void ConfigManager::validate(String serverhome)
 
     charset = getOption(_("/import/playlist-charset"), temp);
     try {
-        Ref<StringConverter> conv(new StringConverter(charset,
+        shared_ptr<StringConverter> conv(new StringConverter(charset,
             _(DEFAULT_INTERNAL_CHARSET)));
     } catch (const Exception& e) {
         throw _Exception(_("Error in config file: unsupported playlist-charset specified: ") + charset);
@@ -1490,7 +1490,7 @@ void ConfigManager::validate(String serverhome)
         _(DEFAULT_JS_CHARSET));
     if (temp == "js") {
         try {
-            Ref<StringConverter> conv(new StringConverter(charset,
+            shared_ptr<StringConverter> conv(new StringConverter(charset,
                 _(DEFAULT_INTERNAL_CHARSET)));
         } catch (const Exception& e) {
             throw _Exception(_("Error in config file: unsupported import script charset specified: ") + charset);
@@ -1555,7 +1555,7 @@ void ConfigManager::validate(String serverhome)
     NEW_INT_OPTION(temp_int);
     SET_INT_OPTION(CFG_SERVER_ALIVE_INTERVAL);
 
-    Ref<Element> el = getElement(_("/import/mappings/mimetype-upnpclass"));
+    shared_ptr<Element> el = getElement(_("/import/mappings/mimetype-upnpclass"));
     if (el == nullptr) {
         getOption(_("/import/mappings/mimetype-upnpclass"), _(""));
     }
@@ -1823,12 +1823,12 @@ void ConfigManager::validate(String serverhome)
     NEW_OPTION(temp);
     SET_OPTION(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_STRING);
 
-    Ref<Array<StringBase> > mark_content_list(new Array<StringBase>());
+    shared_ptr<Array<StringBase> > mark_content_list(new Array<StringBase>());
     tmpEl = getElement(_("/server/extended-runtime-options/mark-played-items/mark"));
 
     if (tmpEl != nullptr) {
         for (int m = 0; m < tmpEl->elementChildCount(); m++) {
-            Ref<Element> content = tmpEl->getElementChild(m);
+            shared_ptr<Element> content = tmpEl->getElementChild(m);
             if (content->getName() != "content")
                 continue;
 
@@ -1898,13 +1898,13 @@ void ConfigManager::validate(String serverhome)
 
 #ifdef HAVE_INOTIFY
     tmpEl = getElement(_("/import/autoscan"));
-    Ref<AutoscanList> config_timed_list = createAutoscanListFromNodeset(tmpEl, TimedScanMode);
-    Ref<AutoscanList> config_inotify_list = createAutoscanListFromNodeset(tmpEl, InotifyScanMode);
+    shared_ptr<AutoscanList> config_timed_list = createAutoscanListFromNodeset(tmpEl, TimedScanMode);
+    shared_ptr<AutoscanList> config_inotify_list = createAutoscanListFromNodeset(tmpEl, InotifyScanMode);
 
     for (int i = 0; i < config_inotify_list->size(); i++) {
-        Ref<AutoscanDirectory> i_dir = config_inotify_list->get(i);
+        shared_ptr<AutoscanDirectory> i_dir = config_inotify_list->get(i);
         for (int j = 0; j < config_timed_list->size(); j++) {
-            Ref<AutoscanDirectory> t_dir = config_timed_list->get(j);
+            shared_ptr<AutoscanDirectory> t_dir = config_timed_list->get(j);
             if (i_dir->getLocation() == t_dir->getLocation())
                 throw _Exception(_("Error in config file: same path used in both inotify and timed scan modes"));
         }
@@ -1994,7 +1994,7 @@ void ConfigManager::validate(String serverhome)
             getOption(_("/import/online-content/YouTube"),
                 _(""));
         }
-        Ref<Array<Object> > yt_opts = createServiceTaskList(OS_YouTube, el);
+        shared_ptr<Array<Object> > yt_opts = createServiceTaskList(OS_YouTube, el);
         if (getBoolOption(CFG_ONLINE_CONTENT_YOUTUBE_ENABLED) && (yt_opts->size() == 0))
             throw _Exception(_("Error in config file: "
                                "YouTube service enabled but no imports "
@@ -2103,11 +2103,11 @@ void ConfigManager::prepare_udn()
     if (root->getName() != "config")
         return;
 
-    Ref<Element> server = root->getChildByName(_("server"));
+    shared_ptr<Element> server = root->getChildByName(_("server"));
     if (server == nullptr)
         return;
 
-    Ref<Element> element = server->getChildByName(_("udn"));
+    shared_ptr<Element> element = server->getChildByName(_("udn"));
     if (element == nullptr || element->getText() == nullptr || element->getText() == "") {
         char uuid_str[37];
         uuid_t uuid;
@@ -2136,7 +2136,7 @@ void ConfigManager::prepare_path(String xpath, bool needDir, bool existenceUnnee
 
     check_path_ex(temp, needDir, existenceUnneeded);
 
-    Ref<Element> script = getElement(xpath);
+    shared_ptr<Element> script = getElement(xpath);
     if (script != nullptr)
         script->setText(temp);
 }
@@ -2168,7 +2168,7 @@ void ConfigManager::save_text(String filename, String content)
 void ConfigManager::load(String filename)
 {
     this->filename = filename;
-    Ref<Parser> parser(new Parser());
+    shared_ptr<Parser> parser(new Parser());
     rootDoc = parser->parseFile(filename);
     root = rootDoc->getRoot();
 
@@ -2179,7 +2179,7 @@ void ConfigManager::load(String filename)
 
 String ConfigManager::getOption(String xpath, String def)
 {
-    Ref<XPath> rootXPath(new XPath(root));
+    shared_ptr<XPath> rootXPath(new XPath(root));
     String value = rootXPath->getText(xpath);
     if (string_ok(value))
         return trim_string(value);
@@ -2190,13 +2190,13 @@ String ConfigManager::getOption(String xpath, String def)
     String pathPart = XPath::getPathPart(xpath);
     String axisPart = XPath::getAxisPart(xpath);
 
-    Ref<Array<StringBase> > parts = split_string(pathPart, '/');
+    shared_ptr<Array<StringBase> > parts = split_string(pathPart, '/');
 
-    Ref<Element> cur = root;
+    shared_ptr<Element> cur = root;
     String attr = nullptr;
 
     int i;
-    Ref<Element> child;
+    shared_ptr<Element> child;
     for (i = 0; i < parts->size(); i++) {
         String part = parts->get(i);
         child = cur->getChildByName(part);
@@ -2207,7 +2207,7 @@ String ConfigManager::getOption(String xpath, String def)
     // here cur is the last existing element in the path
     for (; i < parts->size(); i++) {
         String part = parts->get(i);
-        child = Ref<Element>(new Element(part));
+        child = shared_ptr<Element>(new Element(part));
         cur->appendElementChild(child);
         cur = child;
     }
@@ -2237,7 +2237,7 @@ int ConfigManager::getIntOption(String xpath, int def)
 
 String ConfigManager::getOption(String xpath)
 {
-    Ref<XPath> rootXPath(new XPath(root));
+    shared_ptr<XPath> rootXPath(new XPath(root));
     String value = rootXPath->getText(xpath);
 
     /// \todo is this ok?
@@ -2255,9 +2255,9 @@ int ConfigManager::getIntOption(String xpath)
     return val;
 }
 
-Ref<Element> ConfigManager::getElement(String xpath)
+shared_ptr<Element> ConfigManager::getElement(String xpath)
 {
-    Ref<XPath> rootXPath(new XPath(root));
+    shared_ptr<XPath> rootXPath(new XPath(root));
     return rootXPath->getElement(xpath);
 }
 
@@ -2299,15 +2299,15 @@ String ConfigManager::checkOptionString(String xpath)
     return temp;
 }
 
-Ref<Dictionary> ConfigManager::createDictionaryFromNodeset(Ref<Element> element, String nodeName, String keyAttr, String valAttr, bool tolower)
+shared_ptr<Dictionary> ConfigManager::createDictionaryFromNodeset(shared_ptr<Element> element, String nodeName, String keyAttr, String valAttr, bool tolower)
 {
-    Ref<Dictionary> dict(new Dictionary());
+    shared_ptr<Dictionary> dict(new Dictionary());
     String key;
     String value;
 
     if (element != nullptr) {
         for (int i = 0; i < element->elementChildCount(); i++) {
-            Ref<Element> child = element->getElementChild(i);
+            shared_ptr<Element> child = element->getElementChild(i);
             if (child->getName() == nodeName) {
                 key = child->getAttribute(keyAttr);
                 value = child->getAttribute(valAttr);
@@ -2326,22 +2326,22 @@ Ref<Dictionary> ConfigManager::createDictionaryFromNodeset(Ref<Element> element,
 }
 
 #ifdef EXTERNAL_TRANSCODING
-Ref<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodeset(Ref<Element> element)
+shared_ptr<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodeset(shared_ptr<Element> element)
 {
     size_t bs;
     size_t cs;
     size_t fs;
     int itmp;
     transcoding_type_t tr_type;
-    Ref<Element> mtype_profile;
+    shared_ptr<Element> mtype_profile;
     bool set = false;
     zmm::String param;
 
-    Ref<TranscodingProfileList> list(new TranscodingProfileList());
+    shared_ptr<TranscodingProfileList> list(new TranscodingProfileList());
     if (element == nullptr)
         return list;
 
-    Ref<Array<DictionaryElement> > mt_mappings(new Array<DictionaryElement>());
+    shared_ptr<Array<DictionaryElement> > mt_mappings(new Array<DictionaryElement>());
 
     String mt;
     String pname;
@@ -2349,13 +2349,13 @@ Ref<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodes
     mtype_profile = element->getChildByName(_("mimetype-profile-mappings"));
     if (mtype_profile != nullptr) {
         for (int e = 0; e < mtype_profile->elementChildCount(); e++) {
-            Ref<Element> child = mtype_profile->getElementChild(e);
+            shared_ptr<Element> child = mtype_profile->getElementChild(e);
             if (child->getName() == "transcode") {
                 mt = child->getAttribute(_("mimetype"));
                 pname = child->getAttribute(_("using"));
 
                 if (string_ok(mt) && string_ok(pname)) {
-                    Ref<DictionaryElement> del(new DictionaryElement(mt, pname));
+                    shared_ptr<DictionaryElement> del(new DictionaryElement(mt, pname));
                     mt_mappings->append(del);
                 } else {
                     throw _Exception(_("error in configuration: invalid or missing mimetype to profile mapping"));
@@ -2364,12 +2364,12 @@ Ref<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodes
         }
     }
 
-    Ref<Element> profiles = element->getChildByName(_("profiles"));
+    shared_ptr<Element> profiles = element->getChildByName(_("profiles"));
     if (profiles == nullptr)
         return list;
 
     for (int i = 0; i < profiles->elementChildCount(); i++) {
-        Ref<Element> child = profiles->getElementChild(i);
+        shared_ptr<Element> child = profiles->getElementChild(i);
         if (child->getName() != "profile")
             continue;
 
@@ -2398,7 +2398,7 @@ Ref<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodes
         if (!string_ok(param))
             throw _Exception(_("error in configuration: invalid transcoding profile name"));
 
-        Ref<TranscodingProfile> prof(new TranscodingProfile(tr_type, param));
+        shared_ptr<TranscodingProfile> prof(new TranscodingProfile(tr_type, param));
 
         param = child->getChildText(_("mimetype"));
         if (!string_ok(param))
@@ -2413,7 +2413,7 @@ Ref<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodes
             }
         }
 
-        Ref<Element> avi_fcc = child->getChildByName(_("avi-fourcc-list"));
+        shared_ptr<Element> avi_fcc = child->getChildByName(_("avi-fourcc-list"));
         if (avi_fcc != nullptr) {
             String mode = avi_fcc->getAttribute(_("mode"));
             if (!string_ok(mode))
@@ -2430,9 +2430,9 @@ Ref<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodes
                 throw _Exception(_("error in configuration: invalid mode given for avi-fourcc-list: \"") + mode + _("\""));
 
             if (fcc_mode != FCC_None) {
-                Ref<Array<StringBase> > fcc_list(new Array<StringBase>());
+                shared_ptr<Array<StringBase> > fcc_list(new Array<StringBase>());
                 for (int f = 0; f < avi_fcc->elementChildCount(); f++) {
-                    Ref<Element> fourcc = avi_fcc->getElementChild(f);
+                    shared_ptr<Element> fourcc = avi_fcc->getElementChild(f);
                     if (fourcc->getName() != "fourcc")
                         continue;
 
@@ -2558,7 +2558,7 @@ Ref<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodes
                 prof->setChunked(false);
         }
 
-        Ref<Element> sub = child->getChildByName(_("agent"));
+        shared_ptr<Element> sub = child->getChildByName(_("agent"));
         if (sub == nullptr)
             throw _Exception(_("error in configuration: transcoding "
                                "profile \"")
@@ -2682,16 +2682,16 @@ Ref<TranscodingProfileList> ConfigManager::createTranscodingProfileListFromNodes
 }
 #endif //TRANSCODING
 
-Ref<AutoscanList> ConfigManager::createAutoscanListFromNodeset(zmm::Ref<mxml::Element> element, scan_mode_t scanmode)
+shared_ptr<AutoscanList> ConfigManager::createAutoscanListFromNodeset(zmm::shared_ptr<mxml::Element> element, scan_mode_t scanmode)
 {
-    Ref<AutoscanList> list(new AutoscanList());
+    shared_ptr<AutoscanList> list(new AutoscanList());
 
     if (element == nullptr)
         return list;
 
     for (int i = 0; i < element->elementChildCount(); i++) {
 
-        Ref<Element> child = element->getElementChild(i);
+        shared_ptr<Element> child = element->getElementChild(i);
 
         // We only want directories
         if (child->getName() != "directory")
@@ -2789,7 +2789,7 @@ Ref<AutoscanList> ConfigManager::createAutoscanListFromNodeset(zmm::Ref<mxml::El
         else
             throw _Exception(_("autoscan directory ") + location + ": hidden attribute " + temp + " is invalid");
 
-        Ref<AutoscanDirectory> dir(new AutoscanDirectory(location, mode, level, recursive, true, -1, interval, hidden));
+        shared_ptr<AutoscanDirectory> dir(new AutoscanDirectory(location, mode, level, recursive, true, -1, interval, hidden));
         try {
             list->add(dir);
         } catch (const Exception& e) {
@@ -2825,14 +2825,14 @@ void ConfigManager::dumpOptions()
 #endif
 }
 
-Ref<Array<StringBase> > ConfigManager::createArrayFromNodeset(Ref<mxml::Element> element, String nodeName, String attrName)
+shared_ptr<Array<StringBase> > ConfigManager::createArrayFromNodeset(shared_ptr<mxml::Element> element, String nodeName, String attrName)
 {
     String attrValue;
-    Ref<Array<StringBase> > arr(new Array<StringBase>());
+    shared_ptr<Array<StringBase> > arr(new Array<StringBase>());
 
     if (element != nullptr) {
         for (int i = 0; i < element->elementChildCount(); i++) {
-            Ref<Element> child = element->getElementChild(i);
+            shared_ptr<Element> child = element->getElementChild(i);
             if (child->getName() == nodeName) {
                 attrValue = child->getAttribute(attrName);
 
@@ -2849,7 +2849,7 @@ Ref<Array<StringBase> > ConfigManager::createArrayFromNodeset(Ref<mxml::Element>
 // None of the options->get() calls will ever return nullptr!
 String ConfigManager::getOption(config_option_t option)
 {
-    Ref<ConfigOption> r = options->get(option);
+    shared_ptr<ConfigOption> r = options->get(option);
     if (r.getPtr() == nullptr) {
         throw _Exception(_("option not set"));
     }
@@ -2858,7 +2858,7 @@ String ConfigManager::getOption(config_option_t option)
 
 int ConfigManager::getIntOption(config_option_t option)
 {
-    Ref<ConfigOption> o = options->get(option);
+    shared_ptr<ConfigOption> o = options->get(option);
     if (o.getPtr() == nullptr) {
         throw _Exception(_("option not set"));
     }
@@ -2867,60 +2867,60 @@ int ConfigManager::getIntOption(config_option_t option)
 
 bool ConfigManager::getBoolOption(config_option_t option)
 {
-    Ref<ConfigOption> o = options->get(option);
+    shared_ptr<ConfigOption> o = options->get(option);
     if (o.getPtr() == nullptr) {
         throw _Exception(_("option not set"));
     }
     return o->getBoolOption();
 }
 
-Ref<Dictionary> ConfigManager::getDictionaryOption(config_option_t option)
+shared_ptr<Dictionary> ConfigManager::getDictionaryOption(config_option_t option)
 {
     return options->get(option)->getDictionaryOption();
 }
 
-Ref<Array<StringBase> > ConfigManager::getStringArrayOption(config_option_t option)
+shared_ptr<Array<StringBase> > ConfigManager::getStringArrayOption(config_option_t option)
 {
     return options->get(option)->getStringArrayOption();
 }
 
-Ref<ObjectDictionary<zmm::Object> > ConfigManager::getObjectDictionaryOption(config_option_t option)
+shared_ptr<ObjectDictionary<zmm::Object> > ConfigManager::getObjectDictionaryOption(config_option_t option)
 {
     return options->get(option)->getObjectDictionaryOption();
 }
 
 #ifdef ONLINE_SERVICES
-Ref<Array<Object> > ConfigManager::getObjectArrayOption(config_option_t option)
+shared_ptr<Array<Object> > ConfigManager::getObjectArrayOption(config_option_t option)
 {
     return options->get(option)->getObjectArrayOption();
 }
 #endif
 
-Ref<AutoscanList> ConfigManager::getAutoscanListOption(config_option_t option)
+shared_ptr<AutoscanList> ConfigManager::getAutoscanListOption(config_option_t option)
 {
     return options->get(option)->getAutoscanListOption();
 }
 
 #ifdef EXTERNAL_TRANSCODING
-Ref<TranscodingProfileList> ConfigManager::getTranscodingProfileListOption(config_option_t option)
+shared_ptr<TranscodingProfileList> ConfigManager::getTranscodingProfileListOption(config_option_t option)
 {
     return options->get(option)->getTranscodingProfileListOption();
 }
 #endif
 
 #ifdef ONLINE_SERVICES
-Ref<Array<Object> > ConfigManager::createServiceTaskList(service_type_t service,
-    Ref<Element> element)
+shared_ptr<Array<Object> > ConfigManager::createServiceTaskList(service_type_t service,
+    shared_ptr<Element> element)
 {
-    Ref<Array<Object> > arr(new Array<Object>());
+    shared_ptr<Array<Object> > arr(new Array<Object>());
 
     if (element == nullptr)
         return arr;
 #ifdef YOUTUBE
     if (service == OS_YouTube) {
-        Ref<YouTubeService> yt(new YouTubeService());
+        shared_ptr<YouTubeService> yt(new YouTubeService());
         for (int i = 0; i < element->elementChildCount(); i++) {
-            Ref<Object> option = yt->defineServiceTask(element->getElementChild(i), RefCast(options->get(CFG_ONLINE_CONTENT_YOUTUBE_RACY), Object));
+            shared_ptr<Object> option = yt->defineServiceTask(element->getElementChild(i), RefCast(options->get(CFG_ONLINE_CONTENT_YOUTUBE_RACY), Object));
             arr->append(option);
         }
     }

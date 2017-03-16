@@ -49,9 +49,9 @@ class CdsResource : public zmm::Object
 {
 protected:
     int handlerType;
-    zmm::Ref<Dictionary> attributes;
-    zmm::Ref<Dictionary> parameters;
-    zmm::Ref<Dictionary> options;
+    std::shared_ptr<Dictionary> attributes;
+    std::shared_ptr<Dictionary> parameters;
+    std::shared_ptr<Dictionary> options;
 
 public:
     /// \brief creates a new resource object.
@@ -61,9 +61,9 @@ public:
     /// \param handler_type id of the associated handler
     CdsResource(int handlerType);
     CdsResource(int handlerType,
-                zmm::Ref<Dictionary> attributes,
-                zmm::Ref<Dictionary> parameters,
-                zmm::Ref<Dictionary> options);
+                std::shared_ptr<Dictionary> attributes,
+                std::shared_ptr<Dictionary> parameters,
+                std::shared_ptr<Dictionary> options);
    
     /// \brief Adds a resource attribute.
     ///
@@ -79,7 +79,7 @@ public:
     void removeAttribute(zmm::String name);
 
     /// \brief Merge existing attributes with new ones
-    void mergeAttributes(zmm::Ref<Dictionary> additional);
+    void mergeAttributes(std::shared_ptr<Dictionary> additional);
 
     /// \brief Adds a parameter (will be appended to the URL)
     /// 
@@ -100,18 +100,18 @@ public:
 
     // urlencode into string
     int getHandlerType();
-    zmm::Ref<Dictionary> getAttributes();
-    zmm::Ref<Dictionary> getParameters();
-    zmm::Ref<Dictionary> getOptions();
+    std::shared_ptr<Dictionary> getAttributes();
+    std::shared_ptr<Dictionary> getParameters();
+    std::shared_ptr<Dictionary> getOptions();
     zmm::String getAttribute(zmm::String name);
     zmm::String getParameter(zmm::String name);
     zmm::String getOption(zmm::String name);
 
-    bool equals(zmm::Ref<CdsResource> other);
-    zmm::Ref<CdsResource> clone();
+    bool equals(std::shared_ptr<CdsResource> other);
+    std::shared_ptr<CdsResource> clone();
 
     zmm::String encode();
-    static zmm::Ref<CdsResource> decode(zmm::String serial);
+    static std::shared_ptr<CdsResource> decode(zmm::String serial);
 
     /// \brief Frees unnecessary memory
     void optimize();

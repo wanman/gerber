@@ -54,17 +54,17 @@ public:
     /// if you want to add another mime/type alias for an existing mime/type, this
     /// function would do it. Also, when transcoding will be implemented, the
     /// various transcoded streams will be identified here.
-    static void addResources(zmm::Ref<CdsItem> item, zmm::Ref<mxml::Element> element);
+    static void addResources(std::shared_ptr<CdsItem> item, std::shared_ptr<mxml::Element> element);
     
     /// \brief Gets the URL of the first resource of the CfsItem.
     /// \param item Item for which the resources should be built.
     /// \return The URL
-    static zmm::String getFirstResource(zmm::Ref<CdsItem> item);
+    static zmm::String getFirstResource(std::shared_ptr<CdsItem> item);
 
     /// \brief Gets the URL of the artwork.
     /// \param item Item for which the resources should be built.
     /// \return The URL
-    static zmm::String getArtworkUrl(zmm::Ref<CdsItem> item);
+    static zmm::String getArtworkUrl(std::shared_ptr<CdsItem> item);
 
 protected:
     class UrlBase : public zmm::Object
@@ -79,7 +79,7 @@ protected:
     ///
     /// This function gets the baseUrl for the CdsItem and sets addResID
     /// to true if the resource id needs to be added to the URL.
-    static zmm::Ref<UrlBase> addResources_getUrlBase(zmm::Ref<CdsItem> item,
+    static std::shared_ptr<UrlBase> addResources_getUrlBase(std::shared_ptr<CdsItem> item,
             bool forceLocal = false);
    
     /// \brief renders an ext=.extension string, where the extension is 

@@ -37,7 +37,7 @@
 
 using namespace zmm;
 
-ImportScript::ImportScript(Ref<Runtime> runtime) : Script(runtime)
+ImportScript::ImportScript(shared_ptr<Runtime> runtime) : Script(runtime)
 {
     String scriptPath = ConfigManager::getInstance()->getOption(CFG_IMPORT_SCRIPTING_IMPORT_SCRIPT); 
 
@@ -65,7 +65,7 @@ ImportScript::ImportScript(Ref<Runtime> runtime) : Script(runtime)
 #endif
 }
 
-void ImportScript::processCdsObject(Ref<CdsObject> obj, String scriptpath)
+void ImportScript::processCdsObject(shared_ptr<CdsObject> obj, String scriptpath)
 {
 #ifdef JS_THREADSAFE
     JS_SetContextThread(cx);

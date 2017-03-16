@@ -36,12 +36,12 @@
 using namespace zmm;
 using namespace mxml;
 
-XPath::XPath(Ref<Element> context) : Object()
+XPath::XPath(shared_ptr<Element> context) : Object()
 {
     this->context = context;
 }
 
-Ref<Element> XPath::getElement(String xpath)
+shared_ptr<Element> XPath::getElement(String xpath)
 {
     String axisPart = getAxisPart(xpath);
     if (axisPart != nullptr)
@@ -56,7 +56,7 @@ String XPath::getText(String xpath)
     String axisPart = getAxisPart(xpath);
     String pathPart = getPathPart(xpath);
     
-    Ref<Element> el = elementAtPath(pathPart);
+    shared_ptr<Element> el = elementAtPath(pathPart);
     if (el == nullptr)
         return nullptr;
     
@@ -86,10 +86,10 @@ String XPath::getPathPart(String xpath)
     return xpath;
 }
 
-Ref<Element> XPath::elementAtPath(String path)
+shared_ptr<Element> XPath::elementAtPath(String path)
 {
-    Ref<Element> cur = context;
-    Ref<Array<StringBase> > parts = split_string(path, '/');
+    shared_ptr<Element> cur = context;
+    shared_ptr<Array<StringBase> > parts = split_string(path, '/');
    
     for (int i = 0; i < parts->size(); i++)
     {

@@ -76,7 +76,7 @@ void Session::containerChangedUI(int objectID)
     }
 }
 
-void Session::containerChangedUI(Ref<IntArray> objectIDs)
+void Session::containerChangedUI(shared_ptr<IntArray> objectIDs)
 {
     if (updateAll)
         return;
@@ -132,16 +132,16 @@ void Session::clearUpdateIDs()
 
 SessionManager::SessionManager()
 {
-    Ref<ConfigManager> configManager = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> configManager = ConfigManager::getInstance();
 
     accounts = configManager->getDictionaryOption(CFG_SERVER_UI_ACCOUNT_LIST);
-    sessions = Ref<Array<Session> >(new Array<Session>());
+    sessions = shared_ptr<Array<Session> >(new Array<Session>());
     timerAdded = false;
 }
 
-Ref<Session> SessionManager::createSession(long timeout)
+shared_ptr<Session> SessionManager::createSession(long timeout)
 {
-    Ref<Session> newSession(new Session(timeout));
+    shared_ptr<Session> newSession(new Session(timeout));
     AutoLock lock(mutex);
     
     int count=0;
@@ -160,14 +160,14 @@ Ref<Session> SessionManager::createSession(long timeout)
     return newSession;
 }
 
-Ref<Session> SessionManager::getSession(String sessionID, bool doLock)
+shared_ptr<Session> SessionManager::getSession(String sessionID, bool doLock)
 {
     unique_lock<decltype(mutex)> lock(mutex, std::defer_lock);
     if (doLock)
         lock.lock();
     for (int i = 0; i < sessions->size(); i++)
     {
-        Ref<Session> s = sessions->get(i);
+        shared_ptr<Session> s = sessions->get(i);
         if (s->getID() == sessionID)
             return s;
     }
@@ -179,7 +179,7 @@ void SessionManager::removeSession(String sessionID)
     AutoLock lock(mutex);
     for (int i = 0; i < sessions->size(); i++)
     {
-        Ref<Session> s = sessions->get(i);
+        shared_ptr<Session> s = sessions->get(i);
         if (s->getID() == sessionID)
         {
             sessions->remove(i);
@@ -207,13 +207,13 @@ void SessionManager::containerChangedUI(int objectID)
     int sesSize = sessions->size();
     for (int i = 0; i < sesSize; i++)
     {
-        Ref<Session> session = sessions->get(i);
+        shared_ptr<Session> session = sessions->get(i);
         if (session->isLoggedIn())
             session->containerChangedUI(objectID);
     }
 }
 
-void SessionManager::containerChangedUI(Ref<IntArray> objectIDs)
+void SessionManager::containerChangedUI(shared_ptr<IntArray> objectIDs)
 {
     if (sessions->size() <= 0)
         return;
@@ -221,7 +221,7 @@ void SessionManager::containerChangedUI(Ref<IntArray> objectIDs)
     int sesSize = sessions->size();
     for (int i = 0; i < sesSize; i++)
     {
-        Ref<Session> session = sessions->get(i);
+        shared_ptr<Session> session = sessions->get(i);
         if (session->isLoggedIn())
             session->containerChangedUI(objectIDs);
     }
@@ -241,7 +241,7 @@ void SessionManager::checkTimer()
     }
 }
 
-void SessionManager::timerNotify(Ref<Timer::Parameter> parameter)
+void SessionManager::timerNotify(shared_ptr<Timer::Parameter> parameter)
 {
     log_debug("notified... %d sessions.\n", sessions->size());
     AutoLock lock(mutex);
@@ -249,7 +249,7 @@ void SessionManager::timerNotify(Ref<Timer::Parameter> parameter)
     getTimespecNow(&now);
     for (int i = 0; i < sessions->size(); i++)
     {
-        Ref<Session> session = sessions->get(i);
+        shared_ptr<Session> session = sessions->get(i);
         if (getDeltaMillis(session->getLastAccessTime(), &now) > 1000 * session->getTimeout())
         {
             log_debug("session timeout: %s - diff: %ld\n", session->getID().c_str(), getDeltaMillis(session->getLastAccessTime(), &now));

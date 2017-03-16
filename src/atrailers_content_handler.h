@@ -51,7 +51,7 @@ class ATrailersContentHandler : public zmm::Object
 public:
     /// \brief Sets the service XML from which we will extract the objects.
     /// \return false if service XML contained an error status.
-    bool setServiceContent(zmm::Ref<mxml::Element> service);
+    bool setServiceContent(std::shared_ptr<mxml::Element> service);
 
     /// \brief retrieves an object from the service.
     ///
@@ -60,11 +60,11 @@ public:
     /// this function will return nullptr.
     ///
     /// \return CdsObject or nullptr if there are no more objects to parse.
-    zmm::Ref<CdsObject> getNextObject();
+    std::shared_ptr<CdsObject> getNextObject();
 
 
 protected:
-    zmm::Ref<mxml::Element> service_xml;
+    std::shared_ptr<mxml::Element> service_xml;
     int current_trailer_index;
     int trailer_count;
  

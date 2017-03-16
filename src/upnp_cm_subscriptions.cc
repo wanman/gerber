@@ -36,14 +36,14 @@
 using namespace zmm;
 using namespace mxml;
 
-void ConnectionManagerService::process_subscription_request(zmm::Ref<SubscriptionRequest> request)
+void ConnectionManagerService::process_subscription_request(zmm::shared_ptr<SubscriptionRequest> request)
 {
     int err;
     IXML_Document *event = nullptr;
 
-    Ref<Element> propset, property;
+    shared_ptr<Element> propset, property;
 
-    Ref<Array<StringBase> > mimeTypes = Storage::getInstance()->getMimeTypes();
+    shared_ptr<Array<StringBase> > mimeTypes = Storage::getInstance()->getMimeTypes();
     String CSV = mime_types_to_CSV(mimeTypes);
 
 
@@ -72,7 +72,7 @@ void ConnectionManagerService::subscription_update(String sourceProtocol_CSV)
     int err;
     IXML_Document *event = nullptr;
 
-    Ref<Element> propset, property;
+    shared_ptr<Element> propset, property;
 
     propset = UpnpXML_CreateEventPropertySet();
     property = propset->getFirstElementChild();

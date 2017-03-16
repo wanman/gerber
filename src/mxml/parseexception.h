@@ -42,9 +42,9 @@ class Context;
 class ParseException : public zmm::Exception
 {
 public:
-    zmm::Ref<Context> context;
+    std::shared_ptr<Context> context;
 public:
-    ParseException(zmm::String msg, zmm::Ref<Context> context);
+    ParseException(zmm::String msg, std::shared_ptr<Context> context);
 };
 
 }

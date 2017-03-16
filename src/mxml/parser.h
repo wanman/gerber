@@ -50,16 +50,16 @@ class Parser : public zmm::Object
 {
 public:
     Parser();
-    zmm::Ref<Document> parseFile(zmm::String);
-    zmm::Ref<Document> parseString(zmm::String);
+    std::shared_ptr<Document> parseFile(zmm::String);
+    std::shared_ptr<Document> parseString(zmm::String);
 
 protected:
 
-    zmm::Ref<Document> parse(zmm::Ref<Context> ctx, zmm::String input);
+    std::shared_ptr<Document> parse(std::shared_ptr<Context> ctx, zmm::String input);
 
-    zmm::Ref<zmm::ObjectStack<Element> > elements;
-    zmm::Ref<Document> document;
-    zmm::Ref<Element> curEl;
+    std::shared_ptr<zmm::ObjectStack<Element> > elements;
+    std::shared_ptr<Document> document;
+    std::shared_ptr<Element> curEl;
     bool ignoreNextDefaultNewline;
 
     static void XMLCALL element_start(void *userdata, const char *name, const char **attrs);

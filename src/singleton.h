@@ -32,6 +32,7 @@
 #ifndef __SINGLETON_H__
 #define __SINGLETON_H__
 
+#include <memory>
 #include <mutex>
 #include "zmm/zmmf.h"
 #include "exceptions.h"
@@ -43,18 +44,18 @@ template <class T, class MutexT = std::mutex> class Singleton;
 class SingletonManager : public zmm::Object
 {
 public:
-    static zmm::Ref<SingletonManager> getInstance();
+    static std::shared_ptr<SingletonManager> getInstance();
     SingletonManager();
     
-    void registerSingleton(zmm::Ref<Singleton<zmm::Object> > object);
+    void registerSingleton(std::shared_ptr<Singleton<zmm::Object> > object);
     virtual void shutdown(bool complete = false);
     
 protected:
-    static zmm::Ref<SingletonManager> instance;
+    static std::shared_ptr<SingletonManager> instance;
     static std::mutex mutex;
     using AutoLock = std::lock_guard<std::mutex>;
     
-    zmm::Ref<zmm::ObjectStack<Singleton<zmm::Object> > > singletonStack;
+    std::shared_ptr<zmm::ObjectStack<Singleton<zmm::Object> > > singletonStack;
 };
 
 template <class T, class MutexT>
@@ -63,7 +64,7 @@ class Singleton : public zmm::Object
 public:
     typedef MutexT mutex_type;
 
-    static zmm::Ref<T> getInstance()
+    static std::shared_ptr<T> getInstance()
     {
         if (! singletonActive)
             throw _ServerShutdownException(_("singleton is currently inactive!"));
@@ -75,7 +76,7 @@ public:
             if (instance == nullptr) // check again, because there is a very small chance
                                  // that 2 threads tried to lock() concurrently
             {
-                zmm::Ref<T> tmpInstance = zmm::Ref<T>(new T());
+                std::shared_ptr<T> tmpInstance = std::shared_ptr<T>(new T());
                 tmpInstance->registerSingleton();
                 tmpInstance->init();
                 instance = tmpInstance;
@@ -94,12 +95,12 @@ protected:
     static MutexT mutex;
     using AutoLock = std::lock_guard<MutexT>;
 
-    static zmm::Ref<T> instance;
+    static std::shared_ptr<T> instance;
     static bool singletonActive;
     
     virtual void registerSingleton()
     {
-        SingletonManager::getInstance()->registerSingleton(zmm::Ref<Singleton<Object> >((Singleton<Object> *)this));
+        SingletonManager::getInstance()->registerSingleton(std::shared_ptr<Singleton<Object> >((Singleton<Object> *)this));
     }
     
 private:
@@ -115,7 +116,7 @@ private:
     friend class SingletonManager;
 };
 
-template <class T, class MutexT> zmm::Ref<T> Singleton<T, MutexT>::instance = nullptr;
+template <class T, class MutexT> std::shared_ptr<T> Singleton<T, MutexT>::instance = nullptr;
 template <class T, class MutexT> bool Singleton<T, MutexT>::singletonActive = true;
 // Without the {} it's a declaration, not a definition.
 template <class T, class MutexT> MutexT Singleton<T, MutexT>::mutex{};

@@ -50,7 +50,7 @@ public:
     virtual void init();
     
     void containerChanged(int objectID, int flushPolicy = FLUSH_SPEC);
-    void containersChanged(zmm::Ref<zmm::IntArray> objectIDs, int flushPolicy = FLUSH_SPEC);
+    void containersChanged(std::shared_ptr<zmm::IntArray> objectIDs, int flushPolicy = FLUSH_SPEC);
     
 protected:
     

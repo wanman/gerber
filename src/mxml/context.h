@@ -32,6 +32,7 @@
 #ifndef __MXML_CONTEXT_H__
 #define __MXML_CONTEXT_H__
 
+#include <memory>
 #include "zmm/zmmf.h"
 
 namespace mxml
@@ -40,15 +41,15 @@ namespace mxml
 class Context : public zmm::Object
 {
 public:
-    zmm::Ref<Context> parent;
+    std::shared_ptr<Context> parent;
     zmm::String location;
     int line;
     int col;
 public:
     Context(zmm::String location);
     Context();
-    zmm::Ref<Context> clone();
-    void setParent(zmm::Ref<Context> parent);
+    std::shared_ptr<Context> clone();
+    void setParent(std::shared_ptr<Context> parent);
 };
 
 } // namespace

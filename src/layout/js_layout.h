@@ -38,12 +38,12 @@
 class JSLayout : public Layout
 {
 protected:
-    zmm::Ref<ImportScript> import_script;
+    std::shared_ptr<ImportScript> import_script;
 
 public:
     JSLayout();
     virtual ~JSLayout();
-    virtual void processCdsObject(zmm::Ref<CdsObject> obj, zmm::String rootpath) override;
+    virtual void processCdsObject(std::shared_ptr<CdsObject> obj, zmm::String rootpath) override;
 };
 
 #endif // __JS_LAYOUT_H__

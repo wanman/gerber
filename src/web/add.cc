@@ -58,7 +58,7 @@ void web::add::process()
         path = hex_decode_string(objID);
     if (path == nullptr) throw _Exception(_("web::add::process(): illegal path"));
 
-    Ref<ContentManager> cm = ContentManager::getInstance();
+    shared_ptr<ContentManager> cm = ContentManager::getInstance();
     cm->addFile(path, true);
     log_debug("add: returning\n");
 }

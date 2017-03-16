@@ -93,7 +93,7 @@ MetadataHandler::MetadataHandler() : Object()
 {
 }
        
-void MetadataHandler::setMetadata(Ref<CdsItem> item)
+void MetadataHandler::setMetadata(shared_ptr<CdsItem> item)
 {
     String location = item->getLocation();
     off_t filesize;
@@ -103,13 +103,13 @@ void MetadataHandler::setMetadata(Ref<CdsItem> item)
 
     String mimetype = item->getMimeType();
 
-    Ref<CdsResource> resource(new CdsResource(CH_DEFAULT));
+    shared_ptr<CdsResource> resource(new CdsResource(CH_DEFAULT));
     resource->addAttribute(getResAttrName(R_PROTOCOLINFO), renderProtocolInfo(mimetype));
     resource->addAttribute(getResAttrName(R_SIZE), String::from(filesize));
     
     item->addResource(resource);
 
-    Ref<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
+    shared_ptr<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
     String content_type = mappings->get(mimetype);
    
     if ((content_type == CONTENT_TYPE_OGG) && (isTheora(item->getLocation())))
@@ -134,7 +134,7 @@ void MetadataHandler::setMetadata(Ref<CdsItem> item)
 /*        
     if (content_type == CONTENT_TYPE_JPG)
     {
-        handlers->append(Ref<MetadataHandler>(new Exiv2Handler()));
+        handlers->append(shared_ptr<MetadataHandler>(new Exiv2Handler()));
     } 
 */
 #endif
@@ -189,24 +189,24 @@ String MetadataHandler::getResAttrName(resource_attributes_t attr)
     return RES_KEYS[attr].upnp;
 }
 
-Ref<MetadataHandler> MetadataHandler::createHandler(int handlerType)
+shared_ptr<MetadataHandler> MetadataHandler::createHandler(int handlerType)
 {
     switch(handlerType)
     {
 #ifdef HAVE_LIBEXIF
         case CH_LIBEXIF:
-            return Ref<MetadataHandler>(new LibExifHandler());
+            return shared_ptr<MetadataHandler>(new LibExifHandler());
 #endif
 #ifdef HAVE_TAGLIB
         case CH_ID3:
-            return Ref<MetadataHandler>(new TagLibHandler());
+            return shared_ptr<MetadataHandler>(new TagLibHandler());
 #endif
 #if defined(HAVE_FFMPEG) && defined(HAVE_FFMPEGTHUMBNAILER)
         case CH_FFTH:
-            return Ref<MetadataHandler>(new FfmpegHandler());
+            return shared_ptr<MetadataHandler>(new FfmpegHandler());
 #endif
         case CH_FANART:
-            return Ref<MetadataHandler>(new FanArtHandler());
+            return shared_ptr<MetadataHandler>(new FanArtHandler());
         default:
             throw _Exception(_("unknown content handler ID: ") + handlerType);
     }

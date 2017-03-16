@@ -37,9 +37,9 @@
 using namespace zmm;
 using namespace mxml;
 
-String XML2JSON::getJSON(Ref<Element> root)
+String XML2JSON::getJSON(shared_ptr<Element> root)
 {
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
     *buf << '{';
     handleElement(buf, root);
     *buf << '}';
@@ -47,7 +47,7 @@ String XML2JSON::getJSON(Ref<Element> root)
 }
 
 
-void XML2JSON::handleElement(Ref<StringBuffer> buf, Ref<Element> el)
+void XML2JSON::handleElement(shared_ptr<StringBuffer> buf, shared_ptr<Element> el)
 {
     bool firstChild = true;
     int attributeCount = el->attributeCount();
@@ -55,7 +55,7 @@ void XML2JSON::handleElement(Ref<StringBuffer> buf, Ref<Element> el)
     {
         for (int i = 0; i < attributeCount; i++)
         {
-            Ref<Attribute> at = el->getAttribute(i);
+            shared_ptr<Attribute> at = el->getAttribute(i);
             if (! firstChild)
                 *buf << ',';
             else
@@ -84,7 +84,7 @@ void XML2JSON::handleElement(Ref<StringBuffer> buf, Ref<Element> el)
     
     for (int i = 0; i < childCount; i++)
     {
-        Ref<Node> node = el->getChild(i);
+        shared_ptr<Node> node = el->getChild(i);
         mxml_node_types type = node->getType();
         if (type != mxml_node_element)
         {
@@ -116,10 +116,10 @@ void XML2JSON::handleElement(Ref<StringBuffer> buf, Ref<Element> el)
             {
                 if (childCount > 1)
                 {
-                    Ref<Node> nextNode = el->getChild(1);
+                    shared_ptr<Node> nextNode = el->getChild(1);
                     if (nextNode->getType() != mxml_node_element)
                         throw _Exception(_("XML2JSON cannot handle an element which consists of text AND element children"));
-                    Ref<Element> nextChildEl = RefCast(nextNode, Element);
+                    shared_ptr<Element> nextChildEl = dynamic_pointer_cast<Element>(nextNode);
                     if (nextChildEl->getName() == childEl->getName())
                         array = true;
                 }
@@ -139,7 +139,7 @@ void XML2JSON::handleElement(Ref<StringBuffer> buf, Ref<Element> el)
             
             
             
-            Ref<Element> childEl = RefCast(node, Element);
+            shared_ptr<Element> childEl = dynamic_pointer_cast<Element>(node);
             int childAttributeCount = childEl->attributeCount();
             int childElementCount = childEl->elementChildCount();
             

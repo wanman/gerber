@@ -50,10 +50,10 @@ void web::containers::process()
     if (parentID == INVALID_OBJECT_ID)
         throw _Exception(_("web::containers: no parent_id given"));
     
-    Ref<Storage> storage = Storage::getInstance();
+    shared_ptr<Storage> storage = Storage::getInstance();
 
         
-    Ref<Element> containers (new Element(_("containers")));
+    shared_ptr<Element> containers (new Element(_("containers")));
     containers->setArrayName(_("container"));
     containers->setAttribute(_("parent_id"), String::from(parentID), mxml_int_type);
     containers->setAttribute(_("type"), _("database"));
@@ -62,17 +62,17 @@ void web::containers::process()
         containers->setAttribute(_("select_it"), param(_("select_it")));
     root->appendElementChild(containers);
     
-    Ref<BrowseParam> param(new BrowseParam(parentID, BROWSE_DIRECT_CHILDREN | BROWSE_CONTAINERS));
-    Ref<Array<CdsObject> > arr;
+    shared_ptr<BrowseParam> param(new BrowseParam(parentID, BROWSE_DIRECT_CHILDREN | BROWSE_CONTAINERS));
+    shared_ptr<Array<CdsObject> > arr;
     arr = storage->browse(param);
     
     for (int i = 0; i < arr->size(); i++)
     {
-        Ref<CdsObject> obj = arr->get(i);
+        shared_ptr<CdsObject> obj = arr->get(i);
         //if (IS_CDS_CONTAINER(obj->getObjectType()))
         //{
-        Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
-        Ref<Element> ce(new Element(_("container")));
+        shared_ptr<CdsContainer> cont = dynamic_pointer_cast<CdsContainer>(obj);
+        shared_ptr<Element> ce(new Element(_("container")));
         ce->setAttribute(_("id"), String::from(cont->getID()), mxml_int_type);
         int childCount = cont->getChildCount();
         ce->setAttribute(_("child_count"), String::from(childCount), mxml_int_type);
@@ -86,7 +86,7 @@ void web::containers::process()
 #ifdef HAVE_INOTIFY
             if (ConfigManager::getInstance()->getBoolOption(CFG_IMPORT_AUTOSCAN_USE_INOTIFY))
             {
-                Ref<AutoscanDirectory> adir = storage->getAutoscanDirectory(cont->getID());
+                shared_ptr<AutoscanDirectory> adir = storage->getAutoscanDirectory(cont->getID());
                 if ((adir != nullptr) && (adir->getScanMode() == InotifyScanMode))
                     autoscanMode = _("inotify");
             }

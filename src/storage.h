@@ -102,10 +102,10 @@ public:
 class Storage : public Singleton<Storage, std::mutex>
 {
 public:
-    static zmm::Ref<Storage> getInstance();
+    static std::shared_ptr<Storage> getInstance();
     
     virtual void init() = 0;
-    virtual void addObject(zmm::Ref<CdsObject> object, int *changedContainer) = 0;
+    virtual void addObject(std::shared_ptr<CdsObject> object, int *changedContainer) = 0;
 
     /// \brief Adds a virtual container chain specified by path.
     /// \param path container path separated by '/'. Slashes in container
@@ -124,7 +124,7 @@ public:
     /// updateID will hold the objectID of the container that was changed,
     /// in case new containers were created during the operation.
     virtual void addContainerChain(zmm::String path, zmm::String lastClass, int lastRefID, int *containerID,
-                                   int *updateID, zmm::Ref<Dictionary> lastMetadata) = 0;
+                                   int *updateID, std::shared_ptr<Dictionary> lastMetadata) = 0;
     
     /// \brief Builds the container path. Fetches the path of the
     /// parent and adds the title
@@ -133,12 +133,12 @@ public:
     /// It will be escaped.
     virtual zmm::String buildContainerPath(int parentID, zmm::String title) = 0;
     
-    virtual void updateObject(zmm::Ref<CdsObject> object, int *changedContainer) = 0;
+    virtual void updateObject(std::shared_ptr<CdsObject> object, int *changedContainer) = 0;
     
-    virtual zmm::Ref<zmm::Array<CdsObject> > browse(zmm::Ref<BrowseParam> param) = 0;
-    virtual zmm::Ref<zmm::Array<zmm::StringBase> > getMimeTypes() = 0;
+    virtual std::shared_ptr<zmm::Array<CdsObject> > browse(std::shared_ptr<BrowseParam> param) = 0;
+    virtual std::shared_ptr<zmm::Array<zmm::StringBase> > getMimeTypes() = 0;
     
-    //virtual zmm::Ref<zmm::Array<CdsObject> > selectObjects(zmm::Ref<SelectParam> param) = 0;
+    //virtual std::shared_ptr<zmm::Array<CdsObject> > selectObjects(std::shared_ptr<SelectParam> param) = 0;
     
     /// \brief Loads a given (pc directory) object, identified by the given path
     /// from the database
@@ -146,7 +146,7 @@ public:
     /// if the path ends with DIR_SEPERATOR, as file otherwise
     /// multiple DIR_SEPERATOR are irgnored
     /// \return the CdsObject
-    virtual zmm::Ref<CdsObject> findObjectByPath(zmm::String path) = 0;
+    virtual std::shared_ptr<CdsObject> findObjectByPath(zmm::String path) = 0;
     
     /// \brief checks for a given (pc directory) object, identified by the given path
     /// from the database
@@ -164,7 +164,7 @@ public:
     virtual zmm::String incrementUpdateIDs(std::shared_ptr<std::unordered_set<int> > ids) = 0;
     
     /* utility methods */
-    virtual zmm::Ref<CdsObject> loadObject(int objectID) = 0;
+    virtual std::shared_ptr<CdsObject> loadObject(int objectID) = 0;
     virtual int getChildCount(int contId, bool containers = true, bool items = true, bool hideFsRoot = false) = 0;
 
     virtual zmm::String findFolderImage(int id, zmm::String trackArtBase) = 0;
@@ -175,11 +175,11 @@ public:
     public:
         ChangedContainers()
         {
-            upnp = zmm::Ref<zmm::IntArray>(new zmm::IntArray());
-            ui = zmm::Ref<zmm::IntArray>(new zmm::IntArray());
+            upnp = std::shared_ptr<zmm::IntArray>(new zmm::IntArray());
+            ui = std::shared_ptr<zmm::IntArray>(new zmm::IntArray());
         }
-        zmm::Ref<zmm::IntArray> upnp;
-        zmm::Ref<zmm::IntArray> ui;
+        std::shared_ptr<zmm::IntArray> upnp;
+        std::shared_ptr<zmm::IntArray> ui;
     };
     
     /// \brief Removes the object identified by the objectID from the database.
@@ -192,7 +192,7 @@ public:
     /// \param objectType pointer to an int; will be filled with the objectType of
     /// the removed object, if not NULL
     /// \return changed container ids
-    virtual zmm::Ref<ChangedContainers> removeObject(int objectID, bool all) = 0;
+    virtual std::shared_ptr<ChangedContainers> removeObject(int objectID, bool all) = 0;
     
     /// \brief Get all objects under the given parentID.
     /// \param parentID parent container
@@ -204,15 +204,15 @@ public:
     /// \param list a DBHash containing objectIDs that have to be removed
     /// \param all if true and the object to be removed is a reference
     /// \return changed container ids
-    virtual zmm::Ref<ChangedContainers> removeObjects(std::shared_ptr<std::unordered_set<int> > list, bool all = false) = 0;
+    virtual std::shared_ptr<ChangedContainers> removeObjects(std::shared_ptr<std::unordered_set<int> > list, bool all = false) = 0;
     
     /// \brief Loads an object given by the online service ID.
-    virtual zmm::Ref<CdsObject> loadObjectByServiceID(zmm::String serviceID) = 0;
+    virtual std::shared_ptr<CdsObject> loadObjectByServiceID(zmm::String serviceID) = 0;
     
     /// \brief Return an array of object ID's for a particular service.
     ///
     /// In the database, the service is identified by a service id prefix.
-    virtual zmm::Ref<zmm::IntArray> getServiceObjectIDs(char servicePrefix) = 0;
+    virtual std::shared_ptr<zmm::IntArray> getServiceObjectIDs(char servicePrefix) = 0;
     
     /* accounting methods */
     virtual int getTotalFiles() = 0;
@@ -222,10 +222,10 @@ public:
     virtual void storeInternalSetting(zmm::String key, zmm::String value) = 0;
     
     /* autoscan methods */
-    virtual void updateAutoscanPersistentList(scan_mode_t scanmode, zmm::Ref<AutoscanList> list) = 0;
-    virtual zmm::Ref<AutoscanList> getAutoscanList(scan_mode_t scanmode) = 0;
-    virtual void addAutoscanDirectory(zmm::Ref<AutoscanDirectory> adir) = 0;
-    virtual void updateAutoscanDirectory(zmm::Ref<AutoscanDirectory> adir) = 0;
+    virtual void updateAutoscanPersistentList(scan_mode_t scanmode, std::shared_ptr<AutoscanList> list) = 0;
+    virtual std::shared_ptr<AutoscanList> getAutoscanList(scan_mode_t scanmode) = 0;
+    virtual void addAutoscanDirectory(std::shared_ptr<AutoscanDirectory> adir) = 0;
+    virtual void updateAutoscanDirectory(std::shared_ptr<AutoscanDirectory> adir) = 0;
     virtual void removeAutoscanDirectoryByObjectID(int objectID) = 0;
     virtual void removeAutoscanDirectory(int autoscanID) = 0;
     /// \brief checks if the given object is a direct or indirect child of
@@ -250,16 +250,16 @@ public:
     /// \param objectID the object id to get the AutoscanDirectory for
     /// \return nullptr if the given id is no autoscan start point,
     /// or the matching AutoscanDirectory
-    virtual zmm::Ref<AutoscanDirectory> getAutoscanDirectory(int objectID) = 0;
+    virtual std::shared_ptr<AutoscanDirectory> getAutoscanDirectory(int objectID) = 0;
     
     /// \brief updates the last modified info for the given AutoscanDirectory
     /// in the database
     /// \param adir the AutoscanDirectory to be updated
-    virtual void autoscanUpdateLM(zmm::Ref<AutoscanDirectory> adir) = 0;
+    virtual void autoscanUpdateLM(std::shared_ptr<AutoscanDirectory> adir) = 0;
     
-    virtual void checkOverlappingAutoscans(zmm::Ref<AutoscanDirectory> adir) = 0;
+    virtual void checkOverlappingAutoscans(std::shared_ptr<AutoscanDirectory> adir) = 0;
     
-    virtual zmm::Ref<zmm::IntArray> getPathIDs(int objectID) = 0;
+    virtual std::shared_ptr<zmm::IntArray> getPathIDs(int objectID) = 0;
     
     /// \brief shutdown the Storage with its possible threads
     virtual void shutdown() = 0;
@@ -283,7 +283,7 @@ public:
 protected:
     /* helper for addContainerChain */
     static void stripAndUnescapeVirtualContainerFromPath(zmm::String path, zmm::String &first, zmm::String &last);
-    static zmm::Ref<Storage> createInstance();
+    static std::shared_ptr<Storage> createInstance();
 };
 
 #endif // __STORAGE_H__

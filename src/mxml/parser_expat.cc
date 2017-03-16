@@ -40,7 +40,7 @@ using namespace mxml;
 void XMLCALL Parser::element_start(void *userdata, const char *name, const char **attrs)
 {
     Parser *parser = (Parser *)userdata;
-    Ref<Element> el(new Element(name));
+    shared_ptr<Element> el(new Element(name));
     for (int i = 0; attrs[i]; i += 2) 
     {
         el->addAttribute(attrs[i], attrs[i + 1]);
@@ -77,11 +77,11 @@ void XMLCALL Parser::character_data(void *userdata, const XML_Char *s, int len)
     
     if (text != nullptr)
     {
-        Ref<Text> textEl(new Text(text));
+        shared_ptr<Text> textEl(new Text(text));
         if (parser->curEl == nullptr)
-            parser->document->appendChild(RefCast(textEl, Node));
+            parser->document->appendChild(dynamic_pointer_cast<Node>(textEl));
         else
-            parser->curEl->appendChild(RefCast(textEl, Node));
+            parser->curEl->appendChild(dynamic_pointer_cast<Node>(textEl));
     }
 }
 
@@ -91,11 +91,11 @@ void XMLCALL Parser::comment_callback(void *userdata, const XML_Char *s)
     String text = s;
     if (text != nullptr)
     {
-        Ref<Comment> cm(new Comment(text));
+        shared_ptr<Comment> cm(new Comment(text));
         if (parser->curEl == nullptr)
-            parser->document->appendChild(RefCast(cm, Node));
+            parser->document->appendChild(dynamic_pointer_cast<Node>(cm));
         else
-            parser->curEl->appendChild(RefCast(cm, Node));
+            parser->curEl->appendChild(dynamic_pointer_cast<Node>(cm));
     }
 }
 
@@ -126,19 +126,19 @@ Parser::Parser()
     ignoreNextDefaultNewline = false;
 }
 
-Ref<Document> Parser::parseFile(String filename)
+shared_ptr<Document> Parser::parseFile(String filename)
 {
-    Ref<Context> ctx(new Context(filename));
+    shared_ptr<Context> ctx(new Context(filename));
     return parse(ctx, read_text_file(filename));
 }
 
-Ref<Document> Parser::parseString(String str)
+shared_ptr<Document> Parser::parseString(String str)
 {
-    Ref<Context> ctx(new Context(_("")));
+    shared_ptr<Context> ctx(new Context(_("")));
     return parse(ctx, str);
 }
 
-Ref<Document> Parser::parse(Ref<Context> ctx, String input)
+shared_ptr<Document> Parser::parse(shared_ptr<Context> ctx, String input)
 {
     XML_Parser parser = XML_ParserCreate(nullptr);
     if (!parser)
@@ -150,8 +150,8 @@ Ref<Document> Parser::parse(Ref<Context> ctx, String input)
     XML_SetCommentHandler(parser, Parser::comment_callback);
     XML_SetDefaultHandler(parser, Parser::default_callback);
 
-    document = Ref<Document>(new Document());
-    elements = Ref<ObjectStack<Element> >(new ObjectStack<Element>(8));
+    document = shared_ptr<Document>(new Document());
+    elements = shared_ptr<ObjectStack<Element> >(new ObjectStack<Element>(8));
 
     if (XML_Parse(parser, input.c_str(), input.length(), 1) != XML_STATUS_OK)
     {

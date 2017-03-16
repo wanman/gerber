@@ -39,9 +39,9 @@ using namespace mxml;
 
 CdsObject::CdsObject() : Object()
 {
-    metadata = Ref<Dictionary>(new Dictionary());
-    auxdata = Ref<Dictionary>(new Dictionary());
-    resources = Ref<Array<CdsResource> >(new Array<CdsResource>);
+    metadata = shared_ptr<Dictionary>(new Dictionary());
+    auxdata = shared_ptr<Dictionary>(new Dictionary());
+    resources = shared_ptr<Array<CdsResource> >(new Array<CdsResource>);
     id = INVALID_OBJECT_ID;
     parentID = INVALID_OBJECT_ID;
     refID = INVALID_OBJECT_ID;
@@ -52,7 +52,7 @@ CdsObject::CdsObject() : Object()
     objectFlags = OBJECT_FLAG_RESTRICTED;
 }
 
-void CdsObject::copyTo(Ref<CdsObject> obj)
+void CdsObject::copyTo(shared_ptr<CdsObject> obj)
 {
     obj->setID(id);
     obj->setRefID(refID);
@@ -70,7 +70,7 @@ void CdsObject::copyTo(Ref<CdsObject> obj)
     for (int i = 0; i < resources->size(); i++)
         obj->addResource(resources->get(i)->clone());
 }
-int CdsObject::equals(Ref<CdsObject> obj, bool exactly)
+int CdsObject::equals(shared_ptr<CdsObject> obj, bool exactly)
 {
     if (!(
         id == obj->getID() &&
@@ -100,7 +100,7 @@ int CdsObject::equals(Ref<CdsObject> obj, bool exactly)
     return 1;
 }
 
-int CdsObject::resourcesEqual(Ref<CdsObject> obj)
+int CdsObject::resourcesEqual(shared_ptr<CdsObject> obj)
 {
     if (resources->size() != obj->resources->size())
         return 0;
@@ -124,7 +124,7 @@ void CdsObject::validate()
 
 }
 
-Ref<CdsObject> CdsObject::createObject(unsigned int objectType)
+shared_ptr<CdsObject> CdsObject::createObject(unsigned int objectType)
 {
     CdsObject *pobj;
     
@@ -152,7 +152,7 @@ Ref<CdsObject> CdsObject::createObject(unsigned int objectType)
     {
         throw _Exception(_("invalid object type: ") + objectType);
     }
-    return Ref<CdsObject>(pobj);
+    return shared_ptr<CdsObject>(pobj);
 }
 
 
@@ -167,20 +167,20 @@ CdsItem::CdsItem() : CdsObject()
     serviceID = nullptr;
 }
 
-void CdsItem::copyTo(Ref<CdsObject> obj)
+void CdsItem::copyTo(shared_ptr<CdsObject> obj)
 {
     CdsObject::copyTo(obj);
     if (! IS_CDS_ITEM(obj->getObjectType()))
         return;
-    Ref<CdsItem> item = RefCast(obj, CdsItem);
+    shared_ptr<CdsItem> item = dynamic_pointer_cast<CdsItem>(obj);
 //    item->setDescription(description);
     item->setMimeType(mimeType);
     item->setTrackNumber(trackNumber);
     item->setServiceID(serviceID);
 }
-int CdsItem::equals(Ref<CdsObject> obj, bool exactly)
+int CdsItem::equals(shared_ptr<CdsObject> obj, bool exactly)
 {
-    Ref<CdsItem> item = RefCast(obj, CdsItem);
+    shared_ptr<CdsItem> item = dynamic_pointer_cast<CdsItem>(obj);
     if (! CdsObject::equals(obj, exactly))
         return 0;
     return (mimeType == item->getMimeType() && 
@@ -211,18 +211,18 @@ CdsActiveItem::CdsActiveItem() : CdsItem()
     mimeType = _(MIMETYPE_DEFAULT);
 }
 
-void CdsActiveItem::copyTo(Ref<CdsObject> obj)
+void CdsActiveItem::copyTo(shared_ptr<CdsObject> obj)
 {
     CdsItem::copyTo(obj);
     if (! IS_CDS_ACTIVE_ITEM(obj->getObjectType()))
         return;
-    Ref<CdsActiveItem> item = RefCast(obj, CdsActiveItem);
+    shared_ptr<CdsActiveItem> item = dynamic_pointer_cast<CdsActiveItem>(obj);
     item->setAction(action);
     item->setState(state);
 }
-int CdsActiveItem::equals(Ref<CdsObject> obj, bool exactly)
+int CdsActiveItem::equals(shared_ptr<CdsObject> obj, bool exactly)
 {
-    Ref<CdsActiveItem> item = RefCast(obj, CdsActiveItem);
+    shared_ptr<CdsActiveItem> item = dynamic_pointer_cast<CdsActiveItem>(obj);
     if (! CdsItem::equals(obj, exactly))
         return 0;
     if (exactly &&
@@ -290,17 +290,17 @@ CdsContainer::CdsContainer() : CdsObject()
     autoscanType = OBJECT_AUTOSCAN_NONE;
 }
 
-void CdsContainer::copyTo(Ref<CdsObject> obj)
+void CdsContainer::copyTo(shared_ptr<CdsObject> obj)
 {
     CdsObject::copyTo(obj);
     if (! IS_CDS_CONTAINER(obj->getObjectType()))
         return;
-    Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
+    shared_ptr<CdsContainer> cont = dynamic_pointer_cast<CdsContainer>(obj);
     cont->setUpdateID(updateID);
 }
-int CdsContainer::equals(Ref<CdsObject> obj, bool exactly)
+int CdsContainer::equals(shared_ptr<CdsObject> obj, bool exactly)
 {
-    Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
+    shared_ptr<CdsContainer> cont = dynamic_pointer_cast<CdsContainer>(obj);
     return (
         CdsObject::equals(obj, exactly) &&
         isSearchable() == cont->isSearchable()
@@ -337,7 +337,7 @@ String CdsContainer::getVirtualPath()
     }
     else if (getID() == CDS_ID_FS_ROOT)
     {
-        Ref<Storage> storage = Storage::getInstance();
+        shared_ptr<Storage> storage = Storage::getInstance();
         location = _("/") + storage->getFsRootName();
     }
     else if (string_ok(getLocation()))
@@ -345,7 +345,7 @@ String CdsContainer::getVirtualPath()
         location = getLocation();
         if (! isVirtual())
         {
-            Ref<Storage> storage = Storage::getInstance();
+            shared_ptr<Storage> storage = Storage::getInstance();
             location = _("/") + storage->getFsRootName() + location;
         }
     }
@@ -358,8 +358,8 @@ String CdsContainer::getVirtualPath()
 
 String CdsItem::getVirtualPath()
 {
-    Ref<Storage> storage = Storage::getInstance();
-    Ref<CdsObject> cont = storage->loadObject(getParentID());
+    shared_ptr<Storage> storage = Storage::getInstance();
+    shared_ptr<CdsObject> cont = storage->loadObject(getParentID());
     String location = cont->getVirtualPath();
     location = location + '/' + getTitle();
 

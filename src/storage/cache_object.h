@@ -51,8 +51,8 @@ public:
     int getRefID() { return refID; }
     bool knowsRefID() { return knowRefID; }
     
-    void setObject(zmm::Ref<CdsObject> obj);
-    zmm::Ref<CdsObject> getObject() { return obj; }
+    void setObject(std::shared_ptr<CdsObject> obj);
+    std::shared_ptr<CdsObject> getObject() { return obj; }
     bool knowsObject() { return obj != nullptr; }
     
     void setNumChildren(int numChildren) { this->numChildren = numChildren; knowNumChildren = true; }
@@ -76,7 +76,7 @@ private:
     int parentID;
     int refID;
     bool knowRefID;
-    zmm::Ref<CdsObject> obj;
+    std::shared_ptr<CdsObject> obj;
     bool knowNumChildren;
     int numChildren;
     int objectType;

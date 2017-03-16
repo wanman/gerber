@@ -80,10 +80,10 @@ FfmpegHandler::FfmpegHandler() : MetadataHandler()
 {
 }
 
-static void addFfmpegMetadataFields(Ref<CdsItem> item, AVFormatContext *pFormatCtx) 
+static void addFfmpegMetadataFields(shared_ptr<CdsItem> item, AVFormatContext *pFormatCtx) 
 {
     AVDictionaryEntry *e = NULL;
-	Ref<StringConverter> sc = StringConverter::m2i();
+	shared_ptr<StringConverter> sc = StringConverter::m2i();
     metadata_fields_t field;
     String value;
 
@@ -141,7 +141,7 @@ static void addFfmpegMetadataFields(Ref<CdsItem> item, AVFormatContext *pFormatC
 }
 
 // ffmpeg library calls
-static void addFfmpegResourceFields(Ref<CdsItem> item, AVFormatContext *pFormatCtx, int *x, int *y) 
+static void addFfmpegResourceFields(shared_ptr<CdsItem> item, AVFormatContext *pFormatCtx, int *x, int *y) 
 {
     int64_t hours, mins, secs, us;
     int audioch = 0, samplefreq = 0;
@@ -247,7 +247,7 @@ void FfmpegNoOutputStub(void* ptr, int level, const char* fmt, va_list vl)
 	// do nothing
 }
 
-void FfmpegHandler::fillMetadata(Ref<CdsItem> item)
+void FfmpegHandler::fillMetadata(shared_ptr<CdsItem> item)
 {
     log_debug("Running ffmpeg handler on %s\n", item->getLocation().c_str());
 
@@ -356,7 +356,7 @@ static bool makeThumbnailCacheDir(String& path)
 
 static String getThumbnailCacheFilePath(String& movie_filename, bool create)
 {
-    Ref<ConfigManager> cfg = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> cfg = ConfigManager::getInstance();
     String cache_dir = cfg->getOption(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_CACHE_DIR);
 
     if (cache_dir.length() == 0) {
@@ -402,11 +402,11 @@ static void writeThumbnailCacheFile(String movie_filename, uint8_t *ptr_img, int
 
 #endif
 
-Ref<IOHandler> FfmpegHandler::serveContent(Ref<CdsItem> item, int resNum, off_t *data_size)
+shared_ptr<IOHandler> FfmpegHandler::serveContent(shared_ptr<CdsItem> item, int resNum, off_t *data_size)
 {
     *data_size = -1;
 #ifdef HAVE_FFMPEGTHUMBNAILER
-    Ref<ConfigManager> cfg = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> cfg = ConfigManager::getInstance();
 
     if (!cfg->getBoolOption(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_ENABLED))
         return nullptr;
@@ -417,7 +417,7 @@ Ref<IOHandler> FfmpegHandler::serveContent(Ref<CdsItem> item, int resNum, off_t 
         if (readThumbnailCacheFile(item->getLocation(),
                                    &ptr_image, &size_image)) {
             *data_size = (off_t)size_image;
-            Ref<IOHandler> h(new MemIOHandler(ptr_image, size_image));
+            shared_ptr<IOHandler> h(new MemIOHandler(ptr_image, size_image));
             free(ptr_image);
             log_debug("Returning cached thumbnail for file: %s\n", item->getLocation().c_str());
             return h;
@@ -465,7 +465,7 @@ Ref<IOHandler> FfmpegHandler::serveContent(Ref<CdsItem> item, int resNum, off_t 
     }
 
     *data_size = (off_t)img->image_data_size;
-    Ref<IOHandler> h(new MemIOHandler((void *)img->image_data_ptr, 
+    shared_ptr<IOHandler> h(new MemIOHandler((void *)img->image_data_ptr, 
                                               img->image_data_size));
 #ifdef FFMPEGTHUMBNAILER_OLD_API
     destroy_image_data(img);
@@ -483,9 +483,9 @@ Ref<IOHandler> FfmpegHandler::serveContent(Ref<CdsItem> item, int resNum, off_t 
 
 String FfmpegHandler::getMimeType()
 {
-    Ref<ConfigManager> cfg = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> cfg = ConfigManager::getInstance();
 
-    Ref<Dictionary> mappings = cfg->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
+    shared_ptr<Dictionary> mappings = cfg->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
     String thumb_mimetype = mappings->get(_(CONTENT_TYPE_JPG));
     if (!string_ok(thumb_mimetype))
         thumb_mimetype = _("image/jpeg");

@@ -61,25 +61,25 @@ protected:
     /// Browse(string ObjectID, string BrowseFlag, string Filter, ui4 StartingIndex, 
     /// ui4 RequestedCount, string SortCriteria, string Result, ui4 NumberReturned, 
     /// ui4 TotalMatches, ui4 UpdateID)
-    void upnp_action_Browse(zmm::Ref<ActionRequest> request);
+    void upnp_action_Browse(std::shared_ptr<ActionRequest> request);
 
     /// \brief UPnP standard defined action: GetSearchCapabilities()
     /// \param request Incoming ActionRequest.
     ///
     /// GetSearchCapabilities(string SearchCaps)
-    void upnp_action_GetSearchCapabilities(zmm::Ref<ActionRequest> request);
+    void upnp_action_GetSearchCapabilities(std::shared_ptr<ActionRequest> request);
 
     /// \brief UPnP standard defined action: GetSortCapabilities() 
     /// \param request Incoming ActionRequest.
     ///
     /// GetSortCapabilities(string SortCaps)
-    void upnp_action_GetSortCapabilities(zmm::Ref<ActionRequest> request);
+    void upnp_action_GetSortCapabilities(std::shared_ptr<ActionRequest> request);
 
     /// \brief UPnP standard defined action: GetSystemUpdateID()
     /// \param request Incoming ActionRequest.
     ///
     /// GetSystemUpdateID(ui4 Id)
-    void upnp_action_GetSystemUpdateID(zmm::Ref<ActionRequest> request);
+    void upnp_action_GetSystemUpdateID(std::shared_ptr<ActionRequest> request);
     
     /// \brief UPnP standard defined service type
     /// \todo Check if it makes sense to use it as it is done now...why not define constants here?
@@ -101,14 +101,14 @@ public:
     ///
     /// This function looks at the incoming ActionRequest and passes it on
     /// to the appropriate action for processing.
-    void process_action_request(zmm::Ref<ActionRequest> request);
+    void process_action_request(std::shared_ptr<ActionRequest> request);
     
     /// \brief Processes an incoming SubscriptionRequest.
     /// \param request SubscriptionRequest to be processed by the function.
     ///
     /// Looks at the incoming SubscriptionRequest and accepts the subscription
     /// if everything is ok.
-    void process_subscription_request(zmm::Ref<SubscriptionRequest> request);
+    void process_subscription_request(std::shared_ptr<SubscriptionRequest> request);
     
     /// \brief Sends out an event to all subscribed devices.
     /// \param containerUpdateIDs_CSV Comma Separated Value list of container update ID's (as defined in the UPnP CDS specs)

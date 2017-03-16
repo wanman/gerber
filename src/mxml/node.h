@@ -52,15 +52,15 @@ enum mxml_node_types
 class Node : public zmm::Object
 {
 protected:
-    zmm::Ref<zmm::Array<Node> > children;
-    zmm::Ref<Context> context;
+    std::shared_ptr<zmm::Array<Node> > children;
+    std::shared_ptr<Context> context;
     enum mxml_node_types type;
 
 public:
     enum mxml_node_types getType() { return type; }
     virtual zmm::String print();
 
-    virtual void print_internal(zmm::Ref<zmm::StringBuffer> buf, int indent) = 0;
+    virtual void print_internal(std::shared_ptr<zmm::StringBuffer> buf, int indent) = 0;
 protected:
     static zmm::String escape(zmm::String str);
 };

@@ -116,9 +116,9 @@ protected:
     /// \brief flag that allows to sort objects within a container
     int sortPriority;
 
-    zmm::Ref<Dictionary> metadata;
-    zmm::Ref<Dictionary> auxdata;
-    zmm::Ref<zmm::Array<CdsResource> > resources;
+    std::shared_ptr<Dictionary> metadata;
+    std::shared_ptr<Dictionary> auxdata;
+    std::shared_ptr<zmm::Array<CdsResource> > resources;
     
 
 public:
@@ -227,10 +227,10 @@ public:
     { return metadata->get(key); }
 
     /// \brief Query entire metadata dictionary.
-    inline zmm::Ref<Dictionary> getMetadata() { return metadata; }
+    inline std::shared_ptr<Dictionary> getMetadata() { return metadata; }
     
     /// \brief Set entire metadata dictionary.
-    inline void setMetadata(zmm::Ref<Dictionary> metadata)
+    inline void setMetadata(std::shared_ptr<Dictionary> metadata)
     { this->metadata = metadata; }
 
     /// \brief Set a single metadata value.
@@ -247,14 +247,14 @@ public:
     { return auxdata->get(key); }
 
     /// \brief Query entire auxdata dictionary.
-    inline zmm::Ref<Dictionary> getAuxData() { return auxdata; }
+    inline std::shared_ptr<Dictionary> getAuxData() { return auxdata; }
 
     /// \brief Set a single auxdata value.
     inline void setAuxData(zmm::String key, zmm::String value)
     { auxdata->put(key, value); }
     
     /// \brief Set entire auxdata dictionary.
-    inline void setAuxData(zmm::Ref<Dictionary> auxdata)
+    inline void setAuxData(std::shared_ptr<Dictionary> auxdata)
     { this->auxdata = auxdata; }
 
     /// \brief Removes auxdata with the given key
@@ -266,28 +266,28 @@ public:
     inline int getResourceCount() { return resources->size(); }
 
     /// \brief Query resources
-    inline zmm::Ref<zmm::Array<CdsResource> > getResources()
+    inline std::shared_ptr<zmm::Array<CdsResource> > getResources()
     { return resources; }
  
     /// \brief Set resources
-    inline void setResources(zmm::Ref<zmm::Array<CdsResource> > res) 
+    inline void setResources(std::shared_ptr<zmm::Array<CdsResource> > res) 
     { resources = res; }
     
     /// \brief Query resource tag with the given index
-    inline zmm::Ref<CdsResource> getResource(int index)
+    inline std::shared_ptr<CdsResource> getResource(int index)
     { return resources->get(index); }
     
     /// \brief Add resource tag
-    inline void addResource(zmm::Ref<CdsResource> resource)
+    inline void addResource(std::shared_ptr<CdsResource> resource)
     { resources->append(resource); } 
   
     /// \brief Insert resource tag at index
-    inline void insertResource(int index, zmm::Ref<CdsResource> resource)
+    inline void insertResource(int index, std::shared_ptr<CdsResource> resource)
     { resources->insert(index, resource); }
 
     /// \brief Copies all object properties to another object.
     /// \param obj target object (clone)
-    virtual void copyTo(zmm::Ref<CdsObject> obj);
+    virtual void copyTo(std::shared_ptr<CdsObject> obj);
     
     /// \brief Checks if current object is equal to obj.
     /// \param obj object to check against
@@ -296,11 +296,11 @@ public:
     /// The difference between setting this flag to true or false is following:
     /// exactly=true checks all fields, also internal ones, exactly=false checks
     /// only the fields that will be visible in DIDL-Lite
-    virtual int equals(zmm::Ref<CdsObject> obj, bool exactly=false);
+    virtual int equals(std::shared_ptr<CdsObject> obj, bool exactly=false);
     
     /// \brief Checks if current object has the same resources as obj
     /// \param obj object to check against
-    int resourcesEqual(zmm::Ref<CdsObject> obj);
+    int resourcesEqual(std::shared_ptr<CdsObject> obj);
     
     /// \brief Checks if the minimum required parameters for the object have been set and are valid.
     virtual void validate();
@@ -308,7 +308,7 @@ public:
     /// \brief Frees unnecessary memory
     void optimize();
     
-    static zmm::Ref<CdsObject> createObject(unsigned int objectType);
+    static std::shared_ptr<CdsObject> createObject(unsigned int objectType);
 
     /// \brief Returns the path to the object as it appears in the database tree.
     virtual zmm::String getVirtualPath() = 0; 
@@ -347,12 +347,12 @@ public:
     inline int getTrackNumber() { return trackNumber; }
     /// \brief Copies all object properties to another object.
     /// \param obj target object (clone)
-    virtual void copyTo(zmm::Ref<CdsObject> obj);
+    virtual void copyTo(std::shared_ptr<CdsObject> obj);
 
     /// \brief Checks if current object is equal to obj.
     ///
     /// See description for CdsObject::equals() for details.
-    virtual int equals(zmm::Ref<CdsObject> obj, bool exactly=false);
+    virtual int equals(std::shared_ptr<CdsObject> obj, bool exactly=false);
 
     /// \brief Checks if the minimum required parameters for the object have been set and are valid.
     virtual void validate();
@@ -421,12 +421,12 @@ public:
 
     /// \brief Copies all object properties to another object.
     /// \param obj target object (clone)
-    virtual void copyTo(zmm::Ref<CdsObject> obj);
+    virtual void copyTo(std::shared_ptr<CdsObject> obj);
 
     /// \brief Checks if current object is equal to obj.
     ///
     /// See description for CdsObject::equals() for details.
-    virtual int equals(zmm::Ref<CdsObject> obj, bool exactly=false);
+    virtual int equals(std::shared_ptr<CdsObject> obj, bool exactly=false);
 
     /// \brief Checks if the minimum required parameters for the object have been set and are valid.
     virtual void validate();
@@ -448,12 +448,12 @@ public:
     inline zmm::String getURL() { return location; }
     /// \brief Copies all object properties to another object.
     /// \param obj target object (clone)
-    //virtual void copyTo(zmm::Ref<CdsObject> obj);
+    //virtual void copyTo(std::shared_ptr<CdsObject> obj);
 
     /// \brief Checks if current object is equal to obj.
     ///
     /// See description for CdsObject::equals() for details.
-    //virtual int equals(zmm::Ref<CdsObject> obj, bool exactly=false);
+    //virtual int equals(std::shared_ptr<CdsObject> obj, bool exactly=false);
 
     /// \brief Checks if the minimum required parameters for the object have been set and are valid.
     virtual void validate();
@@ -517,12 +517,12 @@ public:
 
     /// \brief Copies all object properties to another object.
     /// \param obj target object (clone)
-    virtual void copyTo(zmm::Ref<CdsObject> obj);
+    virtual void copyTo(std::shared_ptr<CdsObject> obj);
 
     /// \brief Checks if current object is equal to obj.
     ///
     /// See description for CdsObject::equals() for details.
-    virtual int equals(zmm::Ref<CdsObject> obj, bool exactly=false);
+    virtual int equals(std::shared_ptr<CdsObject> obj, bool exactly=false);
 
     /// \brief Checks if the minimum required parameters for the object have been set and are valid.
     virtual void validate();
@@ -573,12 +573,12 @@ public:
     
     /// \brief Copies all object properties to another object.
     /// \param obj target object (clone)
-    virtual void copyTo(zmm::Ref<CdsObject> obj);
+    virtual void copyTo(std::shared_ptr<CdsObject> obj);
 
     /// \brief Checks if current object is equal to obj.
     ///
     /// See description for CdsObject::equals() for details.
-    virtual int equals(zmm::Ref<CdsObject> obj, bool exactly=false);
+    virtual int equals(std::shared_ptr<CdsObject> obj, bool exactly=false);
 
     /// \brief Checks if the minimum required parameters for the object have been set and are valid.
     virtual void validate();

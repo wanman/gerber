@@ -43,7 +43,7 @@ class MysqlStorage : private SQLStorage
 {
 private:
     MysqlStorage();
-    friend zmm::Ref<Storage> Storage::createInstance();
+    friend std::shared_ptr<Storage> Storage::createInstance();
     virtual ~MysqlStorage();
     virtual void init();
     virtual void shutdownDriver();
@@ -56,7 +56,7 @@ private:
     virtual inline zmm::String quote(bool val) { return zmm::String(val ? '1' : '0'); }
     virtual inline zmm::String quote(char val) { return quote(zmm::String(val)); }
     virtual inline zmm::String quote(long long val) { return zmm::String::from(val); }
-    virtual zmm::Ref<SQLResult> select(const char *query, int length);
+    virtual std::shared_ptr<SQLResult> select(const char *query, int length);
     virtual int exec(const char *query, int length, bool getLastInsertId = false);
     virtual void storeInternalSetting(zmm::String key, zmm::String value);
     
@@ -79,8 +79,8 @@ private:
     
     void checkMysqlThreadInit();
     
-    zmm::Ref<zmm::Array<zmm::StringBase> > insertBuffer;
-    virtual void _addToInsertBuffer(zmm::Ref<zmm::StringBuffer> query);
+    std::shared_ptr<zmm::Array<zmm::StringBase> > insertBuffer;
+    virtual void _addToInsertBuffer(std::shared_ptr<zmm::StringBuffer> query);
     virtual void _flushInsertBuffer();
 };
 
@@ -90,7 +90,7 @@ private:
     int nullRead;
     MysqlResult(MYSQL_RES *mysql_res);
     virtual ~MysqlResult();
-    virtual zmm::Ref<SQLRow> nextRow();
+    virtual std::shared_ptr<SQLRow> nextRow();
     virtual unsigned long long getNumRows() { return mysql_num_rows(mysql_res); }
     MYSQL_RES *mysql_res;
     
@@ -101,12 +101,12 @@ private:
 class MysqlRow : private SQLRow
 {
 private:
-    MysqlRow(MYSQL_ROW mysql_row, zmm::Ref<SQLResult> sqlResult);
+    MysqlRow(MYSQL_ROW mysql_row, std::shared_ptr<SQLResult> sqlResult);
     inline virtual char* col_c_str(int index) { return mysql_row[index]; }
     
     MYSQL_ROW mysql_row;
     
-    friend zmm::Ref<SQLRow> MysqlResult::nextRow();
+    friend std::shared_ptr<SQLRow> MysqlResult::nextRow();
 };
 
 #endif // __MYSQL_STORAGE_H__

@@ -217,27 +217,27 @@ public:
     
     /// \brief returns a config option of type Dictionary
     /// \param option option to retrieve.
-    zmm::Ref<Dictionary> getDictionaryOption(config_option_t option);
+    std::shared_ptr<Dictionary> getDictionaryOption(config_option_t option);
     
     /// \brief returns a config option of type Array of StringBase
     /// \param option option to retrieve.
-    zmm::Ref<zmm::Array<zmm::StringBase> > getStringArrayOption(config_option_t option);
+    std::shared_ptr<zmm::Array<zmm::StringBase> > getStringArrayOption(config_option_t option);
 
-    zmm::Ref<ObjectDictionary<zmm::Object> > getObjectDictionaryOption(config_option_t option);
+    std::shared_ptr<ObjectDictionary<zmm::Object> > getObjectDictionaryOption(config_option_t option);
 #ifdef ONLINE_SERVICES
     /// \brief returns a config option of type Array of Object
     /// \param option option to retrieve.
-    zmm::Ref<zmm::Array<zmm::Object> > getObjectArrayOption(config_option_t option);
+    std::shared_ptr<zmm::Array<zmm::Object> > getObjectArrayOption(config_option_t option);
 #endif
 
     /// \brief returns a config option of type AutoscanList
     /// \param option to retrieve
-    zmm::Ref<AutoscanList> getAutoscanListOption(config_option_t option);
+    std::shared_ptr<AutoscanList> getAutoscanListOption(config_option_t option);
 
 #ifdef EXTERNAL_TRANSCODING
     /// \brief returns a config option of type TranscodingProfileList
     /// \param option to retrieve
-    zmm::Ref<TranscodingProfileList> getTranscodingProfileListOption(config_option_t option);
+    std::shared_ptr<TranscodingProfileList> getTranscodingProfileListOption(config_option_t option);
 #endif
 
     /// \brief sets static configuration parameters that will be used by
@@ -258,11 +258,11 @@ public:
 
 protected:
     // helper for extension to mimetype kind of mappings
-    zmm::Ref<mxml::Element> map_from_to(zmm::String from, zmm::String to);
-    zmm::Ref<mxml::Element> treat_as(zmm::String mimetype, zmm::String as);
-    zmm::Ref<mxml::Element> renderTranscodingSection();
-    zmm::Ref<mxml::Element> renderExtendedRuntimeSection();
-    zmm::Ref<mxml::Element> renderOnlineSection();
+    std::shared_ptr<mxml::Element> map_from_to(zmm::String from, zmm::String to);
+    std::shared_ptr<mxml::Element> treat_as(zmm::String mimetype, zmm::String as);
+    std::shared_ptr<mxml::Element> renderTranscodingSection();
+    std::shared_ptr<mxml::Element> renderExtendedRuntimeSection();
+    std::shared_ptr<mxml::Element> renderOnlineSection();
 
     // creates a default config.xml file with the most necessary entries and returns the path
     zmm::String createDefaultConfig(zmm::String userhome);
@@ -284,12 +284,12 @@ protected:
     static zmm::String interface;
     static int port;
 
-    zmm::Ref<mxml::Document> rootDoc;
-    zmm::Ref<mxml::Element> root;
+    std::shared_ptr<mxml::Document> rootDoc;
+    std::shared_ptr<mxml::Element> root;
 
-    zmm::Ref<Dictionary> mime_content;
+    std::shared_ptr<Dictionary> mime_content;
 
-    zmm::Ref<zmm::Array<ConfigOption> > options;
+    std::shared_ptr<zmm::Array<ConfigOption> > options;
 
     /// \brief Returns a config option with the given path, if option does not exist a default value is returned.
     /// \param xpath option xpath
@@ -321,7 +321,7 @@ protected:
     ///
     /// The xpath parameter has XPath syntax.
     /// "/path/to/element" will return the text value of the given "element" element
-    zmm::Ref<mxml::Element> getElement(zmm::String xpath);
+    std::shared_ptr<mxml::Element> getElement(zmm::String xpath);
             
     /// \brief Checks if the string returned by getOption is valid.
     /// \param xpath xpath expression to the XML node
@@ -342,18 +342,18 @@ protected:
     /// 
     /// This function will create a dictionary with the following
     /// key:value paris: "1":"2", "3":"4"
-    zmm::Ref<Dictionary> createDictionaryFromNodeset(zmm::Ref<mxml::Element> element, zmm::String nodeName, zmm::String keyAttr, zmm::String valAttr, bool tolower = false);
+    std::shared_ptr<Dictionary> createDictionaryFromNodeset(std::shared_ptr<mxml::Element> element, zmm::String nodeName, zmm::String keyAttr, zmm::String valAttr, bool tolower = false);
  
     /// \brief Creates an array of AutoscanDirectory objects from a XML nodeset.
     /// \param element starting element of the nodeset.
     /// \param scanmode add only directories with the specified scanmode to the array
-    zmm::Ref<AutoscanList> createAutoscanListFromNodeset(zmm::Ref<mxml::Element> element, scan_mode_t scanmode);
+    std::shared_ptr<AutoscanList> createAutoscanListFromNodeset(std::shared_ptr<mxml::Element> element, scan_mode_t scanmode);
   
 #ifdef EXTERNAL_TRANSCODING
     /// \brief Creates ab aray of TranscodingProfile objects from an XML 
     /// nodeset.
     /// \param element starting element of the nodeset.
-    zmm::Ref<TranscodingProfileList> createTranscodingProfileListFromNodeset(zmm::Ref<mxml::Element> element);
+    std::shared_ptr<TranscodingProfileList> createTranscodingProfileListFromNodeset(std::shared_ptr<mxml::Element> element);
 #endif
 
     /// \brief Creates an array of strings from an XML nodeset.
@@ -369,7 +369,7 @@ protected:
     /// <some-section>
     ///
     /// This function will create an array like that: ["data", "otherdata"]
-    zmm::Ref<zmm::Array<zmm::StringBase> > createArrayFromNodeset(zmm::Ref<mxml::Element> element, zmm::String nodeName, zmm::String attrName); 
+    std::shared_ptr<zmm::Array<zmm::StringBase> > createArrayFromNodeset(std::shared_ptr<mxml::Element> element, zmm::String nodeName, zmm::String attrName); 
    
     void dumpOptions();
 
@@ -384,7 +384,7 @@ protected:
     /// thus the options can change, for that reason we prefer keeping
     /// absolutely all functionality related to the service inside the
     /// service class.
-    zmm::Ref<zmm::Array<zmm::Object> > createServiceTaskList(service_type_t service, zmm::Ref<mxml::Element> element);
+    std::shared_ptr<zmm::Array<zmm::Object> > createServiceTaskList(service_type_t service, std::shared_ptr<mxml::Element> element);
 #endif
 
 };

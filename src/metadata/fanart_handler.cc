@@ -54,7 +54,7 @@ inline bool path_exists(String name) {
   return (stat (name.c_str(), &buffer) == 0); 
 }
 
-String getFolderName(Ref<CdsItem> item) {
+String getFolderName(shared_ptr<CdsItem> item) {
     String folder = item->getLocation().substring(0, item->getLocation().rindex('/'));
     log_debug("Folder name: %s\n", folder.c_str());
     return folder;
@@ -73,28 +73,28 @@ String getFanArtPath(String folder) {
     return found;
 }
 
-void FanArtHandler::fillMetadata(Ref<CdsItem> item)
+void FanArtHandler::fillMetadata(shared_ptr<CdsItem> item)
 {
     log_debug("Running fanart handler on %s\n", item->getLocation().c_str());
 
     String found = getFanArtPath(getFolderName(item));
 
     if (found != nullptr) {
-        Ref<CdsResource> resource(new CdsResource(CH_FANART));
+        shared_ptr<CdsResource> resource(new CdsResource(CH_FANART));
         resource->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO), renderProtocolInfo("jpg"));
         resource->addParameter(_(RESOURCE_CONTENT_TYPE), _(ID3_ALBUM_ART));
         item->addResource(resource);
     }
 }
 
-Ref<IOHandler> FanArtHandler::serveContent(Ref<CdsItem> item, int resNum, off_t *data_size)
+shared_ptr<IOHandler> FanArtHandler::serveContent(shared_ptr<CdsItem> item, int resNum, off_t *data_size)
 {
     String path = getFanArtPath(getFolderName(item));
 
     log_debug("FanArt: Opening name: %s\n", path.c_str());
 
     *data_size = -1;
-    Ref<IOHandler> io_handler(new FileIOHandler(path));
+    shared_ptr<IOHandler> io_handler(new FileIOHandler(path));
     return io_handler;
 }
 

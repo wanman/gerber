@@ -46,7 +46,7 @@ class Comment : public Node
 protected:
     zmm::String name;
     zmm::String text;
-    zmm::Ref<zmm::Array<Attribute> > attributes;
+    std::shared_ptr<zmm::Array<Attribute> > attributes;
     bool indentWithLFbefore;
 
 public:
@@ -57,7 +57,7 @@ public:
     inline void setIndentWithLFbefore(bool indentWithLFbefore) { this->indentWithLFbefore = indentWithLFbefore; }
 
 protected:
-    virtual void print_internal(zmm::Ref<zmm::StringBuffer> buf, int indent);
+    virtual void print_internal(std::shared_ptr<zmm::StringBuffer> buf, int indent);
 };
 
 } // namespace

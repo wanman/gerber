@@ -44,17 +44,17 @@ class Element;
 class Document : public Node
 {
 protected:
-    zmm::Ref<Element> root;
+    std::shared_ptr<Element> root;
     
 public:
     Document();
     
-    zmm::Ref<Element> getRoot();
-    void setRoot(zmm::Ref<Element> root);
-    void appendChild(zmm::Ref<Node> child);
+    std::shared_ptr<Element> getRoot();
+    void setRoot(std::shared_ptr<Element> root);
+    void appendChild(std::shared_ptr<Node> child);
     
 protected:
-    virtual void print_internal(zmm::Ref<zmm::StringBuffer> buf, int indent);
+    virtual void print_internal(std::shared_ptr<zmm::StringBuffer> buf, int indent);
 };
 
 } // namespace

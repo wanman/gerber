@@ -122,7 +122,7 @@ public:
     static void static_cleanup_callback();
  
 protected:
-    static zmm::Ref<Storage> storage;
+    static std::shared_ptr<Storage> storage;
 
     /// \brief This flag is set to true by the upnp_cleanup() function.
     bool server_shutdown_flag;
@@ -171,14 +171,14 @@ protected:
     /// The ContentDirectoryService class is instantiated in the
     /// constructor. The class is responsible for processing
     /// an ActionRequest or a SubscriptionRequest.
-    zmm::Ref<ContentDirectoryService> cds;
+    std::shared_ptr<ContentDirectoryService> cds;
     
     /// \brief ConnectionManagerService instance.
     /// 
     /// The ConnectionManagerService class is instantiated in the
     /// constructor. The class is responsible for processing
     /// an ActionRequest or a SubscriptionRequest.
-    zmm::Ref<ConnectionManagerService> cmgr;
+    std::shared_ptr<ConnectionManagerService> cmgr;
 
 #if defined(ENABLE_MRREG)    
     /// \brief MediaReceiverRegistrarService instance.
@@ -186,7 +186,7 @@ protected:
     /// This class is not fully functional, it always returns "true"
     /// on IsAuthorized and IsValidated requests. It added to ensure
     /// Xbos360 compatibility.
-    zmm::Ref<MRRegistrarService> mrreg;
+    std::shared_ptr<MRRegistrarService> mrreg;
 #endif
 
     /// \brief Dispatched an ActionRequest between the services.
@@ -196,7 +196,7 @@ protected:
     /// and ConnectionManagerService), this function looks at the service id
     /// of the request and calls the process_action_request() for the 
     /// appropriate service.
-    void upnp_actions(zmm::Ref<ActionRequest> request);
+    void upnp_actions(std::shared_ptr<ActionRequest> request);
     
     /// \brief Dispatched a SubscriptionRequest between the services.
     /// \param request Incoming SubscriptionRequest.
@@ -205,7 +205,7 @@ protected:
     /// and ConnectionManagerService), this function looks at the service id
     /// of the request and calls the process_subscription_request() for the 
     /// appropriate service.
-    void upnp_subscriptions(zmm::Ref<SubscriptionRequest> request);
+    void upnp_subscriptions(std::shared_ptr<SubscriptionRequest> request);
 };
 
 #endif // __SERVER_H__

@@ -54,7 +54,7 @@ void web::directories::process()
     else
         path = hex_decode_string(parentID);
     
-    Ref<Element> containers (new Element(_("containers")));
+    shared_ptr<Element> containers (new Element(_("containers")));
     containers->setArrayName(_("container"));
     containers->setAttribute(_("parent_id"), parentID);
     if (string_ok(param(_("select_it"))))
@@ -62,17 +62,17 @@ void web::directories::process()
     containers->setAttribute(_("type"), _("filesystem"));
     root->appendElementChild(containers);
     
-    Ref<Filesystem> fs(new Filesystem());
+    shared_ptr<Filesystem> fs(new Filesystem());
     
-    Ref<Array<FsObject> > arr;
+    shared_ptr<Array<FsObject> > arr;
     arr = fs->readDirectory(path, FS_MASK_DIRECTORIES,
                                                       FS_MASK_DIRECTORIES);
     
     for (int i = 0; i < arr->size(); i++)
     {
-        Ref<FsObject> obj = arr->get(i);
+        shared_ptr<FsObject> obj = arr->get(i);
 
-        Ref<Element> ce(new Element(_("container")));
+        shared_ptr<Element> ce(new Element(_("container")));
         String filename = obj->filename;
         String filepath;
         if (path.c_str()[path.length() - 1] == '/')
@@ -88,7 +88,7 @@ void web::directories::process()
         else
             ce->setAttribute(_("child_count"), String::from(0), mxml_int_type);
 
-        Ref<StringConverter> f2i = StringConverter::f2i();
+        shared_ptr<StringConverter> f2i = StringConverter::f2i();
         ce->setTextKey(_("title"));
         ce->setText(f2i->convert(filename));
         containers->appendElementChild(ce);

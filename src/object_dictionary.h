@@ -40,7 +40,7 @@ class ObjectDictionaryElement : public zmm::Object
 {
 public:
     /// \brief Constructor, stores the key and the value.
-    ObjectDictionaryElement(zmm::String key, zmm::Ref<T> value) : zmm::Object()
+    ObjectDictionaryElement(zmm::String key, std::shared_ptr<T> value) : zmm::Object()
     {
         this->key = key;
         this->value = value;
@@ -52,17 +52,17 @@ public:
 
     /// \brief Changes the key value.
     /// \param value new value.
-    void setValue(zmm::Ref<T> value) { this->value = value; }
+    void setValue(std::shared_ptr<T> value) { this->value = value; }
 
     /// \brief Returns the key for this DictionaryElement.
     zmm::String getKey() { return key; }
 
     /// \brief Returns the value for this DictionaryElement.
-    zmm::Ref<T> getValue() { return value; }
+    std::shared_ptr<T> getValue() { return value; }
 
 protected:
     zmm::String key;
-    zmm::Ref<T> value;
+    std::shared_ptr<T> value;
 };
 
 
@@ -73,31 +73,31 @@ public:
     /// \brief Constructor, initializes the dictionary.
     ObjectDictionary() : zmm::Object()
     {
-        elements = zmm::Ref<zmm::Array<ObjectDictionaryElement<T> > >(new zmm::Array<ObjectDictionaryElement<T> >());
+        elements = std::shared_ptr<zmm::Array<ObjectDictionaryElement<T> > >(new zmm::Array<ObjectDictionaryElement<T> >());
     }
 
     /// \brief Adds a new key:value pair to the dictionary.
-    void put(zmm::String key, zmm::Ref<T> value)
+    void put(zmm::String key, std::shared_ptr<T> value)
     {
         for (int i = 0; i < elements->size(); i++)
         {
-            zmm::Ref<ObjectDictionaryElement<T> > el = elements->get(i);
+            std::shared_ptr<ObjectDictionaryElement<T> > el = elements->get(i);
             if(el->getKey() == key)
             {
                 el->setValue(value);
                 return;
             }
         }
-        zmm::Ref<ObjectDictionaryElement<T> > newEl(new ObjectDictionaryElement<T>(key, value));
+        std::shared_ptr<ObjectDictionaryElement<T> > newEl(new ObjectDictionaryElement<T>(key, value));
         elements->append(newEl);
     }
     
     /// \brief Returns the value for a given key.
-    zmm::Ref<T> get(zmm::String key)
+    std::shared_ptr<T> get(zmm::String key)
     {
         for (int i = 0; i < elements->size(); i++)
         {
-            zmm::Ref<ObjectDictionaryElement<T> > el = elements->get(i);
+            std::shared_ptr<ObjectDictionaryElement<T> > el = elements->get(i);
             if (el->getKey() == key)
             {
                 return el->getValue();
@@ -114,7 +114,7 @@ public:
     {
         for (int i = 0; i < elements->size(); i++)
         {
-            zmm::Ref<ObjectDictionaryElement<T> > el = elements->get(i);
+            std::shared_ptr<ObjectDictionaryElement<T> > el = elements->get(i);
             if (el->getKey() == key)
             {
                 elements->remove(i, 1);
@@ -130,19 +130,19 @@ public:
     }
 
     /// \brief Makes a shallow copy of the dictionary
-    zmm::Ref<ObjectDictionary> clone()
+    std::shared_ptr<ObjectDictionary> clone()
     {
-        zmm::Ref<ObjectDictionary> ret(new ObjectDictionary());
+        std::shared_ptr<ObjectDictionary> ret(new ObjectDictionary());
         int len = elements->size();
         for (int i = 0; i < len; i++)
         {
-            zmm::Ref<ObjectDictionaryElement<T> > el = elements->get(i);
+            std::shared_ptr<ObjectDictionaryElement<T> > el = elements->get(i);
             ret->put(el->getKey(), el->getValue());
         }
         return ret;
     }
 
-    zmm::Ref<zmm::Array<ObjectDictionaryElement<T> > > getElements()
+    std::shared_ptr<zmm::Array<ObjectDictionaryElement<T> > > getElements()
     {
         return elements;
     }
@@ -152,6 +152,6 @@ public:
 
 protected:
     /// \brief Array of DictionaryElements, representing our Dictionary.
-    zmm::Ref<zmm::Array<ObjectDictionaryElement<T> > > elements;
+    std::shared_ptr<zmm::Array<ObjectDictionaryElement<T> > > elements;
 };
 #endif // __OBJECT_DICTIONARY_H__

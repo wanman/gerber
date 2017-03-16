@@ -41,17 +41,17 @@
 class PlaylistParserScript : public Script
 {
 public:
-    PlaylistParserScript(zmm::Ref<Runtime> runtime);
+    PlaylistParserScript(std::shared_ptr<Runtime> runtime);
     ~PlaylistParserScript();
     zmm::String readln();
-    void processPlaylistObject(zmm::Ref<CdsObject> obj, zmm::Ref<GenericTask> task);
+    void processPlaylistObject(std::shared_ptr<CdsObject> obj, std::shared_ptr<GenericTask> task);
     virtual script_class_t whoami() { return S_PLAYLIST; }
 
 private:
     FILE *currentHandle;
     int currentObjectID;
     char *currentLine;
-    zmm::Ref<GenericTask> currentTask;
+    std::shared_ptr<GenericTask> currentTask;
 };
 
 #endif // __SCRIPTING_PLAYLIST_PARSER_SCRIPT_H__

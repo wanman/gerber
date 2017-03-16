@@ -49,13 +49,13 @@
 
 using namespace zmm;
 
-ProcListItem::ProcListItem(Ref<Executor> exec, bool abortOnDeath)
+ProcListItem::ProcListItem(shared_ptr<Executor> exec, bool abortOnDeath)
 {
     executor = exec;
     abort = abortOnDeath;
 }
 
-Ref<Executor> ProcListItem::getExecutor()
+shared_ptr<Executor> ProcListItem::getExecutor()
 {
     return executor;
 }
@@ -74,7 +74,7 @@ bool ProcessIOHandler::abort()
 
     for (int i = 0; i < proclist->size(); i++)
     {
-        Ref<Executor> exec = proclist->get(i)->getExecutor();
+        shared_ptr<Executor> exec = proclist->get(i)->getExecutor();
         if ((exec != nullptr) && (!exec->isAlive()))
         {
             if (proclist->get(i)->abortOnDeath())
@@ -93,7 +93,7 @@ void ProcessIOHandler::killall()
 
     for (int i = 0; i < proclist->size(); i++)
     {
-        Ref<Executor> exec = proclist->get(i)->getExecutor();
+        shared_ptr<Executor> exec = proclist->get(i)->getExecutor();
         if (exec != nullptr)
             exec->kill();
     }
@@ -109,7 +109,7 @@ void ProcessIOHandler::registerAll()
 
     for (int i = 0; i < proclist->size(); i++)
     {
-        Ref<Executor> exec = proclist->get(i)->getExecutor();
+        shared_ptr<Executor> exec = proclist->get(i)->getExecutor();
         if (exec != nullptr)
             ContentManager::getInstance()->registerExecutor(exec);
     }
@@ -125,15 +125,15 @@ void ProcessIOHandler::unregisterAll()
 
     for (int i = 0; i < proclist->size(); i++)
     {
-        Ref<Executor> exec = proclist->get(i)->getExecutor();
+        shared_ptr<Executor> exec = proclist->get(i)->getExecutor();
         if (exec != nullptr)
             ContentManager::getInstance()->unregisterExecutor(exec);
     }
 }
 
 ProcessIOHandler::ProcessIOHandler(String filename, 
-                        zmm::Ref<Executor> main_proc,
-                        zmm::Ref<zmm::Array<ProcListItem> > proclist,
+                        zmm::shared_ptr<Executor> main_proc,
+                        zmm::shared_ptr<zmm::Array<ProcListItem> > proclist,
                         bool ignoreSeek) : IOHandler()
 {
     this->filename = filename;

@@ -42,30 +42,30 @@ class FallbackLayout : public Layout
 {
 public:
     FallbackLayout();
-    virtual void processCdsObject(zmm::Ref<CdsObject> obj, zmm::String rootpath) override;
+    virtual void processCdsObject(std::shared_ptr<CdsObject> obj, zmm::String rootpath) override;
 #ifdef ENABLE_PROFILING
     virtual ~FallbackLayout();
 #endif
 protected:
-    void add(zmm::Ref<CdsObject> obj, int parentID, bool use_ref = true);
+    void add(std::shared_ptr<CdsObject> obj, int parentID, bool use_ref = true);
     zmm::String esc(zmm::String str);
-    void addVideo(zmm::Ref<CdsObject> obj, zmm::String rootpath);
-    void addImage(zmm::Ref<CdsObject> obj, zmm::String rootpath);
-    void addAudio(zmm::Ref<CdsObject> obj);
+    void addVideo(std::shared_ptr<CdsObject> obj, zmm::String rootpath);
+    void addImage(std::shared_ptr<CdsObject> obj, zmm::String rootpath);
+    void addAudio(std::shared_ptr<CdsObject> obj);
 #ifdef HAVE_LIBDVDNAV
-    zmm::Ref<CdsObject> prepareChapter(zmm::Ref<CdsObject> obj, int title_idx,
+    std::shared_ptr<CdsObject> prepareChapter(std::shared_ptr<CdsObject> obj, int title_idx,
                                        int chapter_idx);
-    void addDVD(zmm::Ref<CdsObject> obj);
+    void addDVD(std::shared_ptr<CdsObject> obj);
     zmm::String mpeg_mimetype;
 #endif
 #ifdef YOUTUBE
-    void addYouTube(zmm::Ref<CdsObject> obj);
+    void addYouTube(std::shared_ptr<CdsObject> obj);
 #endif
 #ifdef SOPCAST
-    void addSopCast(zmm::Ref<CdsObject> obj);
+    void addSopCast(std::shared_ptr<CdsObject> obj);
 #endif
 #ifdef ATRAILERS
-    void addATrailers(zmm::Ref<CdsObject> obj);
+    void addATrailers(std::shared_ptr<CdsObject> obj);
 #endif
 #ifdef ENABLE_PROFILING
     bool profiling_initialized;

@@ -48,7 +48,7 @@ using namespace mxml;
 
 ATrailersService::ATrailersService()
 {
-    url = Ref<URL>(new URL());
+    url = shared_ptr<URL>(new URL());
     pid = 0;
     curl_handle = curl_easy_init();
     if (!curl_handle)
@@ -77,18 +77,18 @@ String ATrailersService::getServiceName()
 }
 
 
-Ref<Object> ATrailersService::defineServiceTask(Ref<Element> xmlopt, Ref<Object> params)
+shared_ptr<Object> ATrailersService::defineServiceTask(shared_ptr<Element> xmlopt, shared_ptr<Object> params)
 {
     // there are no configurable tasks here, we fetch an XML and parse it
     return nullptr;
 }
 
-Ref<Element> ATrailersService::getData()
+shared_ptr<Element> ATrailersService::getData()
 {
     long retcode;
-    Ref<StringConverter> sc = StringConverter::i2i();
+    shared_ptr<StringConverter> sc = StringConverter::i2i();
 
-    Ref<StringBuffer> buffer;
+    shared_ptr<StringBuffer> buffer;
     
     try 
     {
@@ -110,7 +110,7 @@ Ref<Element> ATrailersService::getData()
         return nullptr;
 
     log_debug("GOT BUFFER\n%s\n", buffer->toString().c_str()); 
-    Ref<Parser> parser(new Parser());
+    shared_ptr<Parser> parser(new Parser());
     try
     {
         return parser->parseString(sc->convert(buffer->toString()))->getRoot();
@@ -133,7 +133,7 @@ Ref<Element> ATrailersService::getData()
     return nullptr;
 }
 
-bool ATrailersService::refreshServiceData(Ref<Layout> layout)
+bool ATrailersService::refreshServiceData(shared_ptr<Layout> layout)
 {
     log_debug("Refreshing Apple Trailers\n");
     // the layout is in full control of the service items
@@ -149,9 +149,9 @@ bool ATrailersService::refreshServiceData(Ref<Layout> layout)
     if (pid != pthread_self())
         throw _Exception(_("Not allowed to call refreshServiceData from different threads!"));
 
-    Ref<Element> reply = getData();
+    shared_ptr<Element> reply = getData();
 
-    Ref<ATrailersContentHandler> sc(new ATrailersContentHandler());
+    shared_ptr<ATrailersContentHandler> sc(new ATrailersContentHandler());
     if (reply != nullptr)
         sc->setServiceContent(reply);
     else
@@ -160,7 +160,7 @@ bool ATrailersService::refreshServiceData(Ref<Layout> layout)
         throw _Exception(_("Failed to get XML content from Trailers service"));
     }
 
-    Ref<CdsObject> obj;
+    shared_ptr<CdsObject> obj;
     do
     {
         obj = sc->getNextObject();
@@ -169,7 +169,7 @@ bool ATrailersService::refreshServiceData(Ref<Layout> layout)
 
         obj->setVirtual(true);
 
-        Ref<CdsObject> old = Storage::getInstance()->loadObjectByServiceID(RefCast(obj, CdsItem)->getServiceID());
+        shared_ptr<CdsObject> old = Storage::getInstance()->loadObjectByServiceID(dynamic_pointer_cast<CdsItem>(obj)->getServiceID());
         if (old == nullptr)
         {
             log_debug("Adding new Trailers object\n");

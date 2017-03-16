@@ -38,18 +38,18 @@
 class XPath : public zmm::Object
 {
 protected:
-    zmm::Ref<mxml::Element> context;
+    std::shared_ptr<mxml::Element> context;
 public:
-    XPath(zmm::Ref<mxml::Element> context);
+    XPath(std::shared_ptr<mxml::Element> context);
     zmm::String getText(zmm::String xpath);
-    zmm::Ref<mxml::Element> getElement(zmm::String xpath);
+    std::shared_ptr<mxml::Element> getElement(zmm::String xpath);
 
     static zmm::String getPathPart(zmm::String xpath);
     static zmm::String getAxisPart(zmm::String xpath);
     static zmm::String getAxis(zmm::String axisPart);
     static zmm::String getSpec(zmm::String axisPart);
 protected:
-    zmm::Ref<mxml::Element> elementAtPath(zmm::String path);
+    std::shared_ptr<mxml::Element> elementAtPath(zmm::String path);
 };
 
 #endif // __XPATH_H__

@@ -52,8 +52,8 @@ TranscodingProfile::TranscodingProfile()
     thumbnail = false;
     sample_frequency = SOURCE; // keep original
     number_of_channels = SOURCE;
-    attributes = Ref<Dictionary>(new Dictionary());
-    fourcc_list = Ref<Array<StringBase> >(new Array<StringBase>());
+    attributes = shared_ptr<Dictionary>(new Dictionary());
+    fourcc_list = shared_ptr<Array<StringBase> >(new Array<StringBase>());
     fourcc_mode = FCC_None;
 }
 
@@ -74,8 +74,8 @@ TranscodingProfile::TranscodingProfile(transcoding_type_t tr_type, String name)
     chunk_size = 0;
     initial_fill_size = 0;
     tr_type = TR_None;
-    attributes = Ref<Dictionary>(new Dictionary());
-    fourcc_list = Ref<Array<StringBase> >(new Array<StringBase>());
+    attributes = shared_ptr<Dictionary>(new Dictionary());
+    fourcc_list = shared_ptr<Array<StringBase> >(new Array<StringBase>());
     fourcc_mode = FCC_None;
 }
 
@@ -91,20 +91,20 @@ void TranscodingProfile::addAttribute(zmm::String name, zmm::String value)
     attributes->put(name, value);
 }
 
-Ref<Dictionary> TranscodingProfile::getAttributes()
+shared_ptr<Dictionary> TranscodingProfile::getAttributes()
 {   
     return attributes;
 }   
 
 
-void TranscodingProfile::setAVIFourCCList(Ref<Array<StringBase> > list,
+void TranscodingProfile::setAVIFourCCList(shared_ptr<Array<StringBase> > list,
                                           avi_fourcc_listmode_t mode)
 {
     fourcc_list = list;
     fourcc_mode = mode;
 }
 
-Ref<Array<StringBase> > TranscodingProfile::getAVIFourCCList()
+shared_ptr<Array<StringBase> > TranscodingProfile::getAVIFourCCList()
 {
     return fourcc_list;
 }
@@ -112,35 +112,35 @@ Ref<Array<StringBase> > TranscodingProfile::getAVIFourCCList()
 
 TranscodingProfileList::TranscodingProfileList()
 {
-    list = Ref<ObjectDictionary<ObjectDictionary<TranscodingProfile> > >(new ObjectDictionary<ObjectDictionary<TranscodingProfile> >());
+    list = shared_ptr<ObjectDictionary<ObjectDictionary<TranscodingProfile> > >(new ObjectDictionary<ObjectDictionary<TranscodingProfile> >());
 }
 
-void TranscodingProfileList::add(zmm::String sourceMimeType, zmm::Ref<TranscodingProfile> prof)
+void TranscodingProfileList::add(zmm::String sourceMimeType, zmm::shared_ptr<TranscodingProfile> prof)
 {
-    Ref<ObjectDictionary<TranscodingProfile> > inner = list->get(sourceMimeType);
+    shared_ptr<ObjectDictionary<TranscodingProfile> > inner = list->get(sourceMimeType);
 
     if (inner == nullptr)
-        inner = Ref<ObjectDictionary<TranscodingProfile> >(new ObjectDictionary<TranscodingProfile>());
+        inner = shared_ptr<ObjectDictionary<TranscodingProfile> >(new ObjectDictionary<TranscodingProfile>());
 
     inner->put(prof->getName(), prof);
     list->put(sourceMimeType, inner);
 }
 
-Ref<ObjectDictionary<TranscodingProfile> > TranscodingProfileList::get(zmm::String sourceMimeType)
+shared_ptr<ObjectDictionary<TranscodingProfile> > TranscodingProfileList::get(zmm::String sourceMimeType)
 {
     return list->get(sourceMimeType);
 }
 
-Ref<TranscodingProfile> TranscodingProfileList::getByName(zmm::String name)
+shared_ptr<TranscodingProfile> TranscodingProfileList::getByName(zmm::String name)
 {
-    Ref<Array<ObjectDictionaryElement<ObjectDictionary<TranscodingProfile> > > > mt_list = list->getElements();
+    shared_ptr<Array<ObjectDictionaryElement<ObjectDictionary<TranscodingProfile> > > > mt_list = list->getElements();
 
     for (int i = 0; i < mt_list->size(); i++)
     {
-        Ref<ObjectDictionary<TranscodingProfile> > names = mt_list->get(i)->getValue();
+        shared_ptr<ObjectDictionary<TranscodingProfile> > names = mt_list->get(i)->getValue();
         if (names != nullptr)
         {
-            Ref<TranscodingProfile> tp = names->get(name);
+            shared_ptr<TranscodingProfile> tp = names->get(name);
             if (tp != nullptr)
                 return tp;
         }

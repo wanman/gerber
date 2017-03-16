@@ -36,7 +36,7 @@
 
 using namespace zmm;
 
-TranscodingProcessExecutor::TranscodingProcessExecutor(String command, Ref<Array<StringBase> > arglist) : ProcessExecutor(command, arglist)
+TranscodingProcessExecutor::TranscodingProcessExecutor(String command, shared_ptr<Array<StringBase> > arglist) : ProcessExecutor(command, arglist)
 {
 };
 
@@ -44,7 +44,7 @@ TranscodingProcessExecutor::TranscodingProcessExecutor(String command, Ref<Array
 void TranscodingProcessExecutor::removeFile(String filename)
 {
     if (file_list == nullptr)
-        file_list = Ref<Array<StringBase> >(new Array<StringBase>(2));
+        file_list = shared_ptr<Array<StringBase> >(new Array<StringBase>(2));
 
     file_list->append(filename);
 }

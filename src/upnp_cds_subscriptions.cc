@@ -36,20 +36,20 @@
 using namespace zmm;
 using namespace mxml;
 
-void ContentDirectoryService::process_subscription_request(zmm::Ref<SubscriptionRequest> request)
+void ContentDirectoryService::process_subscription_request(zmm::shared_ptr<SubscriptionRequest> request)
 {
     int err;
     IXML_Document *event = nullptr;
 
-    Ref<Element> propset, property;
+    shared_ptr<Element> propset, property;
    
     log_debug("start\n");
    
     propset = UpnpXML_CreateEventPropertySet();
     property = propset->getFirstElementChild();
     property->appendTextChild(_("SystemUpdateID"), _("") + systemUpdateID);
-    Ref<CdsObject> obj = Storage::getInstance()->loadObject(0);
-    Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
+    shared_ptr<CdsObject> obj = Storage::getInstance()->loadObject(0);
+    shared_ptr<CdsContainer> cont = dynamic_pointer_cast<CdsContainer>(obj);
     property->appendTextChild(_("ContainerUpdateIDs"), _("0,") + cont->getUpdateID());
     String xml = propset->print();
     err = ixmlParseBufferEx(xml.c_str(), &event);
@@ -71,7 +71,7 @@ void ContentDirectoryService::subscription_update(String containerUpdateIDs_CSV)
     int err;
     IXML_Document *event = nullptr;
 
-    Ref<Element> propset, property;
+    shared_ptr<Element> propset, property;
     
     log_debug("start\n");
 

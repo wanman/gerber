@@ -42,7 +42,7 @@
 class PlayHook : public Singleton<PlayHook, std::mutex>
 {
 public:
-    void trigger(zmm::Ref<CdsObject> obj);
+    void trigger(std::shared_ptr<CdsObject> obj);
 };
 
 #endif//__PLAY_HOOK_H__

@@ -38,14 +38,14 @@ using namespace zmm;
 
 JSLayout::JSLayout() : Layout()
 {
-    import_script = Ref<ImportScript>(new ImportScript(Runtime::getInstance()));
+    import_script = shared_ptr<ImportScript>(new ImportScript(Runtime::getInstance()));
 }
 
 JSLayout::~JSLayout()
 {
 }
 
-void JSLayout::processCdsObject(Ref<CdsObject> obj, String rootpath)
+void JSLayout::processCdsObject(shared_ptr<CdsObject> obj, String rootpath)
 {
     if (import_script == nullptr)
         return;

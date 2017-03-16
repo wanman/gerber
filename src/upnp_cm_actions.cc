@@ -36,11 +36,11 @@
 using namespace zmm;
 using namespace mxml;
 
-void ConnectionManagerService::upnp_action_GetCurrentConnectionIDs(Ref<ActionRequest> request)
+void ConnectionManagerService::upnp_action_GetCurrentConnectionIDs(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
-    Ref<Element> response;
+    shared_ptr<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
     response->appendTextChild(_("ConnectionID"), _("0"));
 
@@ -50,7 +50,7 @@ void ConnectionManagerService::upnp_action_GetCurrentConnectionIDs(Ref<ActionReq
     log_debug("end\n");
 }
 
-void ConnectionManagerService::upnp_action_GetCurrentConnectionInfo(Ref<ActionRequest> request)
+void ConnectionManagerService::upnp_action_GetCurrentConnectionInfo(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
@@ -59,14 +59,14 @@ void ConnectionManagerService::upnp_action_GetCurrentConnectionInfo(Ref<ActionRe
     log_debug("upnp_action_GetCurrentConnectionInfo: end\n");
 }
 
-void ConnectionManagerService::upnp_action_GetProtocolInfo(Ref<ActionRequest> request)
+void ConnectionManagerService::upnp_action_GetProtocolInfo(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
-    Ref<Element> response;
+    shared_ptr<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
 
-    Ref<Array<StringBase> > mimeTypes = Storage::getInstance()->getMimeTypes();
+    shared_ptr<Array<StringBase> > mimeTypes = Storage::getInstance()->getMimeTypes();
     String CSV = mime_types_to_CSV(mimeTypes);
 
     response->appendTextChild(_("Source"), CSV);
@@ -79,7 +79,7 @@ void ConnectionManagerService::upnp_action_GetProtocolInfo(Ref<ActionRequest> re
     log_debug("end\n");
 }
 
-void ConnectionManagerService::process_action_request(Ref<ActionRequest> request)
+void ConnectionManagerService::process_action_request(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 

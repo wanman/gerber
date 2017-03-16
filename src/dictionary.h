@@ -32,6 +32,7 @@
 #ifndef __DICTIONARY_H__
 #define __DICTIONARY_H__
 
+#include <memory>
 #include <mutex>
 #include "zmm/zmmf.h"
 
@@ -66,7 +67,7 @@ class Dictionary : public zmm::Object
 {
 protected:
     /// \brief Array of DictionaryElements, representing our Dictionary.
-    zmm::Ref<zmm::Array<DictionaryElement> > elements;
+    std::shared_ptr<zmm::Array<DictionaryElement> > elements;
     /// \brief Allow to specify encoding separators
     zmm::String _encode(char sep1, char sep2);
 public:
@@ -103,19 +104,19 @@ public:
     void decodeSimple(zmm::String url);
 
     /// \brief Makes a shallow copy of the dictionary
-    zmm::Ref<Dictionary> clone();
+    std::shared_ptr<Dictionary> clone();
 
     /// \brief Merge dictionary with another dictionary. If keys with the same
     /// name already exist, the existing ones will be overwritten.
-    void merge(zmm::Ref<Dictionary> other);
+    void merge(std::shared_ptr<Dictionary> other);
 
     /// \brief returns true if the dictionary is a subset of another dictionary.#
-    bool isSubsetOf(zmm::Ref<Dictionary> other);
+    bool isSubsetOf(std::shared_ptr<Dictionary> other);
 
     /// \brief checks two dictionaries for equality
-    bool equals(zmm::Ref<Dictionary> other);
+    bool equals(std::shared_ptr<Dictionary> other);
 
-    zmm::Ref<zmm::Array<DictionaryElement> > getElements();
+    std::shared_ptr<zmm::Array<DictionaryElement> > getElements();
 
     /// \brief Frees unnecessary memory
     inline void optimize() { elements->optimize(); }
@@ -156,23 +157,23 @@ public:
         Dictionary::decode(url);
     }
     
-    inline zmm::Ref<Dictionary_r> clone() {
+    inline std::shared_ptr<Dictionary_r> clone() {
         AutoLock lock(mutex);
-        zmm::Ref<Dictionary_r> ret = RefCast(Dictionary::clone(), Dictionary_r);
+        std::shared_ptr<Dictionary_r> ret = std::dynamic_pointer_cast<Dictionary_r>(Dictionary::clone());
         return ret;
     }
     
-    inline bool isSubsetOf(zmm::Ref<Dictionary> other) {
+    inline bool isSubsetOf(std::shared_ptr<Dictionary> other) {
         AutoLock lock(mutex);
         return Dictionary::isSubsetOf(other);
     }
     
-    inline bool equals(zmm::Ref<Dictionary> other) {
+    inline bool equals(std::shared_ptr<Dictionary> other) {
         AutoLock lock(mutex);
         return Dictionary::equals(other);
     }
     
-    inline zmm::Ref<zmm::Array<DictionaryElement> > getElements() {
+    inline std::shared_ptr<zmm::Array<DictionaryElement> > getElements() {
         AutoLock lock(mutex);
         return Dictionary::getElements();
     }

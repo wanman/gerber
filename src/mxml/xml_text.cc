@@ -49,7 +49,7 @@ Text::Text(String text, enum mxml_value_type vtype) : Node()
     this->vtype = vtype;
 }
 
-void Text::print_internal(Ref<StringBuffer> buf, int indent)
+void Text::print_internal(shared_ptr<StringBuffer> buf, int indent)
 {
     *buf << escape(text);
 }

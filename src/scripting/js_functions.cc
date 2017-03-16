@@ -55,7 +55,7 @@ js_print(JSContext *cx, uintN argc, jsval *argv)
         return JS_FALSE;
     }
 
-    Ref<StringBuffer> buf(new StringBuffer());
+    shared_ptr<StringBuffer> buf(new StringBuffer());
     for (i = 0; i < argc; i++) 
     {
         str = JS_ValueToString(cx, JS_ARGV(cx, argv)[i]);
@@ -96,7 +96,7 @@ js_copyObject(JSContext *cx, uintN argc, jsval *argv)
 
         JS_ARGV(cx, argv)[0] = OBJECT_TO_JSVAL(js_cds_obj);
 
-        Ref<CdsObject> cds_obj = self->jsObject2cdsObject(js_cds_obj, nullptr);
+        shared_ptr<CdsObject> cds_obj = self->jsObject2cdsObject(js_cds_obj, nullptr);
         js_cds_clone_obj = JS_NewObject(cx, nullptr, nullptr, nullptr);
         JS_ARGV(cx, argv)[1] = OBJECT_TO_JSVAL(js_cds_clone_obj);
 
@@ -134,10 +134,10 @@ js_addCdsObject(JSContext *cx, uintN argc, jsval *argv)
 
         JSObject *js_cds_obj;
         JSObject *js_orig_obj = nullptr;
-        Ref<CdsObject> orig_object;
+        shared_ptr<CdsObject> orig_object;
 
-        Ref<StringConverter> p2i;
-        Ref<StringConverter> i2i;
+        shared_ptr<StringConverter> p2i;
+        shared_ptr<StringConverter> i2i;
 
         Script *self = (Script *)JS_GetContextPrivate(cx);
 
@@ -222,8 +222,8 @@ js_addCdsObject(JSContext *cx, uintN argc, jsval *argv)
             return JS_TRUE;
         }
 
-        Ref<CdsObject> cds_obj;
-        Ref<ContentManager> cm = ContentManager::getInstance();
+        shared_ptr<CdsObject> cds_obj;
+        shared_ptr<ContentManager> cm = ContentManager::getInstance();
         int pcd_id = INVALID_OBJECT_ID;
 
         if (self->whoami() == S_PLAYLIST)
@@ -251,7 +251,7 @@ js_addCdsObject(JSContext *cx, uintN argc, jsval *argv)
                     return JS_TRUE;
                 }
 
-                Ref<CdsObject> mainObj = Storage::getInstance()->loadObject(pcd_id);
+                shared_ptr<CdsObject> mainObj = Storage::getInstance()->loadObject(pcd_id);
                 cds_obj = self->jsObject2cdsObject(js_cds_obj, mainObj);
             }
             else

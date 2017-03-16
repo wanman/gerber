@@ -48,13 +48,13 @@ class StorageCache : public zmm::Object
 public:
     StorageCache();
     
-    zmm::Ref<CacheObject> getObject(int id);
-    zmm::Ref<CacheObject> getObjectDefinitely(int id);
+    std::shared_ptr<CacheObject> getObject(int id);
+    std::shared_ptr<CacheObject> getObjectDefinitely(int id);
     bool removeObject(int id);
     void clear();
     
-    zmm::Ref<zmm::Array<CacheObject> > getObjects(zmm::String location);
-    void checkLocation(zmm::Ref<CacheObject> obj);
+    std::shared_ptr<zmm::Array<CacheObject> > getObjects(zmm::String location);
+    void checkLocation(std::shared_ptr<CacheObject> obj);
     
     // a child was added to the specified object - update numChildren accordingly,
     // if the object has cached information
@@ -72,8 +72,8 @@ private:
     
     void ensureFillLevelOk();
     
-    std::shared_ptr<std::unordered_map<int,zmm::Ref<CacheObject> > > idHash;
-    std::shared_ptr<std::unordered_map<zmm::String, zmm::Ref<zmm::Array<CacheObject> > > > locationHash;
+    std::shared_ptr<std::unordered_map<int,std::shared_ptr<CacheObject> > > idHash;
+    std::shared_ptr<std::unordered_map<zmm::String, std::shared_ptr<zmm::Array<CacheObject> > > > locationHash;
     std::mutex mutex;
     using AutoLock = std::lock_guard<std::mutex>;
 };

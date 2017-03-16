@@ -90,7 +90,7 @@ protected:
     /// \param objectID the container that needs to be updated
     void containerChangedUI(int objectID);
     
-    void containerChangedUI(zmm::Ref<zmm::IntArray> objectIDs);
+    void containerChangedUI(std::shared_ptr<zmm::IntArray> objectIDs);
     
     /// \brief True if the ui update id hash became to big and
     /// the UI shall update every container
@@ -117,9 +117,9 @@ class SessionManager : public Timer::Subscriber, public Singleton<SessionManager
 {
 protected:
     /// \brief This array is holding available sessions.
-    zmm::Ref<zmm::Array<Session> > sessions;
+    std::shared_ptr<zmm::Array<Session> > sessions;
     
-    zmm::Ref<Dictionary> accounts;
+    std::shared_ptr<Dictionary> accounts;
     
     void checkTimer();
     bool timerAdded;
@@ -132,12 +132,12 @@ public:
     
     /// \brief Creates a Session with a given timeout.
     /// \param timeout Session timeout in milliseconds.
-    zmm::Ref<Session> createSession(long timeout);
+    std::shared_ptr<Session> createSession(long timeout);
     
     /// \brief Returns the instance to a Session with a given sessionID
     /// \param ID of the Session.
     /// \return intance of the Session with a given ID or nullptr if no session with that ID was found.
-    zmm::Ref<Session> getSession(zmm::String sessionID, bool doLock = true);
+    std::shared_ptr<Session> getSession(zmm::String sessionID, bool doLock = true);
     
     /// \brief Removes a session
     void removeSession(zmm::String sessionID);
@@ -150,9 +150,9 @@ public:
     /// \param objectID
     void containerChangedUI(int objectID);
     
-    void containerChangedUI(zmm::Ref<zmm::IntArray> objectIDs);
+    void containerChangedUI(std::shared_ptr<zmm::IntArray> objectIDs);
     
-    virtual void timerNotify(zmm::Ref<Timer::Parameter> parameter);
+    virtual void timerNotify(std::shared_ptr<Timer::Parameter> parameter);
 };
 
 #endif //  __SESSION_MANAGER_H__

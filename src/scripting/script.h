@@ -60,7 +60,7 @@ typedef enum
 class Script : public zmm::Object
 {
 public:
-    zmm::Ref<Runtime> runtime;
+    std::shared_ptr<Runtime> runtime;
     JSRuntime *rt;
     JSContext *cx;
     JSObject  *glob;
@@ -68,7 +68,7 @@ public:
     JSObject *common_script;
     
 public:
-    Script(zmm::Ref<Runtime> runtime);
+    Script(std::shared_ptr<Runtime> runtime);
     virtual ~Script();
     
     zmm::String getProperty(JSObject *obj, zmm::String name);
@@ -92,12 +92,12 @@ public:
     void load(zmm::String scriptPath);
     void load(zmm::String scriptText, zmm::String scriptPath);
     
-    zmm::Ref<CdsObject> jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd);
-    void cdsObject2jsObject(zmm::Ref<CdsObject> obj, JSObject *js);
+    std::shared_ptr<CdsObject> jsObject2cdsObject(JSObject *js, std::shared_ptr<CdsObject> pcd);
+    void cdsObject2jsObject(std::shared_ptr<CdsObject> obj, JSObject *js);
     
     virtual script_class_t whoami() = 0;
 
-    zmm::Ref<CdsObject> getProcessedObject(); 
+    std::shared_ptr<CdsObject> getProcessedObject(); 
 
     zmm::String convertToCharset(zmm::String str, charset_convert_t chr);
     
@@ -107,7 +107,7 @@ protected:
 
     // object that is currently being processed by the script (set in import
     // script)
-    zmm::Ref<CdsObject> processed;
+    std::shared_ptr<CdsObject> processed;
     
 private:
     JSObject *common_root;
@@ -115,11 +115,11 @@ private:
     void initGlobalObject();
     JSObject *_load(zmm::String scriptPath);
     void _execute(JSObject *scr);
-    zmm::Ref<StringConverter> _p2i;
-    zmm::Ref<StringConverter> _j2i;
-    zmm::Ref<StringConverter> _f2i;
-    zmm::Ref<StringConverter> _m2i;
-    zmm::Ref<StringConverter> _i2i;
+    std::shared_ptr<StringConverter> _p2i;
+    std::shared_ptr<StringConverter> _j2i;
+    std::shared_ptr<StringConverter> _f2i;
+    std::shared_ptr<StringConverter> _m2i;
+    std::shared_ptr<StringConverter> _i2i;
 };
 
 #endif // __SCRIPTING_SCRIPT_H__

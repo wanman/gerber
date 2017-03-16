@@ -140,14 +140,14 @@ public:
 
     MetadataHandler();
        
-    static void setMetadata(zmm::Ref<CdsItem> item);
+    static void setMetadata(std::shared_ptr<CdsItem> item);
     static zmm::String getMetaFieldName(metadata_fields_t field);
     static zmm::String getResAttrName(resource_attributes_t attr);
 
-    static zmm::Ref<MetadataHandler> createHandler(int handlerType);
+    static std::shared_ptr<MetadataHandler> createHandler(int handlerType);
     
-    virtual void fillMetadata(zmm::Ref<CdsItem> item) = 0;
-    virtual zmm::Ref<IOHandler> serveContent(zmm::Ref<CdsItem> item, int resNum, off_t *data_size) = 0;
+    virtual void fillMetadata(std::shared_ptr<CdsItem> item) = 0;
+    virtual std::shared_ptr<IOHandler> serveContent(std::shared_ptr<CdsItem> item, int resNum, off_t *data_size) = 0;
     virtual zmm::String getMimeType();
 };
 

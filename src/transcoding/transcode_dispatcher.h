@@ -39,9 +39,9 @@ class TranscodeDispatcher : public TranscodeHandler
 {
 public:
     TranscodeDispatcher();
-    virtual zmm::Ref<IOHandler> open(zmm::Ref<TranscodingProfile> profile, 
+    virtual std::shared_ptr<IOHandler> open(std::shared_ptr<TranscodingProfile> profile, 
                                      zmm::String location,
-                                     zmm::Ref<CdsObject> obj,
+                                     std::shared_ptr<CdsObject> obj,
                                      zmm::String range);
 };
 

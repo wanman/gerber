@@ -45,7 +45,7 @@
 using namespace zmm;
 using namespace mxml;
 
-Ref<Storage> Server::storage = nullptr;
+shared_ptr<Storage> Server::storage = nullptr;
 
 #ifdef UPNP_OLD_SNAPSHOT
 static int static_upnp_callback(Upnp_EventType eventtype, void* event, void* cookie)
@@ -89,7 +89,7 @@ void Server::init()
     mrreg = MRRegistrarService::getInstance();
 #endif
 
-    Ref<ConfigManager> config = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> config = ConfigManager::getInstance();
 
     serverUDN = config->getOption(CFG_SERVER_UDN);
     alive_advertisement = config->getIntOption(CFG_SERVER_ALIVE_INTERVAL);
@@ -108,7 +108,7 @@ void Server::upnp_init()
     int ret = 0; // general purpose error code
     log_debug("start\n");
 
-    Ref<ConfigManager> config = ConfigManager::getInstance();
+    shared_ptr<ConfigManager> config = ConfigManager::getInstance();
 
     String iface = config->getOption(CFG_SERVER_NETWORK_INTERFACE);
     String ip = config->getOption(CFG_SERVER_IP);
@@ -160,7 +160,7 @@ void Server::upnp_init()
 
     log_debug("webroot: %s\n", web_root.c_str());
 
-    Ref<Array<StringBase> > arr = config->getStringArrayOption(CFG_SERVER_CUSTOM_HTTP_HEADERS);
+    shared_ptr<Array<StringBase> > arr = config->getStringArrayOption(CFG_SERVER_CUSTOM_HTTP_HEADERS);
 
     if (arr != nullptr) {
         String tmp;
@@ -305,7 +305,7 @@ int Server::upnp_callback(Upnp_EventType eventtype, const void* event, void* coo
         try {
             // https://github.com/mrjimenez/pupnp/blob/master/upnp/sample/common/tv_device.c
 
-            Ref<ActionRequest> request(new ActionRequest((UpnpActionRequest*)event));
+            shared_ptr<ActionRequest> request(new ActionRequest((UpnpActionRequest*)event));
             upnp_actions(request);
             request->update();
             // set in update() ((struct Upnp_Action_Request *)event)->ErrCode = ret;
@@ -322,7 +322,7 @@ int Server::upnp_callback(Upnp_EventType eventtype, const void* event, void* coo
         // a cp wants a subscription
         //log_info("UPNP_EVENT_SUBSCRIPTION_REQUEST\n");
         try {
-            Ref<SubscriptionRequest> request(new SubscriptionRequest((UpnpSubscriptionRequest*)event));
+            shared_ptr<SubscriptionRequest> request(new SubscriptionRequest((UpnpSubscriptionRequest*)event));
             upnp_subscriptions(request);
         } catch (const UpnpException& upnp_e) {
             log_warning("Subscription exception: %s\n", upnp_e.getMessage().c_str());
@@ -357,7 +357,7 @@ zmm::String Server::getPort()
     return String::from(UpnpGetServerPort());
 }
 
-void Server::upnp_actions(Ref<ActionRequest> request)
+void Server::upnp_actions(shared_ptr<ActionRequest> request)
 {
     log_debug("start\n");
 
@@ -391,7 +391,7 @@ void Server::upnp_actions(Ref<ActionRequest> request)
     }
 }
 
-void Server::upnp_subscriptions(Ref<SubscriptionRequest> request)
+void Server::upnp_subscriptions(shared_ptr<SubscriptionRequest> request)
 {
     // make sure that the request is for our device
     if (request->getUDN() != serverUDN) {

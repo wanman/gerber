@@ -73,7 +73,7 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
     String url, parameters;
     parameters = (filename + strlen(LINK_URL_REQUEST_HANDLER));
     
-    Ref<Dictionary> dict(new Dictionary());
+    shared_ptr<Dictionary> dict(new Dictionary());
     dict->decodeSimple(parameters);
 
     log_debug("full url (filename): %s, parameters: %s\n",
@@ -90,9 +90,9 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
 
     //log_debug("got ObjectID: [%s]\n", object_id.c_str());
 
-    Ref<Storage> storage = Storage::getInstance();
+    shared_ptr<Storage> storage = Storage::getInstance();
 
-    Ref<CdsObject> obj = storage->loadObject(objectID);
+    shared_ptr<CdsObject> obj = storage->loadObject(objectID);
 
     int objectType = obj->getObjectType();
 
@@ -106,7 +106,7 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
 
     if (string_ok(tr_profile))
     {
-        Ref<TranscodingProfile> tp = ConfigManager::getInstance()->getTranscodingProfileListOption(CFG_TRANSCODING_PROFILE_LIST)->getByName(tr_profile);
+        shared_ptr<TranscodingProfile> tp = ConfigManager::getInstance()->getTranscodingProfileListOption(CFG_TRANSCODING_PROFILE_LIST)->getByName(tr_profile);
 
         if (tp == nullptr)
             throw _Exception(_("Transcoding requested but no profile "
@@ -118,14 +118,14 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
     else
 #endif
     {
-        Ref<CdsItemExternalURL> item = RefCast(obj, CdsItemExternalURL);
+        shared_ptr<CdsItemExternalURL> item = dynamic_pointer_cast<CdsItemExternalURL>(obj);
 
 #ifdef ONLINE_SERVICES
         if (item->getFlag(OBJECT_FLAG_ONLINE_SERVICE))
         {
             /// \todo write a helper class that will handle various online
             /// services
-            Ref<OnlineServiceHelper> helper (new OnlineServiceHelper());
+            shared_ptr<OnlineServiceHelper> helper (new OnlineServiceHelper());
             url = helper->resolveURL(item);
         }
         else
@@ -135,8 +135,8 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
         }
 
         log_debug("Online content url: %s\n", url.c_str());
-        Ref<URL> u(new URL(1024));
-        Ref<URL::Stat> st;
+        shared_ptr<URL> u(new URL(1024));
+        shared_ptr<URL::Stat> st;
         try
         { 
             st = u->getInfo(url);
@@ -168,7 +168,7 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
     /// \todo transcoding for get_info
 }
 
-Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
+shared_ptr<IOHandler> URLRequestHandler::open(IN const char *filename,
                                        IN enum UpnpOpenFileMode mode,
                                        IN String range)
 {
@@ -189,7 +189,7 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
     String url, parameters;
     parameters = (filename + strlen(LINK_URL_REQUEST_HANDLER));
 
-    Ref<Dictionary> dict(new Dictionary());
+    shared_ptr<Dictionary> dict(new Dictionary());
     dict->decodeSimple(parameters);
     log_debug("full url (filename): %s, parameters: %s\n",
                filename, parameters.c_str());
@@ -202,9 +202,9 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
     else
         objectID = objID.toInt();
 
-    Ref<Storage> storage = Storage::getInstance();
+    shared_ptr<Storage> storage = Storage::getInstance();
 
-    Ref<CdsObject> obj = storage->loadObject(objectID);
+    shared_ptr<CdsObject> obj = storage->loadObject(objectID);
 
     int objectType = obj->getObjectType();
 
@@ -213,12 +213,12 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
         throw _Exception(_("object is not an external url item"));
     }
 
-    Ref<CdsItemExternalURL> item = RefCast(obj, CdsItemExternalURL);
+    shared_ptr<CdsItemExternalURL> item = dynamic_pointer_cast<CdsItemExternalURL>(obj);
 
 #ifdef ONLINE_SERVICES
     if (item->getFlag(OBJECT_FLAG_ONLINE_SERVICE))
     {
-        Ref<OnlineServiceHelper> helper (new OnlineServiceHelper());
+        shared_ptr<OnlineServiceHelper> helper (new OnlineServiceHelper());
         url = helper->resolveURL(item);
     }
     else 
@@ -240,21 +240,21 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
 
     if (string_ok(tr_profile))
     {
-        Ref<TranscodingProfile> tp = ConfigManager::getInstance()->getTranscodingProfileListOption(CFG_TRANSCODING_PROFILE_LIST)->getByName(tr_profile);
+        shared_ptr<TranscodingProfile> tp = ConfigManager::getInstance()->getTranscodingProfileListOption(CFG_TRANSCODING_PROFILE_LIST)->getByName(tr_profile);
 
         if (tp == nullptr)
             throw _Exception(_("Transcoding of file ") + url +
                     " but no profile matching the name " +
                     tr_profile + " found");
 
-        Ref<TranscodeDispatcher> tr_d(new TranscodeDispatcher());
-        return tr_d->open(tp, url, RefCast(item, CdsObject), range);
+        shared_ptr<TranscodeDispatcher> tr_d(new TranscodeDispatcher());
+        return tr_d->open(tp, url, dynamic_pointer_cast<CdsObject>(item), range);
     }
     else
 #endif
     {
-        Ref<URL> u(new URL(1024));
-        Ref<URL::Stat> st;
+        shared_ptr<URL> u(new URL(1024));
+        shared_ptr<URL::Stat> st;
         try
         {
             st = u->getInfo(url);
@@ -277,7 +277,7 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
     */
 
     ///\todo make curl io handler configurable for url request handler
-    Ref<IOHandler> io_handler(new CurlIOHandler(url, nullptr, 1024*1024, 0));
+    shared_ptr<IOHandler> io_handler(new CurlIOHandler(url, nullptr, 1024*1024, 0));
 
     io_handler->open(mode);
     

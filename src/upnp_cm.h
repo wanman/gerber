@@ -58,7 +58,7 @@ protected:
     /// GetCurrentConnectionIDs(string ConnectionIDs)
     ///
     /// This is currently unsupported (returns empty string)
-    void upnp_action_GetCurrentConnectionIDs(zmm::Ref<ActionRequest> request);
+    void upnp_action_GetCurrentConnectionIDs(std::shared_ptr<ActionRequest> request);
     
     /// \brief UPnP standard defined action: GetCurrentConnectionInfo()
     /// \param request Incoming ActionRequest.
@@ -67,13 +67,13 @@ protected:
     /// string PeerConnectionManager, i4 PeerConnectionID, string Direction, string Status)
     ///
     /// This action is currently unsupported.
-    void upnp_action_GetCurrentConnectionInfo(zmm::Ref<ActionRequest> request);
+    void upnp_action_GetCurrentConnectionInfo(std::shared_ptr<ActionRequest> request);
     
     /// \brief UPnP standard defined action: GetProtocolInfo()
     /// \param request Incoming ActionRequest.
     ///
     /// GetProtocolInfo(string Source, string Sink)
-    void upnp_action_GetProtocolInfo(zmm::Ref<ActionRequest> request);
+    void upnp_action_GetProtocolInfo(std::shared_ptr<ActionRequest> request);
     
 public:
     /// \brief Constructor for the CMS, saves the service type and service id
@@ -90,14 +90,14 @@ public:
     ///
     /// This function looks at the incoming ActionRequest and passes it on
     /// to the appropriate action for processing.
-    void process_action_request(zmm::Ref<ActionRequest> request);
+    void process_action_request(std::shared_ptr<ActionRequest> request);
     
     /// \brief Processes an incoming SubscriptionRequest.
     /// \param request Incoming SubscriptionRequest.
     ///
     /// Looks at the incoming SubscriptionRequest and accepts the subscription
     /// if everything is ok.
-    void process_subscription_request(zmm::Ref<SubscriptionRequest> request);
+    void process_subscription_request(std::shared_ptr<SubscriptionRequest> request);
     
     /// \brief Sends out an event to all subscribed devices.
     /// \param sourceProtocol_CSV Comma Separated Value list of protocol information

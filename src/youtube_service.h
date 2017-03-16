@@ -89,7 +89,7 @@ public:
     ~YouTubeService();
     /// \brief Retrieves user specified content from the service and adds
     /// the items to the database.
-    virtual bool refreshServiceData(zmm::Ref<Layout> layout);
+    virtual bool refreshServiceData(std::shared_ptr<Layout> layout);
 
     /// \brief Get the type of the service (i.e. YouTube, Shoutcast, etc.)
     virtual service_type_t getServiceType();
@@ -99,7 +99,7 @@ public:
 
     /// \brief Parse the xml fragment from the configuration and gather
     /// the user settings in a service task structure.
-    virtual zmm::Ref<zmm::Object> defineServiceTask(zmm::Ref<mxml::Element> xmlopt, zmm::Ref<zmm::Object> params);
+    virtual std::shared_ptr<zmm::Object> defineServiceTask(std::shared_ptr<mxml::Element> xmlopt, std::shared_ptr<zmm::Object> params);
 
     /// \brief Get the human readable name of a particular request type, i.e.
     /// did we request Favorites or Featured videos, etc.
@@ -115,10 +115,10 @@ protected:
     pthread_t pid;
 
     // url retriever class
-    zmm::Ref<URL> url;
+    std::shared_ptr<URL> url;
 
     /// \brief This function will retrieve the XML according to the parametrs
-    zmm::Ref<mxml::Element> getData(zmm::String url_part, zmm::Ref<Dictionary> params, bool construct_url = true);
+    std::shared_ptr<mxml::Element> getData(zmm::String url_part, std::shared_ptr<Dictionary> params, bool construct_url = true);
 
     /// \brief This class defines the so called "YouTube task", the task
     /// holds various parameters that are needed to perform. A task means
@@ -141,7 +141,7 @@ protected:
         
         /// \brief It was so nice when using with the REST API, now we will 
         /// have to convert the parameters to a specific string.
-        zmm::Ref<Dictionary> parameters;
+        std::shared_ptr<Dictionary> parameters;
         
         /// \brief Amount of items that we are allowed to get.
         int amount;
@@ -159,7 +159,7 @@ protected:
         zmm::String sub_request_name;
 
         /// \brief Special requests have a subfeed
-        zmm::Ref<YouTubeSubFeed> subfeed;
+        std::shared_ptr<YouTubeSubFeed> subfeed;
         int subfeed_index;
 
         /// \brief Task must be removed from the tasklist after one time
@@ -173,17 +173,17 @@ protected:
 
 
     // helper functions for parsing config.xml
-//    zmm::String getCheckAttr(zmm::Ref<mxml::Element> xml, zmm::String attrname);
-//    int getCheckPosIntAttr(zmm::Ref<mxml::Element> xml, zmm::String attrname);
-    void getPagingParams(zmm::Ref<mxml::Element> xml, 
-                         zmm::Ref<YouTubeTask> task);
-    void addTimeParams(zmm::Ref<mxml::Element> xml, zmm::Ref<YouTubeTask> task);
-    yt_regions_t getRegion(zmm::Ref<mxml::Element> xml);
-    zmm::String getFeed(zmm::Ref<mxml::Element> xml);
+//    zmm::String getCheckAttr(std::shared_ptr<mxml::Element> xml, zmm::String attrname);
+//    int getCheckPosIntAttr(std::shared_ptr<mxml::Element> xml, zmm::String attrname);
+    void getPagingParams(std::shared_ptr<mxml::Element> xml, 
+                         std::shared_ptr<YouTubeTask> task);
+    void addTimeParams(std::shared_ptr<mxml::Element> xml, std::shared_ptr<YouTubeTask> task);
+    yt_regions_t getRegion(std::shared_ptr<mxml::Element> xml);
+    zmm::String getFeed(std::shared_ptr<mxml::Element> xml);
 
     // subrequests are spawned as one time tasks, they are removed from the 
     // task list after one time execution - this function takes care of it
-    void killOneTimeTasks(zmm::Ref<zmm::Array<zmm::Object> > tasklist);
+    void killOneTimeTasks(std::shared_ptr<zmm::Array<zmm::Object> > tasklist);
 };
 
 #endif//__ONLINE_SERVICE_H__

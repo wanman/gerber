@@ -76,7 +76,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
 
     String parameters = (filename + strlen(LINK_FILE_REQUEST_HANDLER));
 
-    Ref<Dictionary> dict(new Dictionary());
+    shared_ptr<Dictionary> dict(new Dictionary());
     dict->decodeSimple(parameters);
 
     log_debug("full url (filename): %s, parameters: %s\n",
@@ -93,9 +93,9 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
 
     //log_debug("got ObjectID: [%s]\n", object_id.c_str());
 
-    Ref<Storage> storage = Storage::getInstance();
+    shared_ptr<Storage> storage = Storage::getInstance();
 
-    Ref<CdsObject> obj = storage->loadObject(objectID);
+    shared_ptr<CdsObject> obj = storage->loadObject(objectID);
 
     int objectType = obj->getObjectType();
 
@@ -104,7 +104,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
         throw _Exception(_("requested object is not an item"));
     }
 
-    Ref<CdsItem> item = RefCast(obj, CdsItem);
+    shared_ptr<CdsItem> item = dynamic_pointer_cast<CdsItem>(obj);
 
     String path = item->getLocation();
 
@@ -197,7 +197,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
             res_handler = rh.toInt();
         else
         {
-            Ref<CdsResource> resource = item->getResource(res_id);
+            shared_ptr<CdsResource> resource = item->getResource(res_id);
             res_handler = resource->getHandlerType();
             // http-get:*:image/jpeg:*
             String protocolInfo = item->getResource(res_id)->getAttributes()->get(_("protocolInfo"));
@@ -207,12 +207,12 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
             }
         }
 
-        Ref<MetadataHandler> h = MetadataHandler::createHandler(res_handler);
+        shared_ptr<MetadataHandler> h = MetadataHandler::createHandler(res_handler);
         if (!string_ok(mimeType))
             mimeType = h->getMimeType();
 
         off_t size = UpnpFileInfo_get_FileLength(info);
-        /*        Ref<IOHandler> io_handler = */ h->serveContent(item, res_id, &(size));
+        /*        shared_ptr<IOHandler> io_handler = */ h->serveContent(item, res_id, &(size));
 
     }
     else {
@@ -220,7 +220,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
 		if (!is_srt && string_ok(tr_profile))
 		{
 
-			Ref<TranscodingProfile> tp = ConfigManager::getInstance()->getTranscodingProfileListOption(CFG_TRANSCODING_PROFILE_LIST)->getByName(tr_profile);
+			shared_ptr<TranscodingProfile> tp = ConfigManager::getInstance()->getTranscodingProfileListOption(CFG_TRANSCODING_PROFILE_LIST)->getByName(tr_profile);
 
 			if (tp == nullptr)
 				throw _Exception(_("Transcoding of file ") + path +
@@ -229,7 +229,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
 
 			mimeType = tp->getTargetMimeType();
 
-			Ref<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
+			shared_ptr<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
 			if (mappings->get(mimeType) == CONTENT_TYPE_PCM)
 			{
 				String freq = item->getResource(0)->getAttribute(MetadataHandler::getResAttrName(R_SAMPLEFREQUENCY));
@@ -292,7 +292,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
             }
 
 #ifdef EXTEND_PROTOCOLINFO
-			Ref<ConfigManager> cfg = ConfigManager::getInstance();
+			shared_ptr<ConfigManager> cfg = ConfigManager::getInstance();
 			if (cfg->getBoolOption(CFG_SERVER_EXTEND_PROTOCOLINFO_SM_HACK))
 			{
 				if (item->getMimeType().startsWith(_("video"))) {
@@ -301,7 +301,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
 					// To be more compliant with original Samsung
 					// server we should check for getCaptionInfo.sec: 1
 					// request header.
-					Ref<Array<StringBase> > subexts(new Array<StringBase>());
+					shared_ptr<Array<StringBase> > subexts(new Array<StringBase>());
 					subexts->append(_(".srt"));
 					subexts->append(_(".ssa"));
 					subexts->append(_(".smi"));
@@ -325,7 +325,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
 					{
 						String burlpath = _(filename);
 						burlpath = burlpath.substring(0, burlpath.rindex('.'));
-						Ref<Server> server = Server::getInstance();
+						shared_ptr<Server> server = Server::getInstance();
 						String url = _("http://")
 							+ server->getIP() + ":" + server->getPort()
 							+ burlpath + validext;
@@ -366,7 +366,7 @@ void FileRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *inf
     log_debug("web_get_info(): end\n");
 }
 
-Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
+shared_ptr<IOHandler> FileRequestHandler::open(IN const char *filename,
                                         IN enum UpnpOpenFileMode mode,
                                         IN zmm::String range)
 {
@@ -390,7 +390,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
 
     parameters = (filename + strlen(LINK_FILE_REQUEST_HANDLER));
 
-    Ref<Dictionary> dict(new Dictionary());
+    shared_ptr<Dictionary> dict(new Dictionary());
     dict->decodeSimple(parameters);
     log_debug("full url (filename): %s, parameters: %s\n", filename, parameters.c_str());
 
@@ -403,9 +403,9 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
         objectID = objID.toInt();
 
     log_debug("Opening media file with object id %d\n", objectID);
-    Ref<Storage> storage = Storage::getInstance();
+    shared_ptr<Storage> storage = Storage::getInstance();
 
-    Ref<CdsObject> obj = storage->loadObject(objectID);
+    shared_ptr<CdsObject> obj = storage->loadObject(objectID);
 
     int objectType = obj->getObjectType();
 
@@ -430,9 +430,9 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
     // update item info by running action
     if (IS_CDS_ACTIVE_ITEM(objectType) && (res_id == 0)) // check - if thumbnails, then no action, just show
     {
-        Ref<CdsActiveItem> aitem = RefCast(obj, CdsActiveItem);
+        shared_ptr<CdsActiveItem> aitem = dynamic_pointer_cast<CdsActiveItem>(obj);
 
-        Ref<Element> inputElement = UpnpXML_DIDLRenderObject(obj, true);
+        shared_ptr<Element> inputElement = UpnpXML_DIDLRenderObject(obj, true);
 
         inputElement->setAttribute(_(XML_DC_NAMESPACE_ATTR), _(XML_DC_NAMESPACE));
         inputElement->setAttribute(_(XML_UPNP_NAMESPACE_ATTR), _(XML_UPNP_NAMESPACE));
@@ -461,15 +461,15 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
         }
         log_debug("Script output: %s\n", output.c_str());
 
-        Ref<CdsObject> clone = CdsObject::createObject(objectType);
+        shared_ptr<CdsObject> clone = CdsObject::createObject(objectType);
         aitem->copyTo(clone);
 
         UpnpXML_DIDLUpdateObject(clone, output);
 
         if (! aitem->equals(clone, true)) // check for all differences
         {
-            Ref<UpdateManager> um = UpdateManager::getInstance();
-            Ref<SessionManager> sm = SessionManager::getInstance();
+            shared_ptr<UpdateManager> um = UpdateManager::getInstance();
+            shared_ptr<SessionManager> sm = SessionManager::getInstance();
 
             log_debug("Item changed, updating database\n");
             int containerChanged = INVALID_OBJECT_ID;
@@ -490,7 +490,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
         }
     }
 
-    Ref<CdsItem> item = RefCast(obj, CdsItem);
+    shared_ptr<CdsItem> item = dynamic_pointer_cast<CdsItem>(obj);
 
     String path = item->getLocation();
 
@@ -588,7 +588,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
             res_handler = rh.toInt();
         else
         {
-            Ref<CdsResource> resource = item->getResource(res_id);
+            shared_ptr<CdsResource> resource = item->getResource(res_id);
             res_handler = resource->getHandlerType();
             // http-get:*:image/jpeg:*
             String protocolInfo = item->getResource(res_id)->getAttributes()->get(_("protocolInfo"));
@@ -598,7 +598,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
             }
         }
 
-        Ref<MetadataHandler> h = MetadataHandler::createHandler(res_handler);
+        shared_ptr<MetadataHandler> h = MetadataHandler::createHandler(res_handler);
         
         if (!string_ok(mimeType))
             mimeType = h->getMimeType();
@@ -613,9 +613,9 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
         */
 
         //info->content_type = ixmlCloneDOMString(mimeType.c_str());
-        //Ref<IOHandler> io_handler = h->serveContent(item, res_id, &(info->file_length));
+        //shared_ptr<IOHandler> io_handler = h->serveContent(item, res_id, &(info->file_length));
         off_t filelength = -1;
-        Ref<IOHandler> io_handler = h->serveContent(item, res_id, &filelength);
+        shared_ptr<IOHandler> io_handler = h->serveContent(item, res_id, &filelength);
         io_handler->open(mode);
         return io_handler;
     }
@@ -626,9 +626,9 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
         {
             String range = dict->get(_("range"));
 
-            Ref<TranscodeDispatcher> tr_d(new TranscodeDispatcher());
-            Ref<TranscodingProfile> tp = ConfigManager::getInstance()->getTranscodingProfileListOption(CFG_TRANSCODING_PROFILE_LIST)->getByName(tr_profile);
-            return tr_d->open(tp, path, RefCast(item, CdsObject), range);
+            shared_ptr<TranscodeDispatcher> tr_d(new TranscodeDispatcher());
+            shared_ptr<TranscodingProfile> tp = ConfigManager::getInstance()->getTranscodingProfileListOption(CFG_TRANSCODING_PROFILE_LIST)->getByName(tr_profile);
+            return tr_d->open(tp, path, dynamic_pointer_cast<CdsObject>(item), range);
         }
         else
 #endif
@@ -668,7 +668,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
             log_debug("Serving dvd image %s Title: %d Chapter: %d\n",
                     path.c_str(), title, chapter);
             /// \todo add angle support
-            Ref<IOHandler> dvd_io_handler(new DVDIOHandler(path, title, chapter,
+            shared_ptr<IOHandler> dvd_io_handler(new DVDIOHandler(path, title, chapter,
                            audio_track));
 
             int from_dvd_fd[2];
@@ -683,21 +683,21 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
                 throw _Exception(_("Failed to create remux output pipe!"));
             }
 
-            Ref<IOHandler> fd_writer(new FDIOHandler(from_dvd_fd[1]));
-            Ref<ThreadExecutor> from_dvd(new IOHandlerChainer(dvd_io_handler, 
+            shared_ptr<IOHandler> fd_writer(new FDIOHandler(from_dvd_fd[1]));
+            shared_ptr<ThreadExecutor> from_dvd(new IOHandlerChainer(dvd_io_handler, 
                                                         fd_writer, 16384));
 
-            Ref<IOHandler> fd_reader(new FDIOHandler(from_remux_fd[0]));
+            shared_ptr<IOHandler> fd_reader(new FDIOHandler(from_remux_fd[0]));
             fd_reader->open(mode);
             
-            Ref<MPEGRemuxProcessor> remux(new MPEGRemuxProcessor(from_dvd_fd[0],
+            shared_ptr<MPEGRemuxProcessor> remux(new MPEGRemuxProcessor(from_dvd_fd[0],
                                           from_remux_fd[1], 
                                           (unsigned char)audio_track));
 
-            RefCast(fd_reader, FDIOHandler)->addReference(RefCast(remux, Object));
-            RefCast(fd_reader, FDIOHandler)->addReference(RefCast(from_dvd, Object));
-            RefCast(fd_reader, FDIOHandler)->addReference(RefCast(fd_writer, Object));
-            RefCast(fd_reader, FDIOHandler)->closeOther(fd_writer);
+            dynamic_pointer_cast<FDIOHandler>(fd_reader)->addReference(dynamic_pointer_cast<Object>(remux));
+            dynamic_pointer_cast<FDIOHandler>(fd_reader)->addReference(dynamic_pointer_cast<Object>(from_dvd));
+            dynamic_pointer_cast<FDIOHandler>(fd_reader)->addReference(dynamic_pointer_cast<Object>(fd_writer));
+            dynamic_pointer_cast<FDIOHandler>(fd_reader)->closeOther(fd_writer);
 
             PlayHook::getInstance()->trigger(obj);
             return fd_reader;
@@ -735,7 +735,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char *filename,
                 info->http_header = ixmlCloneDOMString(header.c_str());
             */
 
-            Ref<IOHandler> io_handler(new FileIOHandler(path));
+            shared_ptr<IOHandler> io_handler(new FileIOHandler(path));
             io_handler->open(mode);
             PlayHook::getInstance()->trigger(obj);
             return io_handler;

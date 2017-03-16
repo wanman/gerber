@@ -52,7 +52,7 @@ using namespace zmm;
 int shutdown_flag = 0;
 int restart_flag = 0;
 pthread_t main_thread_id;
-Ref<Timer> timer = nullptr;
+shared_ptr<Timer> timer = nullptr;
 
 void print_copyright()
 {
@@ -102,7 +102,7 @@ int main(int argc, char** argv, char** envp)
     bool debug_logging = false;
     bool print_version = false;
 
-    Ref<Array<StringBase> > addFile(new Array<StringBase>());
+    shared_ptr<Array<StringBase> > addFile(new Array<StringBase>());
 
 #ifdef SOLARIS
     String ld_preload;
@@ -335,8 +335,8 @@ For more information visit " DESC_MANUFACTURER_URL "\n\n");
         log_error("Could not register SIGPIPE handler!\n");
     }
 
-    Ref<SingletonManager> singletonManager = SingletonManager::getInstance();
-    Ref<Server> server;
+    shared_ptr<SingletonManager> singletonManager = SingletonManager::getInstance();
+    shared_ptr<Server> server;
     try {
         server = Server::getInstance();
         server->upnp_init();

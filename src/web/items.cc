@@ -54,21 +54,21 @@ void web::items::process()
     if (count < 0)
         throw _Exception(_("illegal count parameter"));
     
-    Ref<Storage> storage = Storage::getInstance();
-    Ref<Element> items (new Element(_("items")));
+    shared_ptr<Storage> storage = Storage::getInstance();
+    shared_ptr<Element> items (new Element(_("items")));
     items->setArrayName(_("item"));
     items->setAttribute(_("parent_id"), String::from(parentID), mxml_int_type);
     root->appendElementChild(items);
-    Ref<CdsObject> obj;
+    shared_ptr<CdsObject> obj;
     obj = storage->loadObject(parentID);
-    Ref<BrowseParam> param(new BrowseParam(parentID, BROWSE_DIRECT_CHILDREN | BROWSE_ITEMS));
+    shared_ptr<BrowseParam> param(new BrowseParam(parentID, BROWSE_DIRECT_CHILDREN | BROWSE_ITEMS));
     param->setRange(start, count);
     
     if ((obj->getClass() == UPNP_DEFAULT_CLASS_MUSIC_ALBUM) ||
         (obj->getClass() == UPNP_DEFAULT_CLASS_PLAYLIST_CONTAINER))
         param->setFlag(BROWSE_TRACK_SORT);
     
-    Ref<Array<CdsObject> > arr;
+    shared_ptr<Array<CdsObject> > arr;
     arr = storage->browse(param);
     
     String location = obj->getVirtualPath(); 
@@ -103,7 +103,7 @@ void web::items::process()
 
         if (startpoint_id != INVALID_OBJECT_ID)
         {
-            Ref<AutoscanDirectory> adir = storage->getAutoscanDirectory(startpoint_id);
+            shared_ptr<AutoscanDirectory> adir = storage->getAutoscanDirectory(startpoint_id);
             if ((adir != nullptr) && (adir->getScanMode() == InotifyScanMode))
             {
                 protectItems = 1;
@@ -122,10 +122,10 @@ void web::items::process()
 
     for (int i = 0; i < arr->size(); i++)
     {
-        Ref<CdsObject> obj = arr->get(i);
+        shared_ptr<CdsObject> obj = arr->get(i);
         //if (IS_CDS_ITEM(obj->getObjectType()))
         //{
-        Ref<Element> item (new Element(_("item")));
+        shared_ptr<Element> item (new Element(_("item")));
         item->setAttribute(_("id"), String::from(obj->getID()), mxml_int_type);
         item->appendTextChild(_("title"), obj->getTitle());
         /// \todo clean this up, should have more generic options for online
@@ -134,11 +134,11 @@ void web::items::process()
         if (IS_CDS_ITEM_EXTERNAL_URL(obj->getObjectType()) && 
             obj->getFlag(OBJECT_FLAG_ONLINE_SERVICE))
         {
-            item->appendTextChild(_("res"), RefCast(obj, CdsItemExternalURL)->getURL());
+            item->appendTextChild(_("res"), dynamic_pointer_cast<CdsItemExternalURL>(obj)->getURL());
         }
         else
 #endif
-            item->appendTextChild(_("res"), CdsResourceManager::getFirstResource(RefCast(obj, CdsItem)));
+            item->appendTextChild(_("res"), CdsResourceManager::getFirstResource(dynamic_pointer_cast<CdsItem>(obj)));
         //item->appendTextChild(_("virtual"), obj->isVirtual() ? _("1") : _("0"), mxml_bool_type);
         items->appendElementChild(item);
         //}

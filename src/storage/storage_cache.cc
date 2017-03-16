@@ -40,8 +40,8 @@ StorageCache::StorageCache()
 {
     capacity = STORAGE_CACHE_CAPACITY;
     maxfill = STORAGE_CACHE_MAXFILL;
-    idHash = make_shared<unordered_map<int,Ref<CacheObject> > >();
-    locationHash = make_shared<unordered_map<zmm::String, Ref<Array<CacheObject> > > >();
+    idHash = make_shared<unordered_map<int,shared_ptr<CacheObject> > >();
+    locationHash = make_shared<unordered_map<zmm::String, shared_ptr<Array<CacheObject> > > >();
     hasBeenFlushed = false;
 }
 
@@ -52,7 +52,7 @@ void StorageCache::clear()
     locationHash->clear();
 }
 
-Ref<CacheObject> StorageCache::getObject(int id)
+shared_ptr<CacheObject> StorageCache::getObject(int id)
 {
 #ifdef TOMBDEBUG
     //assert(mutex->isLocked());
@@ -64,17 +64,17 @@ Ref<CacheObject> StorageCache::getObject(int id)
     }
 }
 
-Ref<CacheObject> StorageCache::getObjectDefinitely(int id)
+shared_ptr<CacheObject> StorageCache::getObjectDefinitely(int id)
 {
 #ifdef TOMBDEBUG
     //assert(mutex->isLocked());
 #endif
-    Ref<CacheObject> obj = nullptr;
+    shared_ptr<CacheObject> obj = nullptr;
     try {
         obj = idHash->at(id);
     } catch (const out_of_range& ex) {
         ensureFillLevelOk();
-        obj = Ref<CacheObject>(new CacheObject());
+        obj = shared_ptr<CacheObject>(new CacheObject());
         idHash->emplace(id, obj);
     }
     return obj;
@@ -85,7 +85,7 @@ void StorageCache::addChild(int id)
 #ifdef TOMBDEBUG
     //assert(mutex->isLocked());
 #endif
-    Ref<CacheObject> obj = nullptr;
+    shared_ptr<CacheObject> obj = nullptr;
     try {
         obj = idHash->at(id);
         if (obj->knowsNumChildren())
@@ -96,7 +96,7 @@ void StorageCache::addChild(int id)
 bool StorageCache::removeObject(int id)
 {
     AutoLock lock(mutex);
-    Ref<CacheObject> obj = getObject(id);
+    shared_ptr<CacheObject> obj = getObject(id);
     if (obj == nullptr)
         return false;
     if (obj->knowsLocation())
@@ -104,7 +104,7 @@ bool StorageCache::removeObject(int id)
     return idHash->erase(id);
 }
 
-Ref<Array<CacheObject> > StorageCache::getObjects(String location)
+shared_ptr<Array<CacheObject> > StorageCache::getObjects(String location)
 {
 #ifdef TOMBDEBUG
     //assert(mutex->isLocked());
@@ -116,7 +116,7 @@ Ref<Array<CacheObject> > StorageCache::getObjects(String location)
     }
 }
 
-void StorageCache::checkLocation(Ref<CacheObject> obj)
+void StorageCache::checkLocation(shared_ptr<CacheObject> obj)
 {
 #ifdef TOMBDEBUG
     //assert(mutex->isLocked());
@@ -124,7 +124,7 @@ void StorageCache::checkLocation(Ref<CacheObject> obj)
     if (! obj->knowsLocation())
         return;
     String location = obj->getLocation();
-    Ref<Array<CacheObject> > objects = nullptr;
+    shared_ptr<Array<CacheObject> > objects = nullptr;
     try {
         objects = locationHash->at(location);
         for (int i=0;i<objects->size();i++)
@@ -133,7 +133,7 @@ void StorageCache::checkLocation(Ref<CacheObject> obj)
                 return;
         }
     } catch (const out_of_range& ex) {
-        objects = Ref<Array<CacheObject> >(new Array<CacheObject>());
+        objects = shared_ptr<Array<CacheObject> >(new Array<CacheObject>());
         locationHash->emplace(location, objects);
     }
     objects->append(obj);

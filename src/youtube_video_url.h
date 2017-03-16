@@ -62,10 +62,10 @@ protected:
     // the handle *must never be used from multiple threads*
     CURL *curl_handle;
     pthread_t pid;
-    zmm::Ref<RExp> reVideoURLParams;
-    zmm::Ref<RExp> redirectLocation;
-    zmm::Ref<RExp> param_t;
-    zmm::Ref<RExp> HD;
+    std::shared_ptr<RExp> reVideoURLParams;
+    std::shared_ptr<RExp> redirectLocation;
+    std::shared_ptr<RExp> param_t;
+    std::shared_ptr<RExp> HD;
 };
 
 #endif//__YOUTUBE_VIDEO_URL_H__

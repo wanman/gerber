@@ -42,14 +42,14 @@ void web::tasks::process()
     String action = param(_("action"));
     if (! string_ok(action))
         throw _Exception(_("web:tasks called with illegal action"));
-    Ref<ContentManager> cm = ContentManager::getInstance();
+    shared_ptr<ContentManager> cm = ContentManager::getInstance();
     
     if (action == "list")
     {
-        Ref<Element> tasksEl (new Element(_("tasks")));
+        shared_ptr<Element> tasksEl (new Element(_("tasks")));
         tasksEl->setArrayName(_("task"));
         root->appendElementChild(tasksEl); // inherited from WebRequestHandler
-        Ref<Array<GenericTask> > taskList = cm->getTasklist();
+        shared_ptr<Array<GenericTask> > taskList = cm->getTasklist();
         if (taskList == nullptr)
             return;
         int count = taskList->size();

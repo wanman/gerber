@@ -72,7 +72,7 @@ js_readln(JSContext *cx, uintN argc, jsval *vp)
     
 } // extern "C"
 
-PlaylistParserScript::PlaylistParserScript(Ref<Runtime> runtime) : Script(runtime)
+PlaylistParserScript::PlaylistParserScript(shared_ptr<Runtime> runtime) : Script(runtime)
 {
     currentHandle = nullptr;
     currentObjectID = INVALID_OBJECT_ID;
@@ -126,7 +126,7 @@ String PlaylistParserScript::readln()
     }
 }
 
-void PlaylistParserScript::processPlaylistObject(zmm::Ref<CdsObject> obj, Ref<GenericTask> task)
+void PlaylistParserScript::processPlaylistObject(zmm::shared_ptr<CdsObject> obj, shared_ptr<GenericTask> task)
 {
 #ifdef JS_THREADSAFE
     JS_SetContextThread(cx);

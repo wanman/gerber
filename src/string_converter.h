@@ -51,26 +51,26 @@ public:
     bool validate(zmm::String str);
 
     /// \brief internal (UTF-8) to filesystem
-    static zmm::Ref<StringConverter> i2f();
+    static std::shared_ptr<StringConverter> i2f();
 
     /// \brief filesystem to internal
-    static zmm::Ref<StringConverter> f2i();
+    static std::shared_ptr<StringConverter> f2i();
 
     /// \brief metadata to internal
-    static zmm::Ref<StringConverter> m2i();
+    static std::shared_ptr<StringConverter> m2i();
 #ifdef HAVE_JS
     /// \brief scripting to internal
-    static zmm::Ref<StringConverter> j2i();
+    static std::shared_ptr<StringConverter> j2i();
 
     /// \brief playlist to internal
-    static zmm::Ref<StringConverter> p2i();
+    static std::shared_ptr<StringConverter> p2i();
 
 #endif
 #if defined(HAVE_JS) || defined(HAVE_TAGLIB) || defined(YOUTUBE) || defined(HAVE_LIBMP4V2)
     /// \brief safeguard - internal to internal - needed to catch some
     /// scenarious where the user may have forgotten to add proper conversion
     /// in the script.
-    static zmm::Ref<StringConverter> i2i();
+    static std::shared_ptr<StringConverter> i2i();
 #endif
 
 protected:
