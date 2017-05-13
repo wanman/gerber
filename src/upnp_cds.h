@@ -63,6 +63,14 @@ protected:
     /// ui4 TotalMatches, ui4 UpdateID)
     void upnp_action_Browse(zmm::Ref<ActionRequest> request);
 
+    /// \brief UPnP standard defined action: Browse()
+    /// \param request Incoming ActionRequest.
+    ///
+    /// Search(string ObjectID, string SearchCriteria, string Filter, ui4 StartingIndex,
+    /// ui4 RequestedCount, string SortCriteria, string Result, ui4 NumberReturned,
+    /// ui4 TotalMatches, ui4 UpdateID)
+    void upnp_action_Search(zmm::Ref<ActionRequest> request);
+
     /// \brief UPnP standard defined action: GetSearchCapabilities()
     /// \param request Incoming ActionRequest.
     ///

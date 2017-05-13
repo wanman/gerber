@@ -289,7 +289,7 @@ int Server::upnp_callback(Upnp_EventType eventtype, const void* event, void* coo
         return UPNP_E_BAD_REQUEST;
     }
 
-    //log_info("event is ok\n");
+    log_info("event is ok\n");
     // get device wide mutex (have to figure out what the hell that is)
     AutoLock lock(mutex);
 
@@ -301,7 +301,6 @@ int Server::upnp_callback(Upnp_EventType eventtype, const void* event, void* coo
         //log_info("UPNP_CONTROL_ACTION_REQUEST\n");
         try {
             // https://github.com/mrjimenez/pupnp/blob/master/upnp/sample/common/tv_device.c
-
             Ref<ActionRequest> request(new ActionRequest((UpnpActionRequest*)event));
             upnp_actions(request);
             request->update();
@@ -360,9 +359,8 @@ void Server::upnp_actions(Ref<ActionRequest> request)
 
     // make sure the request is for our device
     if (request->getUDN() != serverUDN) {
-        // not for us
-        throw _UpnpException(UPNP_E_BAD_REQUEST,
-            _("upnp_actions: request not for this device"));
+        // not for us :(
+        throw _UpnpException(UPNP_E_BAD_REQUEST, _("upnp_actions: request not for this device"));
     }
 
     // we need to match the serviceID to one of our services

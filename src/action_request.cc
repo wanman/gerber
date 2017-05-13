@@ -83,7 +83,7 @@ void ActionRequest::update()
         String xml = response->print();
         int ret;
 
-        log_debug("ActionRequest::update(): \n%s\n\n", xml.c_str());
+        //log_debug("\n%s\n\n", xml.c_str());
 
         IXML_Document *result = ixmlDocument_createDocument();
         ret = ixmlParseBufferEx(xml.c_str(), &result);

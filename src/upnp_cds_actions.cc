@@ -142,16 +142,112 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
     log_debug("end\n");
 }
 
+void ContentDirectoryService::upnp_action_Search(Ref<ActionRequest> request)
+{
+    log_debug("start\n");
+    Ref<Storage> storage = Storage::getInstance();
+
+    Ref<Element> req = request->getRequest();
+    log_debug("XML: --> %s\n", req->print().c_str());
+
+    String ContainerID = req->getChildText(_("ContainerID"));
+
+    String SearchCriteria = req->getChildText(_("SearchCriteria"));
+    String StartingIndex = req->getChildText(_("StartingIndex"));
+    String RequestedCount = req->getChildText(_("RequestedCount"));
+
+    if (ContainerID == nullptr) {
+        log_debug("No such ID\n");
+        throw UpnpException(UPNP_E_NO_SUCH_ID, _("empty object id"));
+    }
+
+    int objectID = ContainerID.toInt();
+
+    unsigned int flag = BROWSE_ITEMS | BROWSE_CONTAINERS | BROWSE_EXACT_CHILDCOUNT;
+
+    Ref<CdsObject> parent = storage->loadObject(objectID);
+    if ((parent->getClass() == UPNP_DEFAULT_CLASS_MUSIC_ALBUM) ||
+        (parent->getClass() == UPNP_DEFAULT_CLASS_PLAYLIST_CONTAINER))
+        flag |= BROWSE_TRACK_SORT;
+
+    if (ConfigManager::getInstance()->getBoolOption(CFG_SERVER_HIDE_PC_DIRECTORY))
+        flag |= BROWSE_HIDE_FS_ROOT;
+
+    Ref<BrowseParam> param(new BrowseParam(objectID, flag));
+
+    param->setStartingIndex(StartingIndex.toInt());
+    param->setRequestedCount(RequestedCount.toInt());
+
+    Ref<Array<CdsObject> > arr;
+
+    try
+    {
+        arr = storage->browse(param);
+    }
+    catch (const Exception & e)
+    {
+        throw UpnpException(UPNP_E_NO_SUCH_ID, _("no such object"));
+    }
+
+    Ref<Element> didl_lite (new Element(_("DIDL-Lite")));
+    didl_lite->setAttribute(_(XML_NAMESPACE_ATTR),
+                            _(XML_DIDL_LITE_NAMESPACE));
+    didl_lite->setAttribute(_(XML_DC_NAMESPACE_ATTR),
+                            _(XML_DC_NAMESPACE));
+    didl_lite->setAttribute(_(XML_UPNP_NAMESPACE_ATTR),
+                            _(XML_UPNP_NAMESPACE));
+
+    Ref<ConfigManager> cfg = ConfigManager::getInstance();
+
+#ifdef EXTEND_PROTOCOLINFO
+    if (cfg->getBoolOption(CFG_SERVER_EXTEND_PROTOCOLINFO_SM_HACK))
+    {
+        didl_lite->setAttribute(_(XML_SEC_NAMESPACE_ATTR),
+                                _(XML_SEC_NAMESPACE));
+    }
+#endif
+
+    for(int i = 0; i < arr->size(); i++)
+    {
+        Ref<CdsObject> obj = arr->get(i);
+        if (cfg->getBoolOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_ENABLED) &&
+            obj->getFlag(OBJECT_FLAG_PLAYED))
+        {
+            String title = obj->getTitle();
+            if (cfg->getBoolOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_STRING_MODE_PREPEND))
+                title = cfg->getOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_STRING) + title;
+            else
+                title = title + cfg->getOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_STRING);
+
+            obj->setTitle(title);
+        }
+
+        Ref<Element> didl_object = UpnpXML_DIDLRenderObject(obj, false, stringLimit);
+
+        didl_lite->appendElementChild(didl_object);
+    }
+
+    Ref<Element> response;
+    response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
+
+    response->appendTextChild(_("Result"), didl_lite->print());
+    response->appendTextChild(_("NumberReturned"), String::from(arr->size()));
+    response->appendTextChild(_("TotalMatches"), String::from(param->getTotalMatches()));
+    response->appendTextChild(_("UpdateID"), String::from(systemUpdateID));
+
+    request->setResponse(response);
+    log_debug("end\n");
+}
+
 void ContentDirectoryService::upnp_action_GetSearchCapabilities(Ref<ActionRequest> request)
 {
     log_debug("start\n");
 
     Ref<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
-    response->appendTextChild(_("SearchCaps"), _(""));
+    response->appendTextChild(_("SearchCaps"), _("*"));
             
     request->setResponse(response);
-
     log_debug("end\n");
 }
 
@@ -188,6 +284,10 @@ void ContentDirectoryService::process_action_request(Ref<ActionRequest> request)
     if (request->getActionName() == "Browse")
     {
         upnp_action_Browse(request);
+    }
+    else if (request->getActionName() == "Search")
+    {
+        upnp_action_Search(request);
     }
     else if (request->getActionName() == "GetSearchCapabilities")
     {
