@@ -97,7 +97,7 @@ void WebRequestHandler::get_info(IN const char* filename, OUT UpnpFileInfo* info
 
     params->decode(parameters);
 
-    UpnpFileInfo_set_FileLength(info, -1); // length is unknown
+    UpnpFileInfo_set_FileLength(info, UPNP_UNTIL_CLOSE); // length is unknown
 
 #ifdef UPNP_OLD_SNAPSHOT
     time_t time = 0;
