@@ -112,7 +112,7 @@ void ConfigManager::init()
     String home = userhome + DIR_SEPARATOR + config_dir;
     bool home_ok = true;
 
-    if (filename == nullptr) {
+    if (!string_ok(filename)) {
         // No config file path provided, so lets find one.
         if (home_ok && (!check_path(userhome + DIR_SEPARATOR + config_dir + DIR_SEPARATOR + DEFAULT_CONFIG_NAME))) {
             home_ok = false;
@@ -126,11 +126,11 @@ void ConfigManager::init()
         }
     }
 
-    if (filename == nullptr) {
+    if (!string_ok(filename)) {
         throw _Exception(_("\nThe server configuration file could not be found in ~/.gerbera\n") + "Gerbera could not determine your home directory - automatic setup failed.\n" + "Try specifying an alternative configuration file on the command line.\n" + "For a list of options run: mediatomb -h\n");
     }
 
-    l->info("Loading configuration from: {}", filename.c_str());
+    l->info("Loading configuration from: '{}'", filename.c_str());
     load(filename);
 
     prepare_udn();
