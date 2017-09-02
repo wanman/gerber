@@ -149,7 +149,7 @@ ProcessIOHandler::ProcessIOHandler(String filename,
 /*
     if (mkfifo(filename.c_str(), O_RDWR) == -1)
     {
-        log_error("Failed to create fifo: %s\n", strerror(errno));
+        l->error("Failed to create fifo: %s\n", strerror(errno));
         killall();
         if (main_proc != nullptr)
             main_proc->kill();
@@ -227,7 +227,7 @@ int ProcessIOHandler::read(OUT char *buf, IN size_t length)
                     if (!main_ok)
                     {
                         exit_status = main_proc->getStatus();
-                        log_debug("process exited with status %d\n", exit_status);
+                        SPDLOG_TRACE(l, "process exited with status {}", exit_status);
                         killall();
                         if (exit_status == EXIT_SUCCESS)
                             return 0; 
@@ -251,7 +251,7 @@ int ProcessIOHandler::read(OUT char *buf, IN size_t length)
             timeout_count++;
             if (timeout_count > MAX_TIMEOUTS)
             {
-                log_debug("max timeouts, checking socket!\n");
+                SPDLOG_TRACE(l, "max timeouts, checking socket!\n");
                 return CHECK_SOCKET;
             }
         }
@@ -265,7 +265,7 @@ int ProcessIOHandler::read(OUT char *buf, IN size_t length)
 
             if (bytes_read < 0)
             {
-                log_debug("aborting read!!!\n");
+                SPDLOG_TRACE(l, "aborting read!!!\n");
                 return -1;
             }
 
@@ -346,7 +346,7 @@ int ProcessIOHandler::write(IN char *buf, IN size_t length)
                     if (!main_ok)
                     {
                         exit_status = main_proc->getStatus();
-                        log_debug("process exited with status %d\n", exit_status);
+                        SPDLOG_TRACE(l, "process exited with status {}", exit_status);
                         killall();
                         if (exit_status == EXIT_SUCCESS)
                             return 0; 
@@ -376,7 +376,7 @@ int ProcessIOHandler::write(IN char *buf, IN size_t length)
 
             if (bytes_written < 0)
             {
-                log_debug("aborting write!!!\n");
+                SPDLOG_TRACE(l, "aborting write!!!\n");
                 return -1;
             }
 
@@ -431,7 +431,7 @@ void ProcessIOHandler::close()
     bool ret;
    
 
-    log_debug("terminating process, closing %s\n", this->filename.c_str());
+    SPDLOG_TRACE(l, "terminating process, closing {}", this->filename.c_str());
     unregisterAll();
 
     if (main_proc != nullptr)

@@ -455,6 +455,9 @@ protected:
     friend void CMFetchOnlineContentTask::run();
 #endif
     friend void CMLoadAccountingTask::run();
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __CONTENT_MANAGER_H__

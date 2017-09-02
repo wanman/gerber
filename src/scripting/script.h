@@ -109,6 +109,8 @@ private:
     zmm::Ref<StringConverter> _f2i;
     zmm::Ref<StringConverter> _m2i;
     zmm::Ref<StringConverter> _i2i;
+
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __SCRIPTING_SCRIPT_H__

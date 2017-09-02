@@ -54,8 +54,9 @@ static Ref<RequestHandler> create_request_handler(const char* filename)
     String parameters;
     String link = url_unescape((char*)filename);
 
-    log_debug("Filename: %s, Path: %s\n", filename, path.c_str());
-    // log_debug("create_handler: got url parameters: [%s]\n", parameters.c_str());
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "Filename: {}, Path: {}", filename, path.c_str());
+    // SPDLOG_TRACE(l, "create_handler: got url parameters: [%s]\n", parameters.c_str());
 
     RequestHandler* ret = nullptr;
 
@@ -112,10 +113,10 @@ static int web_get_info(IN const char* filename, OUT UpnpFileInfo* info)
     } catch (const ServerShutdownException& se) {
         return -1;
     } catch (const SubtitlesNotFoundException& sex) {
-        log_info("%s\n", sex.getMessage().c_str());
+        spdlog::get("log")->info("{}", sex.getMessage().c_str());
         return -1;
     } catch (const Exception& e) {
-        log_error("%s\n", e.getMessage().c_str());
+        spdlog::get("log")->error("{}", e.getMessage().c_str());
         return -1;
     }
 
@@ -140,7 +141,8 @@ static int web_get_info(IN const char* filename, OUT UpnpFileInfo* info)
 static UpnpWebFileHandle web_open(IN const char* filename,
     IN enum UpnpOpenFileMode mode)
 {
-    log_debug("web_open(): %s\n", filename);
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "web_open(): {}", filename);
     String link = url_unescape((char*)filename);
 
     try {
@@ -151,10 +153,10 @@ static UpnpWebFileHandle web_open(IN const char* filename,
     } catch (const ServerShutdownException& se) {
         return nullptr;
     } catch (const SubtitlesNotFoundException& sex) {
-        log_info("%s\n", sex.getMessage().c_str());
+        l->info("{}", sex.getMessage().c_str());
         return nullptr;
     } catch (const Exception& ex) {
-        log_error("%s\n", ex.getMessage().c_str());
+        l->error("{}", ex.getMessage().c_str());
         return nullptr;
     }
 }
@@ -218,7 +220,7 @@ static int web_seek(IN UpnpWebFileHandle f, IN off_t offset, IN int whence)
         auto* handler = (IOHandler*)f;
         handler->seek(offset, whence);
     } catch (const Exception& e) {
-        log_error("web_seek(): Exception during seek: %s\n", e.getMessage().c_str());
+        spdlog::get("log")->error("web_seek(): Exception during seek: {}", e.getMessage().c_str());
         e.printStackTrace();
         return -1;
     }
@@ -240,7 +242,7 @@ static int web_close(IN UpnpWebFileHandle f)
     try {
         handler->close();
     } catch (const Exception& e) {
-        log_error("web_seek(): Exception during seek: %s\n", e.getMessage().c_str());
+        spdlog::get("log")->error("web_seek(): Exception during seek: {}", e.getMessage().c_str());
         e.printStackTrace();
         return -1;
     }

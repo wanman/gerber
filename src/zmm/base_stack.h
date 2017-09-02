@@ -32,6 +32,8 @@
 #ifndef __ZMMF_BASE_STACK_H__
 #define __ZMMF_BASE_STACK_H__
 
+#include "spdlog/spdlog.h"
+
 #include "zmm.h"
 #include "memory.h"
 
@@ -89,7 +91,7 @@ namespace zmm
                     capacity = requiredSize;
                 data = (T *)REALLOC(data, capacity * sizeof(T));
 #ifdef TOMBDEBUG
-                log_debug("resizing %d -> %d\n", oldCapacity, capacity);
+                spdlog::get("log")->debug("resizing {} -> {}", oldCapacity, capacity);
 #endif
             }
         }

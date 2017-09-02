@@ -77,17 +77,17 @@ void UpdateManager::init()
 
 void UpdateManager::shutdown()
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
     unique_lock<mutex_type> lock(mutex);
     shutdownFlag = true;
-    log_debug("signalling...\n");
+    SPDLOG_TRACE(l, "signalling...\n");
     cond.notify_one();
     lock.unlock();
-    log_debug("waiting for thread\n");
+    SPDLOG_TRACE(l, "waiting for thread\n");
     if (updateThread)
         pthread_join(updateThread, nullptr);
     updateThread = 0;
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void UpdateManager::containersChanged(Ref<IntArray> objectIDs, int flushPolicy)
@@ -113,13 +113,13 @@ void UpdateManager::containersChanged(Ref<IntArray> objectIDs, int flushPolicy)
         int objectID = objectIDs->get(i);
         if (objectID != lastContainerChanged)
         {
-            //log_debug("containerChanged. id: %d, signal: %d\n", objectID, signal);
+            //SPDLOG_TRACE(l, "containerChanged. id: %d, signal: %d\n", objectID, signal);
             objectIDHash->insert(objectID);
             if (split && objectIDHash->size() > MAX_OBJECT_IDS)
             {
                 while(objectIDHash->size() > MAX_OBJECT_IDS)
                 {
-                    log_debug("in-between signalling...\n");
+                    SPDLOG_TRACE(l, "in-between signalling...\n");
                     cond.notify_one();
                     lock.unlock();
                     lock.lock();
@@ -131,7 +131,7 @@ void UpdateManager::containersChanged(Ref<IntArray> objectIDs, int flushPolicy)
         signal = true;
     if (signal)
     {
-        log_debug("signalling...\n");
+        SPDLOG_TRACE(l, "signalling...\n");
         cond.notify_one();
     }
 }
@@ -146,7 +146,7 @@ void UpdateManager::containerChanged(int objectID, int flushPolicy)
         // signalling thread if it could have been idle, because 
         // there were no unprocessed updates
         bool signal = (! haveUpdates());
-        log_debug("containerChanged. id: %d, signal: %d\n", objectID, signal);
+        SPDLOG_TRACE(l, "containerChanged. id: {}, signal: {}", objectID, signal);
         objectIDHash->insert(objectID);
         
         // signalling if the hash gets too full
@@ -165,13 +165,13 @@ void UpdateManager::containerChanged(int objectID, int flushPolicy)
         }
         if (signal)
         {
-            log_debug("signalling...\n");
+            SPDLOG_TRACE(l, "signalling...\n");
             cond.notify_one();
         }
     }
     else
     {
-        log_debug("last container changed!\n");
+        SPDLOG_TRACE(l, "last container changed!\n");
     }
 }
 
@@ -206,7 +206,7 @@ void UpdateManager::threadProc()
             {
                 struct timespec timeout;
                 getTimespecAfterMillis(sleepMillis, &timeout, &now);
-                log_debug("threadProc: sleeping for %ld millis\n", sleepMillis);
+                SPDLOG_TRACE(l, "threadProc: sleeping for %ld millis\n", sleepMillis);
                 
                 cv_status ret = cond.wait_for(lock, chrono::milliseconds(sleepMillis));
                 
@@ -221,7 +221,7 @@ void UpdateManager::threadProc()
             
             if (sendUpdates)
             {
-                log_debug("sending updates...\n");
+                SPDLOG_TRACE(l, "sending updates...\n");
                 lastContainerChanged = INVALID_OBJECT_ID;
                 flushPolicy = FLUSH_SPEC;
                 String updateString;
@@ -234,8 +234,8 @@ void UpdateManager::threadProc()
                 catch (const Exception & e)
                 {
                     e.printStackTrace();
-                    log_error("Fatal error when sending updates: %s\n", e.getMessage().c_str());
-                    log_error("Forcing MediaTomb shutdown.\n");
+                    l->error("Fatal error when sending updates: {}", e.getMessage().c_str());
+                    l->error("Forcing MediaTomb shutdown.\n");
                     kill(0, SIGINT);
                 }
                 lock.unlock(); // we don't need to hold the lock during the sending of the updates
@@ -244,19 +244,19 @@ void UpdateManager::threadProc()
                     try
                     {
                     ContentDirectoryService::getInstance()->subscription_update(updateString);
-                    log_debug("updates sent.\n");
+                    SPDLOG_TRACE(l, "updates sent.\n");
                     getTimespecNow(&lastUpdate);
                     }
                     catch (const Exception & e)
                     {
-                        log_error("Fatal error when sending updates: %s\n", e.getMessage().c_str());
-                        log_error("Forcing MediaTomb shutdown.\n");
+                        l->error("Fatal error when sending updates: {}", e.getMessage().c_str());
+                        l->error("Forcing MediaTomb shutdown.\n");
                         kill(0, SIGINT);
                     }
                 }
                 else
                 {
-                    log_debug("NOT sending updates (string empty or invalid).\n");
+                    SPDLOG_TRACE(l, "NOT sending updates (string empty or invalid).\n");
                 }
                 lock.lock();
             }
@@ -271,11 +271,12 @@ void UpdateManager::threadProc()
 
 void *UpdateManager::staticThreadProc(void *arg)
 {
-    log_debug("starting update thread... thread: %d\n", pthread_self());
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "starting update thread... thread: {}", pthread_self());
     auto *inst = (UpdateManager *)arg;
     inst->threadProc();
     Storage::getInstance()->threadCleanup();
     
-    log_debug("update thread shut down. thread: %d\n", pthread_self());
+    SPDLOG_TRACE(l, "update thread shut down. thread: {}", pthread_self());
     return nullptr;
 }

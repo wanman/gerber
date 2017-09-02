@@ -69,6 +69,9 @@ protected:
     void threadProc();
 
     inline bool haveUpdates() { return (objectIDHash->size() > 0); }
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __UPDATE_MANAGER_H__

@@ -94,6 +94,8 @@ bool StringConverter::validate(String str)
 zmm::String StringConverter::_convert(String str, bool validate,
                                       size_t *stoppedAt)
 {
+    auto l = spdlog::get("log");
+
     String ret_str;
 
     int buf_size = str.length() * 4;
@@ -102,7 +104,7 @@ zmm::String StringConverter::_convert(String str, bool validate,
     auto *output = (char *)MALLOC(buf_size);
     if (!output)
     {
-        log_debug("Could not allocate memory for string conversion!\n");
+        spdlog::get("log")->error("Could not allocate memory for string conversion!\n");
         throw _Exception(_("Could not allocate memory for string conversion!"));
     }
 
@@ -124,7 +126,7 @@ zmm::String StringConverter::_convert(String str, bool validate,
         dirty = false;
     }
     
-    //log_debug(("iconv: BEFORE: input bytes left: %d  output bytes left: %d\n",
+    //l->debug(("iconv: BEFORE: input bytes left: %d  output bytes left: %d\n",
     //       input_bytes, output_bytes));
 #if defined(ICONV_CONST) || defined(SOLARIS)
     ret = iconv(cd, input_ptr, &input_bytes,
@@ -136,16 +138,16 @@ zmm::String StringConverter::_convert(String str, bool validate,
 
     if (ret == -1)
     {
-        log_error("iconv: %s\n", strerror(errno));
+        l->error("iconv: {}", strerror(errno));
         String err;
         switch (errno)
         {
             case EILSEQ:
             case EINVAL:
                 if (errno == EILSEQ)
-                    log_error("iconv: %s could not be converted to new encoding: invalid character sequence!\n", str.c_str());
+                    l->error("iconv: {} could not be converted to new encoding: invalid character sequence!", str.c_str());
                 else
-                    log_error("iconv: Incomplete multibyte sequence\n");
+                    l->error("iconv: Incomplete multibyte sequence\n");
                 if (validate)
                     throw _Exception(err);
 
@@ -166,18 +168,18 @@ zmm::String StringConverter::_convert(String str, bool validate,
                 break;
         }
         *output_copy = 0;
-        log_error("%s\n", err.c_str());
-//        log_debug("iconv: input: %s\n", input);
-//        log_debug("iconv: converted part:  %s\n", output);
+        l->error("{}", err.c_str());
+//        SPDLOG_TRACE(l, "iconv: input: %s\n", input);
+//        SPDLOG_TRACE(l, "iconv: converted part:  %s\n", output);
         dirty = true;
         if (output)
             FREE(output);
         throw _Exception(err);
     }
    
-    //log_debug("iconv: AFTER: input bytes left: %d  output bytes left: %d\n",
+    //l->debug("iconv: AFTER: input bytes left: %d  output bytes left: %d\n",
     //       input_bytes, output_bytes);
-    //log_debug("iconv: returned %d\n", ret);
+    //SPDLOG_TRACE(l, "iconv: returned %d\n", ret);
 
     ret_str = String(output, output_copy - output);
     FREE(output);

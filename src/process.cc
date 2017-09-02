@@ -50,6 +50,7 @@ using namespace zmm;
 
 String run_simple_process(String prog, String param, String input)
 {
+    auto l = spdlog::get("log");
     FILE *file;
     int fd;
 
@@ -62,7 +63,7 @@ String run_simple_process(String prog, String param, String input)
     fd = open(input_file.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     if (fd == -1)
     {
-        log_debug("Failed to open input file %s: %s\n", input_file.c_str(),
+        l->debug("Failed to open input file {}: {}", input_file.c_str(),
                   strerror(errno));
         throw _Exception(_("Failed to open input file ") + input_file +_(" ") + 
                          strerror(errno));
@@ -72,7 +73,7 @@ String run_simple_process(String prog, String param, String input)
     if (ret < input.length())
     {
 
-        log_debug("Failed to write to %s: %s\n", input.c_str(), 
+        l->debug("Failed to write to {}: {}", input.c_str(),
                    strerror(errno));
         throw _Exception(_("Failed to write to ") + input + ": " + 
                          strerror(errno));
@@ -83,7 +84,7 @@ String run_simple_process(String prog, String param, String input)
     fd = open(output_file.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     if (fd == -1)
     {
-        log_debug("Failed to open output file %s: %s\n", output_file.c_str(),
+        l->debug("Failed to open output file {}: {}", output_file.c_str(),
                   strerror(errno));
         throw _Exception(_("Failed to open output file ")+ input_file +_(" ") + 
                          strerror(errno));
@@ -93,11 +94,11 @@ String run_simple_process(String prog, String param, String input)
     /* executing script */
     String command = prog + " " + param + " < " + input_file + 
                                           " > " + output_file;
-    log_debug("running %s\n", command.c_str());
+    SPDLOG_TRACE(l, "running {}", command.c_str());
     int sysret = system(command.c_str());
     if (sysret == -1)
     {
-        log_debug("Failed to execute: %s\n", command.c_str());
+        SPDLOG_TRACE(l, "Failed to execute: {}", command.c_str());
         throw _Exception(_("Failed to execute: ") + command);
     }
 
@@ -105,7 +106,7 @@ String run_simple_process(String prog, String param, String input)
     file = fopen(output_file.c_str(), "r");
     if (!file)
     {
-        log_debug("Could not open output file %s: %s\n", output_file.c_str(),
+        l->debug("Could not open output file {}: {}", output_file.c_str(),
                 strerror(errno));
         throw _Exception(_("Failed to open output file ")+output_file +_(" ") + 
                 strerror(errno));
@@ -142,9 +143,10 @@ bool is_alive(pid_t pid, int *status)
 
 bool kill_proc(pid_t kill_pid)
 {
+    auto l = spdlog::get("log");
     if (is_alive(kill_pid))
     {
-        log_debug("KILLING TERM PID: %d\n", kill_pid);
+        SPDLOG_TRACE(l, "KILLING TERM PID: {}", kill_pid);
         kill(kill_pid, SIGTERM);
         sleep(1);
     }
@@ -153,7 +155,7 @@ bool kill_proc(pid_t kill_pid)
 
     if (is_alive(kill_pid))
     {
-        log_debug("KILLING INT PID: %d\n", kill_pid);
+        SPDLOG_TRACE(l, "KILLING INT PID: {}", kill_pid);
         kill(kill_pid, SIGINT);
         sleep(1);
     }
@@ -162,7 +164,7 @@ bool kill_proc(pid_t kill_pid)
 
     if (is_alive(kill_pid))
     {
-        log_debug("KILLING KILL PID: %d\n", kill_pid);
+        SPDLOG_TRACE(l, "KILLING KILL PID: {}", kill_pid);
         kill(kill_pid, SIGKILL);
         sleep(1);
     }

@@ -254,6 +254,8 @@ private:
     int insertBufferStatementCount;
     int insertBufferByteCount;
     using AutoLock = std::lock_guard<std::mutex>;
+
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __SQL_STORAGE_H__

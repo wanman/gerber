@@ -362,7 +362,6 @@ String generate_random_id()
     uuid_unparse(uuid, uuid_str);
 #endif
 
-    log_debug("Generated: %s\n", uuid_str);
     String uuid_String = String(uuid_str);
 #ifdef BSD
     free(uuid_str);
@@ -697,7 +696,7 @@ int HMSToSeconds(String time)
 {
     if (!string_ok(time))
     {
-        log_warning("Could not convert time representation to seconds!\n");
+        spdlog::get("log")->warn("Could not convert time representation to seconds!\n");
         return 0;
     }
 
@@ -718,7 +717,7 @@ String get_mime_type(magic_set *ms, Ref<RExp> reMimetype, String file)
     auto *mt = (char *)magic_file(ms, file.c_str());
     if (mt == nullptr)
     {
-        log_error("magic_file: %s\n", magic_error(ms));
+        spdlog::get("log")->error("magic_file: {}", magic_error(ms));
         return nullptr;
     }
 
@@ -728,7 +727,7 @@ String get_mime_type(magic_set *ms, Ref<RExp> reMimetype, String file)
     if (matcher->next())
         return matcher->group(1);
 
-    log_warning("filemagic returned invalid mimetype for %s\n%s\n",
+    spdlog::get("log")->warn("filemagic returned invalid mimetype for {}\n{}",
                 file.c_str(), mt);
     return nullptr;
 }
@@ -736,13 +735,14 @@ String get_mime_type(magic_set *ms, Ref<RExp> reMimetype, String file)
 String get_mime_type_from_buffer(magic_set *ms, Ref<RExp> reMimetype, 
                                  const void *buffer, size_t length)
 {
+    auto l = spdlog::get("log");
     if (ms == nullptr)
         return nullptr;
 
     auto *mt = (char *)magic_buffer(ms, buffer, length);
     if (mt == nullptr)
     {
-        log_error("magic_file: %s\n", magic_error(ms));
+        l->error("magic_file: {}", magic_error(ms));
         return nullptr;
     }
 
@@ -752,7 +752,7 @@ String get_mime_type_from_buffer(magic_set *ms, Ref<RExp> reMimetype,
     if (matcher->next())
         return matcher->group(1);
 
-    log_warning("filemagic returned invalid mimetype for the given buffer%s\n", mt);
+    l->warn("filemagic returned invalid mimetype for the given buffer{}", mt);
     return nullptr;
 }
 #endif 
@@ -1058,12 +1058,13 @@ void getTimespecAfterMillis(long delta, struct timespec *ret, struct timespec *s
         ret->tv_nsec -= 1000000000;
     }
     
-    // log_debug("timespec: sec: %ld, nsec: %ld\n", ret->tv_sec, ret->tv_nsec);
+    // SPDLOG_TRACE(l, "timespec: sec: %ld, nsec: %ld\n", ret->tv_sec, ret->tv_nsec);
 }
 
 String normalizePath(String path)
 {
-    log_debug("Normalizing path: %s\n", path.c_str());
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "Normalizing path: {}", path.c_str());
     
     int length = path.length();
     
@@ -1127,68 +1128,12 @@ String normalizePath(String path)
     return String(result);
 }
 
-String interfaceToIP(String interface)
-{
-
-    struct if_nameindex *iflist = nullptr;
-    struct if_nameindex *iflist_free = nullptr;
-    struct ifreq if_request;
-    struct sockaddr_in local_address;
-    int local_socket;
-
-    if (!string_ok(interface))
-            return nullptr;
-
-    local_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (local_socket < 0)
-    {
-        log_error("Could not create local socket: %s\n", 
-                  mt_strerror(errno).c_str());
-        return nullptr;
-    }
-
-    iflist = iflist_free = if_nameindex();
-    if (iflist == nullptr)
-    {
-        log_error("Could not get interface list: %s\n", 
-                  mt_strerror(errno).c_str());
-        close(local_socket);
-        return nullptr;
-    }
-
-    while (iflist->if_index || iflist->if_name)
-    {
-        if (interface == iflist->if_name)
-        {
-            strncpy(if_request.ifr_name, iflist->if_name, IF_NAMESIZE);
-            if (ioctl(local_socket, SIOCGIFADDR, &if_request) != 0)
-            {
-                log_error("Could not determine interface address: %s\n", 
-                          mt_strerror(errno).c_str());
-                close(local_socket);
-                if_freenameindex(iflist_free);
-                return nullptr;
-            }
-
-            memcpy(&local_address, &if_request.ifr_addr, sizeof(if_request.ifr_addr));
-            String ip = inet_ntoa(local_address.sin_addr);
-            if_freenameindex(iflist_free);
-            close(local_socket);
-            return ip;
-        }
-        iflist++;
-    }
-
-    close(local_socket);
-    if_freenameindex(iflist_free);
-    return nullptr;
-}
-
 String ipToInterface(String ip) {
+    auto l = spdlog::get("log");
     if (!string_ok(ip)) {
         return nullptr;
     } else {
-        log_debug("Looking for '%s'\n", ip.c_str());
+        SPDLOG_TRACE(l, "Looking for '{}'", ip.c_str());
     }
 
     struct ifaddrs *ifaddr, *ifa;
@@ -1196,7 +1141,7 @@ String ipToInterface(String ip) {
     char host[NI_MAXHOST];
 
     if (getifaddrs(&ifaddr) == -1) {
-        log_error("Could not getifaddrs: %s\n", mt_strerror(errno).c_str());
+        l->error("Could not getifaddrs: {}", mt_strerror(errno).c_str());
     }
 
     for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) {
@@ -1211,7 +1156,7 @@ String ipToInterface(String ip) {
                     (family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6),
                     host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
             if (s != 0) {
-                log_error("getnameinfo() failed: %s\n", gai_strerror(s));
+                l->error("getnameinfo() failed: {}", gai_strerror(s));
                 return nullptr;
             }
 
@@ -1224,7 +1169,7 @@ String ipToInterface(String ip) {
     }
 
     freeifaddrs(ifaddr);
-    log_warning("Failed to find interface for IP: %s\n", ip.c_str());
+    l->warn("Failed to find interface for IP: {}", ip.c_str());
     return nullptr;
 }
 
@@ -1528,7 +1473,7 @@ void profiling_thread_check(struct profiling_t *data)
 {
     if (data->thread != pthread_self())
     {
-        log_debug("profiling_..() called from a different thread than profiling_init was called! (init: %d; this: %d) - aborting...\n", data->thread, pthread_self());
+        spdlog::get("log")->debug("profiling_..() called from a different thread than profiling_init was called! (init: {}; this: {}) - aborting...", data->thread, pthread_self());
         print_backtrace();
         abort();
         return;
@@ -1541,7 +1486,7 @@ void profiling_start(struct profiling_t *data)
     profiling_thread_check(data);
     if (data->running)
     {
-        log_debug("profiling_start() called on an already running profile! - aborting...\n");
+        spdlog::get("log")->debug("profiling_start() called on an already running profile! - aborting...\n");
         print_backtrace();
         abort();
         return;
@@ -1552,12 +1497,13 @@ void profiling_start(struct profiling_t *data)
 
 void profiling_end(struct profiling_t *data)
 {
+    auto l = spdlog::get("log");
     profiling_thread_check(data);
     struct timespec now;
     getTimespecNow(&now);
     if (! data->running)
     {
-        log_debug("profiling_end() called on a not-running profile! - aborting...\n");
+        SPDLOG_TRACE(l, "profiling_end() called on a not-running profile! - aborting...\n");
         print_backtrace();
         abort();
         return;
@@ -1565,11 +1511,11 @@ void profiling_end(struct profiling_t *data)
     struct timespec *sum = &(data->sum);
     struct timespec *last_start = &(data->last_start);
     sum->tv_sec += now.tv_sec - last_start->tv_sec;
-    //log_debug("!!!!!! adding %d sec\n", now.tv_sec - last_start->tv_sec);
+    //SPDLOG_TRACE(l, "!!!!!! adding %d sec\n", now.tv_sec - last_start->tv_sec);
     if (now.tv_nsec >= last_start->tv_nsec)
     {
         sum->tv_nsec += now.tv_nsec - last_start->tv_nsec;
-        //log_debug("adding %ld nsec\n", now.tv_nsec - last_start->tv_nsec);
+        //SPDLOG_TRACE(l, "adding %ld nsec\n", now.tv_nsec - last_start->tv_nsec);
     }
     else
     {
@@ -1587,15 +1533,16 @@ void profiling_end(struct profiling_t *data)
 
 void profiling_print(struct profiling_t *data)
 {
+    auto l = spdlog::get("log");
     if (data->running)
     {
-        log_debug("profiling_print() called on running profile! - aborting...\n");
+        SPDLOG_TRACE(l, "profiling_print() called on running profile! - aborting...\n");
         print_backtrace();
         abort();
         return;
     }
-    //log_debug("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nPROFILING: took %ld sec %ld nsec thread %u\n", data->sum.tv_sec, data->sum.tv_nsec, pthread_self());
-    log_debug("PROFILING: took %ld sec %ld nsec\n", data->sum.tv_sec, data->sum.tv_nsec);
+    //SPDLOG_TRACE(l, "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nPROFILING: took %ld sec %ld nsec thread %u\n", data->sum.tv_sec, data->sum.tv_nsec, pthread_self());
+    SPDLOG_TRACE(l, "PROFILING: took %ld sec %ld nsec\n", data->sum.tv_sec, data->sum.tv_nsec);
 }
 
 #endif
@@ -1612,7 +1559,7 @@ int find_local_port(unsigned short range_min, unsigned short range_max)
 
     if (range_min > range_max)
     {
-        log_error("min port range > max port range!\n");
+        l->error("min port range > max port range!\n");
         return -1;
     }
 
@@ -1624,15 +1571,15 @@ int find_local_port(unsigned short range_min, unsigned short range_max)
         fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd < 0)
         {
-            log_error("could not determine free port: "
-                      "error creating socket (%s)\n", mt_strerror(errno).c_str());
+            l->error("could not determine free port: "
+                      "error creating socket ({})", mt_strerror(errno).c_str());
             return -1;
         }
 
         server = gethostbyname("127.0.0.1");
         if (server == NULL)
         {
-            log_error("could not resolve localhost\n");
+            l->error("could not resolve localhost\n");
             close(fd);
             return -1;
         }
@@ -1653,7 +1600,7 @@ int find_local_port(unsigned short range_min, unsigned short range_max)
 
     } while (retry_count < USHRT_MAX);
 
-    log_error("Could not find free port on localhost\n");
+    l->error("Could not find free port on localhost\n");
 
     return -1;
 }

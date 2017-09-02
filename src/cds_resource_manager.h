@@ -85,6 +85,8 @@ protected:
     /// \brief renders an ext=.extension string, where the extension is 
     /// determined either from content type or from the filename
     static zmm::String renderExtension(zmm::String contentType, zmm::String location);
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __CDS_RESOURCE_MANAGER_H__

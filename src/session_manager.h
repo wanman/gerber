@@ -130,7 +130,7 @@ public:
 
     zmm::String getName() override { return _("Session Manager"); }
     
-    virtual ~SessionManager() override { log_debug("SessionManager destroyed\n"); }
+    virtual ~SessionManager() override { SPDLOG_TRACE(l, "SessionManager destroyed\n"); }
     
     /// \brief Creates a Session with a given timeout.
     /// \param timeout Session timeout in milliseconds.
@@ -155,6 +155,9 @@ public:
     void containerChangedUI(zmm::Ref<zmm::IntArray> objectIDs);
     
     virtual void timerNotify(zmm::Ref<Timer::Parameter> parameter) override;
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif //  __SESSION_MANAGER_H__

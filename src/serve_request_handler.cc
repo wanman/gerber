@@ -50,12 +50,13 @@ void ServeRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *in
     int ret = 0;
     int len = 0;
 
-    log_debug("got filename: %s\n", filename);
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "got filename: {}", filename);
     
     String url_path, parameters;
     split_url(filename, URL_PARAM_SEPARATOR, url_path, parameters);
 
-    log_debug("url_path: %s, parameters: %s\n", url_path.c_str(), parameters.c_str());
+    SPDLOG_TRACE(l, "url_path: {}, parameters: {}", url_path.c_str(), parameters.c_str());
 
     len = (_("/") + SERVER_VIRTUAL_DIR + _("/") + CONTENT_SERVE_HANDLER).length();
 
@@ -70,7 +71,7 @@ void ServeRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *in
                     + url_path.substring(len, url_path.length()) + 
                     _("/") + parameters;
    
-    log_debug("Constructed new path: %s\n", path.c_str());
+    SPDLOG_TRACE(l, "Constructed new path: {}", path.c_str());
     
     ret = stat(path.c_str(), &statbuf);
     if (ret != 0)
@@ -88,7 +89,7 @@ void ServeRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *in
         {
             if (magic_load(ms, nullptr) == -1)
             {
-                log_warning("magic_load: %s\n", magic_error(ms));
+                l->warn("magic_load: {}", magic_error(ms));
                 magic_close(ms);
                 ms = nullptr;
             } 
@@ -150,7 +151,7 @@ Ref<IOHandler> ServeRequestHandler::open(IN const char *filename,
     String url_path, parameters;
     split_url(filename, URL_PARAM_SEPARATOR, url_path, parameters);
 
-    log_debug("url_path: %s, parameters: %s\n", url_path.c_str(), parameters.c_str());
+    SPDLOG_TRACE(l, "url_path: {}, parameters: {}", url_path.c_str(), parameters.c_str());
 
     len = (_("/") + SERVER_VIRTUAL_DIR + _("/") + CONTENT_SERVE_HANDLER).length();
 
@@ -164,7 +165,7 @@ Ref<IOHandler> ServeRequestHandler::open(IN const char *filename,
                   + url_path.substring(len, url_path.length()) + 
                     _("/") + parameters;
 
-    log_debug("Constructed new path: %s\n", path.c_str());
+    SPDLOG_TRACE(l, "Constructed new path: {}", path.c_str());
     ret = stat(path.c_str(), &statbuf);
     if (ret != 0)
     {
@@ -181,7 +182,7 @@ Ref<IOHandler> ServeRequestHandler::open(IN const char *filename,
         {
             if (magic_load(ms, nullptr) == -1)
             {
-                log_warning("magic_load: %s\n", magic_error(ms));
+                l->warn("magic_load: {}", magic_error(ms));
                 magic_close(ms);
                 ms = nullptr;
             }

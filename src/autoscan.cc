@@ -81,7 +81,7 @@ void AutoscanList::updateLMinDB()
 {
     AutoLock lock(mutex);
     for (int i = 0; i < list->size(); i++) {
-        log_debug("i: %d\n", i);
+        SPDLOG_TRACE(l, "i: {}", i);
         Ref<AutoscanDirectory> ad = list->get(i);
         if (ad != nullptr)
             Storage::getInstance()->autoscanUpdateLM(ad);
@@ -180,7 +180,7 @@ void AutoscanList::remove(int id)
     AutoLock lock(mutex);
 
     if ((id < 0) || (id >= list->size())) {
-        log_debug("No such ID %d!\n", id);
+        SPDLOG_TRACE(l, "No such ID {}!", id);
         return;
     }
 
@@ -193,7 +193,7 @@ void AutoscanList::remove(int id)
         list->set(nullptr, id);
     }
 
-    log_debug("ID %d removed!\n", id);
+    SPDLOG_TRACE(l, "ID {} removed!", id);
 }
 
 int AutoscanList::removeByObjectID(int objectID)

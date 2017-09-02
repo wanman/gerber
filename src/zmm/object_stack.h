@@ -52,7 +52,7 @@ namespace zmm
             Object *obj;
             while(NULL != (obj = BaseStack<Object *>::pop()))
             {
-                log_debug("releasing!\n");
+                spdlog::get("log")->debug("releasing!\n");
                 obj->release();
             }
         }

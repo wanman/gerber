@@ -46,6 +46,8 @@ public:
             IN const char *filename,
             IN enum UpnpOpenFileMode mode,
             IN zmm::String range);
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 

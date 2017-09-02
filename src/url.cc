@@ -48,6 +48,8 @@ Ref<StringBuffer> URL::download(String URL, long *HTTP_retcode,
                                 CURL *curl_handle, bool only_header, 
                                 bool verbose, bool redirect)
 {
+    auto l = spdlog::get("log");
+
     CURLcode res;
     bool cleanup = false;
     char error_buffer[CURL_ERROR_SIZE] = {'\0'};
@@ -108,7 +110,7 @@ Ref<StringBuffer> URL::download(String URL, long *HTTP_retcode,
     res = curl_easy_perform(curl_handle);
     if (res != CURLE_OK)
     {
-        log_error("%s\n", error_buffer);
+        l->error("{}", error_buffer);
         if (cleanup)
             curl_easy_cleanup(curl_handle);
         throw _Exception(error_buffer);
@@ -117,7 +119,7 @@ Ref<StringBuffer> URL::download(String URL, long *HTTP_retcode,
     res = curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, HTTP_retcode);
     if (res != CURLE_OK)
     {
-        log_error("%s\n", error_buffer);
+        l->error("{}", error_buffer);
         if (cleanup)
             curl_easy_cleanup(curl_handle);
         throw _Exception(error_buffer);
@@ -180,7 +182,7 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
     else
         mt = _(MIMETYPE_DEFAULT);
 
-    log_debug("Extracted content type: %s\n", mt.c_str());
+    SPDLOG_TRACE(l, "Extracted content type: %s\n", mt.c_str());
 
     Ref<RExp> getCL(new RExp());
 
@@ -206,7 +208,7 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
     res = curl_easy_getinfo(curl_handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &cl);
     if (res != CURLE_OK)
     {
-        log_error("%s\n", error_buffer);
+        l->error("{}", error_buffer);
         if (cleanup)
             curl_easy_cleanup(curl_handle);
         throw _Exception(error_buffer);
@@ -215,7 +217,7 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
     res = curl_easy_getinfo(curl_handle, CURLINFO_CONTENT_TYPE, &ct);
     if (res != CURLE_OK)
     {
-        log_error("%s\n", error_buffer);
+        l->error("{}", error_buffer);
         if (cleanup)
             curl_easy_cleanup(curl_handle);
         throw _Exception(error_buffer);
@@ -226,12 +228,12 @@ Ref<URL::Stat> URL::getInfo(String URL, CURL *curl_handle)
     else
         mt = ct;
     
-    log_debug("Extracted content length: %lld\n", (long long)cl);
+    SPDLOG_TRACE(l, "Extracted content length: %lld\n", (long long)cl);
 
     res = curl_easy_getinfo(curl_handle, CURLINFO_EFFECTIVE_URL, &c_url);
     if (res != CURLE_OK)
     {
-        log_error("%s\n", error_buffer);
+        l->error("{}", error_buffer);
         if (cleanup)
             curl_easy_cleanup(curl_handle);
         throw _Exception(error_buffer);

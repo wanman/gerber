@@ -45,7 +45,7 @@ web::remove::remove() : WebRequestHandler()
 
 void web::remove::process()
 {
-    log_debug("remove: start\n");
+    SPDLOG_TRACE(l, "remove: start");
     
     check_request();
     
@@ -54,5 +54,5 @@ void web::remove::process()
     
     ContentManager::getInstance()->removeObject(objectID, true, all);
     
-    log_debug("remove: returning\n");
+    SPDLOG_TRACE(l, "remove: returning\n");
 }

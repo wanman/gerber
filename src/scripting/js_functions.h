@@ -55,7 +55,7 @@ duk_ret_t js_p2i(duk_context *ctx);
 /// js charset to internal
 duk_ret_t js_j2i(duk_context *ctx);
 
-#define log_debug_stack(ctx) do{duk_push_context_dump(ctx);log_debug("%s\n", duk_safe_to_string(ctx, -1));duk_pop(ctx);}while(0)
+#define log_debug_stack(ctx) do{duk_push_context_dump(ctx);SPDLOG_TRACE(l, "%s\n", duk_safe_to_string(ctx, -1));duk_pop(ctx);}while(0)
 } // extern "C"
 
 #endif//__SCRIPTING_JS_FUNCTIONS_H__

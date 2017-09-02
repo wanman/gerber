@@ -202,7 +202,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
         /// and to not store it permanently
         if (!string_ok(temp))
         {
-            log_warning("Failed to retrieve YouTube video ID\n");
+            l->warn("Failed to retrieve YouTube video ID\n");
             continue;
         }
             
@@ -225,7 +225,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
         {
             datebuf[0] = '\0';
             // Tue, 18 Jul 2006 17:43:47 +0000
-            if (strptime(temp.c_str(),  "%a, %d %b %Y %T +000", &t) != nullptr)
+            if (strptime(temp.c_str(),  "%a, {} %b %Y %T +000", &t) != nullptr)
             {
                 if (strftime(datebuf, sizeof(datebuf), "%F", &t) != 0)
                 {
@@ -320,7 +320,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
 
                 if (temp.substring(temp.length()-3) != "jpg")
                 {
-                    log_warning("Found new YouTube thumbnail image type, please report this to contact at mediatomb dot cc! [%s]\n", temp.c_str());
+                    l->warn("Found new YouTube thumbnail image type, please report this to contact at mediatomb dot cc! [{}]", temp.c_str());
                     continue;
                 }
 
@@ -383,7 +383,7 @@ Ref<CdsObject> YouTubeContentHandler::getNextObject()
         }
         catch (const Exception & ex)
         {
-            log_warning("Failed to validate newly created YouTube item: %s\n",
+            l->warn("Failed to validate newly created YouTube item: {}",
                         ex.getMessage().c_str());
             continue;
         }

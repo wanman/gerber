@@ -184,6 +184,9 @@ protected:
     // subrequests are spawned as one time tasks, they are removed from the 
     // task list after one time execution - this function takes care of it
     void killOneTimeTasks(zmm::Ref<zmm::Array<zmm::Object> > tasklist);
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif//__ONLINE_SERVICE_H__

@@ -280,16 +280,10 @@ void getTimespecAfterMillis(long delta, struct timespec *ret, struct timespec *s
 /// thrown.
 zmm::String normalizePath(zmm::String path);
 
-/// \brief Finds the IP address of the specified network interface.
-/// \param interface i.e. eth0, lo, etc.
-/// \return IP address or nullptr if interface was not found.
-zmm::String interfaceToIP(zmm::String interface);
-
 /// \brief Finds the Interface with the specified IP address.
 /// \param ip i.e. 192.168.4.56.
 /// \return Interface name or nullptr if IP was not found.
 zmm::String ipToInterface(zmm::String interface);
-
 
 /// \brief Returns true if the given string is eitehr "yes" or "no", otherwise
 /// returns false.

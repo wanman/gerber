@@ -43,7 +43,7 @@ web::containers::containers() : WebRequestHandler()
 
 void web::containers::process()
 {
-    log_debug(("containers.cc: containers::process()\n"));
+    spdlog::get("log")->debug(("containers.cc: containers::process()\n"));
     check_request();
     
     int parentID = intParam(_("parent_id"), INVALID_OBJECT_ID);

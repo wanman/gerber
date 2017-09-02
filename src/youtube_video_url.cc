@@ -92,9 +92,9 @@ String YouTubeVideoURL::getVideoURL(String video_id, bool mp4, bool hd)
     {
         String hmm = m2->group(1);
         if (string_ok(hmm))
-            log_debug("############### t: %s\n", hmm.c_str());
+            SPDLOG_TRACE(l, "############### t: %s\n", hmm.c_str());
         else 
-            log_debug("no match?\n");
+            SPDLOG_TRACE(l, "no match?\n");
     }
     throw _Exception(_("OVER"));
 */
@@ -161,14 +161,15 @@ String YouTubeVideoURL::getVideoURL(String video_id, bool mp4, bool hd)
         {
         }
 
-       log_debug("------> GOT BUFFER %s\n", buffery);
-       String result = _(buffery);
+        auto l = spdlog::get("log");
+        SPDLOG_TRACE(l, "------> GOT BUFFER {}", buffery);
+        String result = _(buffery);
 
-       result = trim_string(result);
+        result = trim_string(result);
 
-       log_debug("------> GOT BUFFER (after trimming) %s\n", result.c_str());
+        SPDLOG_TRACE(l, "------> GOT BUFFER (after trimming) {}", result.c_str());
 
-       return result;
+        return result;
     }
 }
 

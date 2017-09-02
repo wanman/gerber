@@ -33,7 +33,7 @@ void TaskProcessor::init()
 
 void TaskProcessor::shutdown()
 {
-    log_debug("Shutting down TaskProcessor\n");
+    SPDLOG_TRACE(l, "Shutting down TaskProcessor\n");
     shutdownFlag = true;
     cond.notify_one();
     if (taskThread)
@@ -82,7 +82,7 @@ void TaskProcessor::threadProc()
         }
         catch (const Exception & e)
         {
-            log_error("Exception caught: %s\n", e.getMessage().c_str());
+            l->error("Exception caught: {}", e.getMessage().c_str());
             e.printStackTrace();
         }
 
@@ -182,9 +182,10 @@ TPFetchOnlineContentTask::TPFetchOnlineContentTask(Ref<OnlineService> service,
 
 void TPFetchOnlineContentTask::run()
 {
+    auto l = spdlog::get("log");
     if (this->service == nullptr)
     {
-        log_debug("No service specified\n");
+        SPDLOG_TRACE(l, "No service specified\n");
         return;
     }
 
@@ -193,7 +194,7 @@ void TPFetchOnlineContentTask::run()
         //cm->_fetchOnlineContent(service, getParentID(), unscheduled_refresh);
         if (service->refreshServiceData(layout) && (isValid()))
         {
-            log_debug("Scheduling another task for online service: %s\n",
+            l->debug("Scheduling another task for online service: {}",
                     service->getServiceName().c_str());
 
             if ((service->getRefreshInterval() > 0) || unscheduled_refresh)
@@ -209,7 +210,7 @@ void TPFetchOnlineContentTask::run()
     }
     catch (const Exception & ex)
     {
-        log_error("%s\n", ex.getMessage().c_str());
+        l->error("{}", ex.getMessage().c_str());
     }
     service->decTaskCount();
     if (service->getTaskCount() == 0)

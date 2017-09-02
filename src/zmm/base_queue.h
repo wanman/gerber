@@ -32,6 +32,7 @@
 #ifndef __ZMMF_BASE_QUEUE_H__
 #define __ZMMF_BASE_QUEUE_H__
 
+#include "spdlog/spdlog.h"
 #include "zmm.h"
 
 namespace zmm
@@ -84,7 +85,7 @@ namespace zmm
                 if(requiredSize > capacity)
                     capacity = requiredSize;
                 data = (T *)REALLOC(data, capacity * sizeof(T));
-                log_debug("resizing %d -> %d\n", oldCapacity, capacity);
+                spdlog::get("log")->debug("resizing {} -> {}", oldCapacity, capacity);
                 if ((overlap && (queueEnd != 0)) || queueBegin > queueEnd)
                 {
                     int moveAmount = oldCapacity - queueBegin;

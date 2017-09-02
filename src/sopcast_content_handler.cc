@@ -140,7 +140,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
             temp = channel->getAttribute(_("id"));
             if (!string_ok(temp))
             {
-                log_warning("Failed to retrieve SopCast channel ID\n");
+                l->warn("Failed to retrieve SopCast channel ID\n");
                 continue;
             }
 
@@ -150,7 +150,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
             temp = channel->getChildText(_("stream_type"));
             if (!string_ok(temp))
             {
-                log_warning("Failed to retrieve SopCast channel mimetype\n");
+                l->warn("Failed to retrieve SopCast channel mimetype\n");
                 continue;
             }
             
@@ -168,7 +168,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
                     mt = _("audio/sopcast-x-ms-wma");
                 else
                 {
-                    log_warning("Could not determine mimetype for SopCast channel (stream_type: %s)\n", temp.c_str());
+                    l->warn("Could not determine mimetype for SopCast channel (stream_type: {})", temp.c_str());
                     mt = _("application/sopcast-stream");
                 }
             }
@@ -179,14 +179,14 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
             Ref<Element> tmp_el = channel->getChildByName(_("sop_address"));
             if (tmp_el == nullptr)
             {
-                log_warning("Failed to retrieve SopCast channel URL\n");
+                l->warn("Failed to retrieve SopCast channel URL\n");
                 continue;
             }
            
             temp = tmp_el->getChildText(_("item"));
             if (!string_ok(temp))
             {
-                log_warning("Failed to retrieve SopCast channel URL\n");
+                l->warn("Failed to retrieve SopCast channel URL\n");
                 continue;
             }
             item->setURL(temp);
@@ -194,7 +194,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
             tmp_el = channel->getChildByName(_("name"));
             if (tmp_el == nullptr)
             {
-                log_warning("Failed to retrieve SopCast channel name\n");
+                l->warn("Failed to retrieve SopCast channel name\n");
                 continue;
             }
 
@@ -234,7 +234,7 @@ Ref<CdsObject> SopCastContentHandler::getNextObject()
             }
             catch (const Exception & ex)
             {
-                log_warning("Failed to validate newly created SopCast item: %s\n",
+                l->warn("Failed to validate newly created SopCast item: {}",
                         ex.getMessage().c_str());
                 continue;
             }

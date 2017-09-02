@@ -106,7 +106,9 @@ public:
     ///
     /// Sends out an update with protocol information to all subscribed devices
     void subscription_update(zmm::String sourceProtocol_CSV);
-    
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __UPNP_CM_H__

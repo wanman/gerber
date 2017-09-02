@@ -373,7 +373,7 @@ void YouTubeService::getPagingParams(Ref<Element> xml, Ref<YouTubeTask> task)
         itmp = getCheckPosIntAttr(xml, _(CFG_OPTION_AMOUNT));
         if (itmp > AMOUNT_ALL)
         {
-            log_warning("Maximum amount of items to fetch can not exceed 1000\n");
+            l->warn("Maximum amount of items to fetch can not exceed 1000\n");
             itmp = AMOUNT_ALL;
         }
         task->amount = itmp;
@@ -590,7 +590,7 @@ Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bo
             URL = URL + _("?") + params->encode();
     }
 
-    log_debug("Retrieving URL: %s\n", URL.c_str());
+    SPDLOG_TRACE(l, "Retrieving URL: {}", URL.c_str());
    
     Ref<StringBuffer> buffer;
     try 
@@ -599,7 +599,7 @@ Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bo
     }
     catch (const Exception & ex)
     {
-        log_error("Failed to download YouTube XML data: %s\n", 
+        l->error("Failed to download YouTube XML data: {}",
                   ex.getMessage().c_str());
         return nullptr;
     }
@@ -610,7 +610,7 @@ Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bo
     if (retcode != 200)
         return nullptr;
 
-//    log_debug("GOT BUFFER\n%s\n", buffer->toString().c_str()); 
+//    SPDLOG_TRACE(l, "GOT BUFFER\n%s\n", buffer->toString().c_str());
     Ref<Parser> parser(new Parser());
     try
     {
@@ -618,7 +618,7 @@ Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bo
     }
     catch (const ParseException & pe)
     {
-        log_error("Error parsing YouTube XML %s line %d:\n%s\n",
+        l->error("Error parsing YouTube XML {} line {}:\n{}",
                pe.context->location.c_str(),
                pe.context->line,
                pe.getMessage().c_str());
@@ -626,7 +626,7 @@ Ref<Element> YouTubeService::getData(String url_part, Ref<Dictionary> params, bo
     }
     catch (const Exception & ex)
     {
-        log_error("Error parsing YouTube XML %s\n", ex.getMessage().c_str());
+        l->error("Error parsing YouTube XML {}", ex.getMessage().c_str());
         return nullptr;
     }
     
@@ -660,7 +660,7 @@ void YouTubeService::killOneTimeTasks(Ref<Array<Object> > tasklist)
 
 bool YouTubeService::refreshServiceData(Ref<Layout> layout)
 {
-    log_debug("Refreshing YouTube service\n");
+    SPDLOG_TRACE(l, "Refreshing YouTube service\n");
     // the layout is in full control of the service items
     
     // this is a safeguard to ensure that this class is not called from
@@ -764,14 +764,14 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
         b = yt->setServiceContent(reply);
     else
     {
-        log_debug("Failed to get XML content from YouTube service\n");
+        SPDLOG_TRACE(l, "Failed to get XML content from YouTube service\n");
         throw _Exception(_("Failed to get XML content from YouTube service"));
     }
 
     // no more items to fetch, reset paging and skip to next task
     if (!b)
     {
-        log_debug("End of pages\n");
+        SPDLOG_TRACE(l, "End of pages\n");
         task->start_index = task->cfg_start_index;
         task->amount_fetched = 0;
         
@@ -803,7 +803,7 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
         Ref<CdsObject> old = Storage::getInstance()->loadObjectByServiceID(RefCast(obj, CdsItem)->getServiceID());
         if (old == nullptr)
         {
-            log_debug("Adding new YouTube object\n");
+            SPDLOG_TRACE(l, "Adding new YouTube object\n");
             obj->setAuxData(_(YOUTUBE_AUXDATA_REQUEST), 
                             String::from(task->request));
 
@@ -824,12 +824,12 @@ bool YouTubeService::refreshServiceData(Ref<Layout> layout)
                 layout->processCdsObject(obj, nullptr);
             else
             {
-                log_warning("Your virtual layout is disabled, YouTube objects will not be added\n");
+                l->warn("Your virtual layout is disabled, YouTube objects will not be added\n");
             }
         }
         else
         {
-            log_debug("Updating existing YouTube object\n");
+            SPDLOG_TRACE(l, "Updating existing YouTube object\n");
             obj->setID(old->getID());
             obj->setParentID(old->getParentID());
             /// \todo check what this was originally meant for

@@ -134,7 +134,6 @@ void web::auth::process()
     }
     else if (action == "get_sid")
     {
-        log_debug("checking/getting sid...\n");
         Ref<Session> session = nullptr;
         String sid = param(_("sid"));
         

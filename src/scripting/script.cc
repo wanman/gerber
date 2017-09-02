@@ -226,7 +226,7 @@ Script::Script(Ref<Runtime> runtime, std::string name) : Object(), name(name)
         }
         catch (const Exception & e)
         {
-            log_js("Unable to load %s: %s\n", common_scr_path.c_str(), 
+            log_js("Unable to load {}: {}", common_scr_path.c_str(),
                     e.getMessage().c_str());
         }
     }
@@ -245,7 +245,7 @@ Script *Script::getContextScript(duk_context *ctx)
     duk_pop_2(ctx);
     if (self == nullptr)
     {
-        log_debug("Could not retrieve class instance from global object\n");
+        spdlog::get("log")->debug("Could not retrieve class instance from global object\n");
         duk_error(ctx, DUK_ERR_ERROR, "Could not retrieve current script from stash");
     }
     return self;
@@ -300,7 +300,7 @@ void Script::_execute()
 {
     if (duk_pcall(ctx, 0) != DUK_EXEC_SUCCESS)
     {
-        log_debug("Failed to execute script: %s\n", duk_safe_to_string(ctx, -1));
+        SPDLOG_TRACE(l, "Failed to execute script: {}", duk_safe_to_string(ctx, -1));
         throw _Exception(_("Script: failed to execute script"));
     }
     duk_pop(ctx);
@@ -333,7 +333,7 @@ Ref<CdsObject> Script::dukObject2cdsObject(zmm::Ref<CdsObject> pcd)
     objectType = getIntProperty(_("objectType"), -1);
     if (objectType == -1)
     {
-        log_error("missing objectType property\n");
+        l->error("missing objectType property\n");
         return nullptr;
     }
 

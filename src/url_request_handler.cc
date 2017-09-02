@@ -61,7 +61,8 @@ URLRequestHandler::URLRequestHandler() : RequestHandler()
 
 void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info)
 {
-    log_debug("start\n");
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "start");
         
     String header;
     String mimeType;
@@ -76,19 +77,19 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
     Ref<Dictionary> dict(new Dictionary());
     dict->decodeSimple(parameters);
 
-    log_debug("full url (filename): %s, parameters: %s\n",
+    l->debug("full url (filename): {}, parameters: {}",
                filename, parameters.c_str());
     
     String objID = dict->get(_("object_id"));
     if (objID == nullptr)
     {
-        //log_error("object_id not found in url\n");
+        //l->error("object_id not found in url\n");
         throw _Exception(_("get_info: object_id not found"));
     }
     else
         objectID = objID.toInt();
 
-    //log_debug("got ObjectID: [%s]\n", object_id.c_str());
+    //SPDLOG_TRACE(l, "got ObjectID: [%s]\n", object_id.c_str());
 
     Ref<Storage> storage = Storage::getInstance();
 
@@ -134,7 +135,7 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
             url = item->getLocation();
         }
 
-        log_debug("Online content url: %s\n", url.c_str());
+        SPDLOG_TRACE(l, "Online content url: {}", url.c_str());
         Ref<URL> u(new URL(1024));
         Ref<URL::Stat> st;
         try
@@ -142,11 +143,11 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
             st = u->getInfo(url);
             UpnpFileInfo_set_FileLength(info, st->getSize());
             header = _("Accept-Ranges: bytes");
-            log_debug("URL used for request: %s\n", st->getURL().c_str());
+            SPDLOG_TRACE(l, "URL used for request: {}", st->getURL().c_str());
         }
         catch (const Exception & ex)
         {
-            log_warning("%s\n", ex.getMessage().c_str());
+            l->warn("{}", ex.getMessage().c_str());
             UpnpFileInfo_set_FileLength(info, -1);
         }
 
@@ -163,7 +164,7 @@ void URLRequestHandler::get_info(IN const char *filename, OUT UpnpFileInfo *info
     }
 
     UpnpFileInfo_set_ContentType(info, ixmlCloneDOMString(mimeType.c_str()));
-    log_debug("web_get_info(): end\n");
+    SPDLOG_TRACE(l, "web_get_info(): end");
 
     /// \todo transcoding for get_info
 }
@@ -179,7 +180,8 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
     String tr_profile;
 #endif
 
-    log_debug("start\n");
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "start");
 
     // Currently we explicitly do not support UPNP_WRITE
     // due to security reasons.
@@ -191,7 +193,7 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
 
     Ref<Dictionary> dict(new Dictionary());
     dict->decodeSimple(parameters);
-    log_debug("full url (filename): %s, parameters: %s\n",
+    l->debug("full url (filename): {}, parameters: {}",
                filename, parameters.c_str());
 
     String objID = dict->get(_("object_id"));
@@ -228,7 +230,7 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
     }
 
 
-    log_debug("Online content url: %s\n", url.c_str());
+    SPDLOG_TRACE(l, "Online content url: {}", url.c_str());
 
     //info->is_readable = 1;
     //info->last_modified = 0;
@@ -260,11 +262,11 @@ Ref<IOHandler> URLRequestHandler::open(IN const char *filename,
             st = u->getInfo(url);
            // info->file_length = st->getSize();
             header = _("Accept-Ranges: bytes");
-            log_debug("URL used for request: %s\n", st->getURL().c_str());
+            SPDLOG_TRACE(l, "URL used for request: {}", st->getURL().c_str());
         }
         catch (const Exception & ex)
         {
-            log_warning("%s\n", ex.getMessage().c_str());
+            l->warn("{}", ex.getMessage().c_str());
             //info->file_length = -1;
         }
         mimeType = item->getMimeType();

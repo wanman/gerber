@@ -206,6 +206,8 @@ private:
     friend class SLExecTask;
     friend class SLInitTask;
     friend class Sqlite3BackupTimerSubscriber;
+
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 /// \brief Represents a result of a sqlite3 select

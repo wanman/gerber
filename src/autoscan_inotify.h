@@ -65,6 +65,8 @@ private:
     
     zmm::Ref<Inotify> inotify;
 
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
+
     std::mutex mutex;
     using AutoLock = std::lock_guard<std::mutex>;
 

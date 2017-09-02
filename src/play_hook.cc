@@ -59,7 +59,7 @@ void PlayHook::trigger(zmm::Ref<CdsObject> obj)
                 bool supress = cfg->getBoolOption(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_SUPPRESS_CDS_UPDATES);
 
                 Ref<ContentManager> cm = ContentManager::getInstance();
-                log_debug("Marking object %s as played\n", obj->getTitle().c_str());
+                spdlog::get("log")->debug("Marking object {} as played", obj->getTitle().c_str());
                 cm->updateObject(obj, !supress);
                 break;
             }

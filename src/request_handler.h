@@ -58,6 +58,9 @@ public:
     /// parameters = "object_id=12345&transcode=wav"
     static void split_url(const char *url, char separator, 
                           zmm::String &path, zmm::String &parameters);
+
+protected:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 

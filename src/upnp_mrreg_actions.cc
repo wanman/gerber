@@ -40,7 +40,7 @@ using namespace mxml;
 
 void MRRegistrarService::upnp_action_IsAuthorized(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     Ref<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
@@ -49,21 +49,21 @@ void MRRegistrarService::upnp_action_IsAuthorized(Ref<ActionRequest> request)
     request->setResponse(response); 
     request->setErrorCode(UPNP_E_SUCCESS);    
    
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void MRRegistrarService::upnp_action_RegisterDevice(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     request->setErrorCode(UPNP_E_NOT_EXIST);
 
-    log_debug("upnp_action_GetCurrentConnectionInfo: end\n");
+    SPDLOG_TRACE(l, "upnp_action_GetCurrentConnectionInfo: end");
 }
 
 void MRRegistrarService::upnp_action_IsValidated(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
  
     Ref<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
@@ -72,12 +72,12 @@ void MRRegistrarService::upnp_action_IsValidated(Ref<ActionRequest> request)
     request->setResponse(response); 
     request->setErrorCode(UPNP_E_SUCCESS);    
     
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void MRRegistrarService::process_action_request(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     if (request->getActionName() == "IsAuthorized")
     {
@@ -94,12 +94,12 @@ void MRRegistrarService::process_action_request(Ref<ActionRequest> request)
     else
     {
         // invalid or unsupported action
-        log_debug("unrecognized action %s\n", request->getActionName().c_str());
+        SPDLOG_TRACE(l, "unrecognized action {}", request->getActionName().c_str());
         request->setErrorCode(UPNP_E_INVALID_ACTION);
         //throw UpnpException(UPNP_E_INVALID_ACTION, _("unrecognized action"));
     }
     
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 
 }
 

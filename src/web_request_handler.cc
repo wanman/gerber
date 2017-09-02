@@ -136,7 +136,7 @@ Ref<IOHandler> WebRequestHandler::open(IN enum UpnpOpenFileMode mode)
     // processing page, creating output
     try {
         if (!ConfigManager::getInstance()->getBoolOption(CFG_SERVER_UI_ENABLED)) {
-            log_warning("The UI is disabled in the configuration file. See README.\n");
+            l->warn("The UI is disabled in the configuration file. See README.\n");
             error = _("The UI is disabled in the configuration file. See README.");
             error_code = 900;
         } else {
@@ -189,7 +189,7 @@ Ref<IOHandler> WebRequestHandler::open(IN enum UpnpOpenFileMode mode)
         try {
             // make sure we can generate JSON w/o exceptions
             XML2JSON::getJSON(root);
-            //log_debug("JSON-----------------------\n\n\n%s\n\n\n\n", XML2JSON::getJSON(root).c_str());
+            //SPDLOG_TRACE(l, "JSON-----------------------\n\n\n%s\n\n\n\n", XML2JSON::getJSON(root).c_str());
         } catch (const Exception e) {
             e.printStackTrace();
         }
@@ -258,7 +258,7 @@ void WebRequestHandler::addUpdateIDs(Ref<Element> updateIDsEl, Ref<Session> sess
 {
     String updateIDs = session->getUIUpdateIDs();
     if (string_ok(updateIDs)) {
-        log_debug("UI: sending update ids: %s\n", updateIDs.c_str());
+        SPDLOG_TRACE(l, "UI: sending update ids: {}", updateIDs.c_str());
         updateIDsEl->setTextKey(_("ids"));
         updateIDsEl->setText(updateIDs);
         updateIDsEl->setAttribute(_("updates"), _("1"), mxml_bool_type);

@@ -114,7 +114,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
             ffres->addAttribute(MetadataHandler::getResAttrName(R_RESOLUTION),
                     resolution);
             item->addResource(ffres);
-            log_debug("Adding resource for video thumbnail\n");
+            spdlog::get("log")->debug("Adding resource for video thumbnail\n");
         }
     }
 #endif // FFMPEGTHUMBNAILER
@@ -491,7 +491,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
             }
         }
 
-        log_debug("extended protocolInfo: %s\n", protocolInfo.c_str());
+            spdlog::get("log")->debug("extended protocolInfo: {}", protocolInfo.c_str());
         }
 #endif
 #ifdef EXTERNAL_TRANSCODING
@@ -567,7 +567,7 @@ String CdsResourceManager::getFirstResource(Ref<CdsItem> item)
 
 String CdsResourceManager::getArtworkUrl(zmm::Ref<CdsItem> item) {
     // FIXME: This is temporary until we do artwork properly.
-    log_debug("Building Art url for %d\n", item->getID());
+    spdlog::get("log")->debug("Building Art url for {}", item->getID());
 
     Ref<UrlBase> urlBase = addResources_getUrlBase(item);
 

@@ -49,6 +49,8 @@ public:
     virtual void fillMetadata(zmm::Ref<CdsItem> item);
     virtual zmm::Ref<IOHandler> serveContent(zmm::Ref<CdsItem> item, int resNum, off_t *data_size);
 private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
+
     void populateGenericTags(zmm::Ref<CdsItem> item, const TagLib::File& file) const;
     bool isValidArtworkContentType(zmm::String content_type);
     zmm::String getContentTypeFromByteVector(const TagLib::ByteVector& data) const;
@@ -61,6 +63,7 @@ private:
     void extractWavPack(TagLib::IOStream *roStream, zmm::Ref<CdsItem> item);
     void extractMP4(TagLib::IOStream *roStream, zmm::Ref<CdsItem> item);
     void extractAiff(TagLib::IOStream *roStream, zmm::Ref<CdsItem> item);
+
 };
 
 #endif

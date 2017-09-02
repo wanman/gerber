@@ -50,6 +50,9 @@ protected:
     static void *staticThreadProc(void *arg);
 
     void threadProc();
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif//__TASK_PROCESSOR_H__

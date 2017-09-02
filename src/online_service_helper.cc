@@ -74,7 +74,7 @@ String OnlineServiceHelper::resolveURL(Ref<CdsItemExternalURL> item)
 
                 Ref<YouTubeVideoURL> yt_url;
                 yt_url = Ref<YouTubeVideoURL> (new YouTubeVideoURL());
-                //            log_debug("------> REQUESTING YT ID : %s\n", item->getServiceID().substring(1).c_str());
+                //            SPDLOG_TRACE(l, "------> REQUESTING YT ID : %s\n", item->getServiceID().substring(1).c_str());
                 //url = yt_url->getVideoURL(item->getURL());
                 url = yt_url->getVideoURL(item->getServiceID().substring(1),
                         ConfigManager::getInstance()->getBoolOption(CFG_ONLINE_CONTENT_YOUTUBE_FORMAT_MP4), ConfigManager::getInstance()->getBoolOption(CFG_ONLINE_CONTENT_YOUTUBE_PREFER_HD));

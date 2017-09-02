@@ -61,31 +61,31 @@ void SingletonManager::registerSingleton(Ref<Singleton<Object> > object)
 #ifdef TOMBDEBUG
     if (singletonStack->size() >= SINGLETON_CUR_MAX)
     {
-        printf("%d singletons are active (SINGLETON_CUR_MAX=%d) and tried to add another singleton - check this!\n", singletonStack->size(), SINGLETON_CUR_MAX);
+        l->error("{} singletons are active (SINGLETON_CUR_MAX={}) and tried to add another singleton - check this!", singletonStack->size(), SINGLETON_CUR_MAX);
         print_backtrace();
         abort();
     }
 #endif
-    log_debug("registering new singleton... - %d -> %d\n", singletonStack->size(), singletonStack->size() + 1);
+    SPDLOG_TRACE(l, "registering new singleton... - {} -> {}", singletonStack->size(), singletonStack->size() + 1);
     singletonStack->push(object);
 }
 
 void SingletonManager::shutdown(bool complete)
 {
-    log_debug("start (%d objects)\n", singletonStack->size());
+    SPDLOG_TRACE(l, "start ({} objects)", singletonStack->size());
     AutoLock lock(mutex);
 
     Ref<Singleton<Object> > object;
     while((object = singletonStack->pop()) != nullptr)
     {
-        log_debug("destoying %s... \n", object->getName().c_str());
+        SPDLOG_TRACE(l, "destoying {}... ", object->getName().c_str());
         object->shutdown();
-        log_debug("invalidating %s... \n", object->getName().c_str());
+        SPDLOG_TRACE(l, "invalidating {}... ", object->getName().c_str());
         object->inactivateSingleton();
     }
 
     if (complete && instance != nullptr)
         instance = nullptr;
 
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }

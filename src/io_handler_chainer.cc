@@ -100,7 +100,7 @@ void IOHandlerChainer::threadProc()
     }
     catch (const Exception & e)
     {
-        log_debug("%s", e.getMessage().c_str());
+        SPDLOG_TRACE(l, "{}", e.getMessage().c_str());
         status = IOHC_EXCEPTION;
     }
     try
@@ -112,7 +112,7 @@ void IOHandlerChainer::threadProc()
     }
     catch (const Exception & e)
     {
-        log_debug("%s", e.getMessage().c_str());
+        SPDLOG_TRACE(l, "{}", e.getMessage().c_str());
         status = IOHC_EXCEPTION;
     }
 }

@@ -390,6 +390,8 @@ protected:
     zmm::Ref<zmm::Array<zmm::Object> > createServiceTaskList(service_type_t service, zmm::Ref<mxml::Element> element);
 #endif
 
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __CONFIG_MANAGER_H__

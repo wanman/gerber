@@ -37,7 +37,7 @@ using namespace zmm;
 using namespace std;
 
 void Timer::init() {
-    log_debug("Starting Timer thread...\n");
+    SPDLOG_TRACE(l, "Starting Timer thread...\n");
     int ret = pthread_create(
         &thread,
         nullptr,
@@ -51,10 +51,11 @@ void Timer::init() {
 
 void *Timer::staticThreadProc(void *arg)
 {
-    log_debug("Started Timer thread.\n");
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "Started Timer thread.\n");
     auto *inst = (Timer *)arg;
     inst->threadProc();
-    log_debug("Exiting Timer thread...\n");
+    SPDLOG_TRACE(l, "Exiting Timer thread...\n");
     return nullptr;
 }
 
@@ -64,7 +65,7 @@ void Timer::threadProc() {
 
 void Timer::addTimerSubscriber(Subscriber* timerSubscriber, unsigned int notifyInterval, zmm::Ref<Parameter> parameter, bool once)
 {
-    log_debug("Adding subscriber... interval: %d once: %d \n", notifyInterval, once);
+    SPDLOG_TRACE(l, "Adding subscriber... interval: {} once: {} ", notifyInterval, once);
     if (notifyInterval == 0)
         throw zmm::Exception(_("Tried to add timer with illegal notifyInterval: ") + notifyInterval);
 
@@ -81,7 +82,7 @@ void Timer::addTimerSubscriber(Subscriber* timerSubscriber, unsigned int notifyI
 
 void Timer::removeTimerSubscriber(Subscriber* timerSubscriber, zmm::Ref<Parameter> parameter, bool dontFail)
 {
-    log_debug("Removing subscriber...\n");
+    SPDLOG_TRACE(l, "Removing subscriber...\n");
     AutoLock lock(mutex);
     TimerSubscriberElement element(timerSubscriber, 0, parameter);
     auto it = std::find(subscribers.cbegin(), subscribers.cend(), element);
@@ -98,10 +99,10 @@ void Timer::triggerWait()
     unique_lock<std::mutex> lock(waitMutex);
 
     while(!shutdownFlag) {
-        log_debug("triggerWait. - %d subscriber(s)\n", subscribers.size());
+        SPDLOG_TRACE(l, "triggerWait. - {} subscriber(s)", subscribers.size());
 
         if (subscribers.empty()) {
-            log_debug("Nothing to do, sleeping...\n");
+            SPDLOG_TRACE(l, "Nothing to do, sleeping...\n");
             cond.wait(lock);
             continue;
         }

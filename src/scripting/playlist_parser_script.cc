@@ -55,7 +55,7 @@ js_readln(duk_context *ctx)
     }
     catch (const ServerShutdownException & se)
     {
-        log_warning("Aborting script execution due to server shutdown.\n");
+        spdlog::get("log")->warn("Aborting script execution due to server shutdown.\n");
         return duk_error(ctx, DUK_ERR_ERROR, "Aborting script execution due to server shutdown.");
     }
     catch (const Exception & e)

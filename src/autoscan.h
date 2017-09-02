@@ -126,6 +126,9 @@ protected:
 
     zmm::Ref<zmm::Array<AutoscanDirectory>> list;
     int _add(zmm::Ref<AutoscanDirectory> dir);
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 /// \brief Provides information about one autoscan directory.
@@ -259,6 +262,9 @@ protected:
     time_t last_mod_previous_scan;
     time_t last_mod_current_scan;
     zmm::Ref<Timer::Parameter> timer_parameter;
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif

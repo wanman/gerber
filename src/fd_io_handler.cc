@@ -75,7 +75,7 @@ void FDIOHandler::open(IN enum UpnpOpenFileMode mode)
 
     if (fd != -1)
     {
-        log_debug("Assuming valid fd %d\n", fd);
+        SPDLOG_TRACE(l, "Assuming valid fd {}", fd);
         return;
     }
 
@@ -134,7 +134,7 @@ void FDIOHandler::close()
     if (closed)
         return;
 
-    log_debug("Closing...\n");
+    SPDLOG_TRACE(l, "Closing...\n");
     try
     {
         if (other != nullptr)
@@ -142,7 +142,7 @@ void FDIOHandler::close()
     }
     catch (const Exception & ex)
     {
-        log_debug("Error closing \"other\" handler: %s\n", ex.getMessage().c_str());
+        SPDLOG_TRACE(l, "Error closing \"other\" handler: {}", ex.getMessage().c_str());
     }
 
     // protect from multiple close calls

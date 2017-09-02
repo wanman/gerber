@@ -208,6 +208,8 @@ protected:
     /// of the request and calls the process_subscription_request() for the 
     /// appropriate service.
     void upnp_subscriptions(zmm::Ref<SubscriptionRequest> request);
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __SERVER_H__

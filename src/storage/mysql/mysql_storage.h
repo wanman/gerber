@@ -81,6 +81,8 @@ private:
     zmm::Ref<zmm::Array<zmm::StringBase>> insertBuffer;
     virtual void _addToInsertBuffer(zmm::Ref<zmm::StringBuffer> query);
     virtual void _flushInsertBuffer();
+
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 class MysqlResult : private SQLResult {

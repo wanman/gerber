@@ -74,13 +74,14 @@ void CacheObject::setObject(Ref<CdsObject> obj)
 
 void CacheObject::debug()
 {
-    log_debug("== cache object ==\n");
-    log_debug("== knows parent ID: %d %d\n", knowsParentID(), parentID);
-    log_debug("== knows ref ID: %d %d\n", knowsRefID(), refID);
-    log_debug("== knows object: %d\n", knowsObject());
-    log_debug("== knows num children: %d %d\n", knowsNumChildren(), numChildren);
-    log_debug("== knows object type: %d %d\n", knowsObjectType(), objectType);
-    log_debug("== knows location: %d %s\n", knowsLocation(), (knowsLocation() ? location.c_str() : ""));
-    log_debug("== knows virtual: %d %d\n", knowsVirtual(), virtualObj);
-    log_debug("==================\n");
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "== cache object ==\n");
+    SPDLOG_TRACE(l, "== knows parent ID: {} {}", knowsParentID(), parentID);
+    SPDLOG_TRACE(l, "== knows ref ID: {} {}", knowsRefID(), refID);
+    SPDLOG_TRACE(l, "== knows object: {}", knowsObject());
+    SPDLOG_TRACE(l, "== knows num children: {} {}", knowsNumChildren(), numChildren);
+    SPDLOG_TRACE(l, "== knows object type: {} {}", knowsObjectType(), objectType);
+    SPDLOG_TRACE(l, "== knows location: {} {}", knowsLocation(), (knowsLocation() ? location.c_str() : ""));
+    SPDLOG_TRACE(l, "== knows virtual: {} {}", knowsVirtual(), virtualObj);
+    SPDLOG_TRACE(l, "==================\n");
 }

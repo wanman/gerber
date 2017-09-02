@@ -134,5 +134,5 @@ void web::edit_load::process()
     }
     
     root->appendElementChild(item);
-    //log_debug("serving XML: \n%s\n",  root->print().c_str());
+    //SPDLOG_TRACE(l, "serving XML: \n%s\n",  root->print().c_str());
 }

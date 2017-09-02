@@ -62,6 +62,7 @@ private:
     int chunkSize;
     zmm::Ref<IOHandler> readFrom;
     zmm::Ref<IOHandler> writeTo;
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __IO_HANDLER_CHAINER_H__

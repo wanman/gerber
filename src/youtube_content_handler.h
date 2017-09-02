@@ -102,6 +102,9 @@ protected:
     zmm::String thumb_mimetype;
     zmm::String mp4_mimetype;
     zmm::String feed_name;
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif//__YOUTUBE_CONTENT_HANDLER_H__

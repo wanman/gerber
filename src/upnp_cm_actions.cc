@@ -38,7 +38,7 @@ using namespace mxml;
 
 void ConnectionManagerService::upnp_action_GetCurrentConnectionIDs(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     Ref<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
@@ -47,21 +47,21 @@ void ConnectionManagerService::upnp_action_GetCurrentConnectionIDs(Ref<ActionReq
     request->setResponse(response); 
     request->setErrorCode(UPNP_E_SUCCESS);    
    
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void ConnectionManagerService::upnp_action_GetCurrentConnectionInfo(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     request->setErrorCode(UPNP_E_NOT_EXIST);
 
-    log_debug("upnp_action_GetCurrentConnectionInfo: end\n");
+    SPDLOG_TRACE(l, "upnp_action_GetCurrentConnectionInfo: end");
 }
 
 void ConnectionManagerService::upnp_action_GetProtocolInfo(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     Ref<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
@@ -76,12 +76,12 @@ void ConnectionManagerService::upnp_action_GetProtocolInfo(Ref<ActionRequest> re
     request->setErrorCode(UPNP_E_SUCCESS);
         
     
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void ConnectionManagerService::process_action_request(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     if (request->getActionName() == "GetCurrentConnectionIDs")
     {
@@ -98,13 +98,13 @@ void ConnectionManagerService::process_action_request(Ref<ActionRequest> request
     else
     {
         // invalid or unsupported action
-        log_debug("unrecognized action %s\n", request->getActionName().c_str());
+        SPDLOG_TRACE(l, "unrecognized action {}", request->getActionName().c_str());
         request->setErrorCode(UPNP_E_INVALID_ACTION);
 //        throw UpnpException(UPNP_E_INVALID_ACTION, _("unrecognized action"));
     }
     
 
     
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 
 }

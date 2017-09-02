@@ -280,9 +280,11 @@ set(libgerberaFILES
 add_library(libgerbera OBJECT ${libgerberaFILES})
 
 target_include_directories(libgerbera PRIVATE "${CMAKE_SOURCE_DIR}/src")
+target_include_directories(libgerbera PRIVATE "${CMAKE_SOURCE_DIR}/src/contrib")
 
 add_executable(gerbera src/main.cc $<TARGET_OBJECTS:libgerbera>)
 target_include_directories(gerbera PRIVATE "${CMAKE_SOURCE_DIR}/src")
+target_include_directories(gerbera PRIVATE "${CMAKE_SOURCE_DIR}/src/contrib")
 
 # Warnings are nice
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
@@ -335,10 +337,11 @@ add_definitions(-DPACKAGE_DATADIR="${CMAKE_INSTALL_PREFIX}/share/gerbera")
 # Generate Compile Information
 include("GenCompileInfo")
 generate_compile_info()
-add_definitions(-DCOMPILE_INFO="${COMPILE_INFO}")
-add_definitions(-DGIT_BRANCH="${GIT_BRANCH}")
-add_definitions(-DGIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
+target_compile_definitions(gerbera PRIVATE -DCOMPILE_INFO="${COMPILE_INFO}")
+target_compile_definitions(gerbera PRIVATE -DGIT_BRANCH="${GIT_BRANCH}")
+target_compile_definitions(gerbera PRIVATE -DGIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
 
+# Enable default behaviours
 add_definitions(-DEXTERNAL_TRANSCODING -DAUTO_CREATE_DATABASE)
 
 if (WITH_DEBUG)

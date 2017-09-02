@@ -154,7 +154,6 @@ public:
     
     /// \brief builds full path to a script for the given relative filename
     static zmm::String buildScriptPath(zmm::String filename);
-    
 };
 
 

@@ -65,6 +65,9 @@ protected:
     bool profiling_initialized;
     profiling_t layout_profiling;
 #endif
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __FALLBACK_LAYOUT_H__

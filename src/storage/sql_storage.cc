@@ -152,7 +152,7 @@ void SQLStorage::init()
     insertBufferStatementCount = 0;
     insertBufferByteCount = 0;
 
-    //log_debug("using SQL: %s\n", this->sql_query.c_str());
+    //SPDLOG_TRACE(l, "using SQL: %s\n", this->sql_query.c_str());
 
     //objectTitleCache = Ref<DSOHash<CdsObject> >(new DSOHash<CdsObject>(OBJECT_CACHE_CAPACITY));
     //objectIDCache = Ref<DBOHash<int, CdsObject> >(new DBOHash<int, CdsObject>(OBJECT_CACHE_CAPACITY, -100));
@@ -162,7 +162,7 @@ void SQLStorage::init()
     Ref<SQLRow> row = res->nextRow();
     nextObjectID = row->col(0).toInt();
 
-    log_debug(("PRELOADING OBJECTS...\n"));
+    SPDLOG_TRACE(l, ("PRELOADING OBJECTS...\n"));
     res = select(getSelectQuery(SELECT_FULL));
     Ref<Array<CdsObject> > arr(new Array<CdsObject>());
     while((row = res->nextRow()) != nullptr)
@@ -172,7 +172,7 @@ void SQLStorage::init()
         objectTitleCache->put(String::from(obj->getParentID()) + '|' + obj->getTitle(), obj);
         objectIDCache->put(obj->getID(), obj);
     }
-    log_debug(("PRELOADING OBJECTS DONE\n"));
+    SPDLOG_TRACE(l, ("PRELOADING OBJECTS DONE\n"));
 */
 }
 
@@ -216,7 +216,7 @@ Ref<CdsObject> SQLStorage::checkRefID(Ref<CdsObject> obj)
 
     // This should never happen - but fail softly
     // It means that something doesn't set the refID correctly
-    log_warning("Failed to loadObject with refid: %d\n", refID);
+    l->warn("Failed to loadObject with refid: {}", refID);
 
     return findObjectByPath(location);
 }
@@ -441,7 +441,7 @@ void SQLStorage::addObject(Ref<CdsObject> obj, int* changedContainer)
         Ref<StringBuffer> qb(new StringBuffer(256));
         *qb << "INSERT INTO " << TQ(tableName) << " (" << fields->toString() << ") VALUES (" << values->toString() << ')';
 
-        log_debug("insert_query: %s\n", qb->toString().c_str());
+        SPDLOG_TRACE(l, "insert_query: {}", qb->toString().c_str());
 
         /*
         if (lastInsertID == INVALID_OBJECT_ID && tableName == _(CDS_OBJECT_TABLE))
@@ -508,7 +508,7 @@ void SQLStorage::updateObject(zmm::Ref<CdsObject> obj, int* changedContainer)
 
         *qb << " WHERE id = " << obj->getID();
 
-        log_debug("upd_query: %s\n", qb->toString().c_str());
+        SPDLOG_TRACE(l, "upd_query: {}", qb->toString().c_str());
 
         exec(qb);
     }
@@ -539,7 +539,7 @@ Ref<CdsObject> SQLStorage::loadObject(int objectID)
 */
     Ref<StringBuffer> qb(new StringBuffer());
 
-    //log_debug("sql_query = %s\n",sql_query.c_str());
+    //SPDLOG_TRACE(l, "sql_query = %s\n",sql_query.c_str());
 
     *qb << SQL_QUERY << " WHERE " << TQD('f', "id") << '=' << objectID;
 
@@ -699,7 +699,7 @@ Ref<Array<CdsObject>> SQLStorage::browse(Ref<BrowseParam> param)
     {
         *qb << TQD('f', "id") << '=' << objectID << " LIMIT 1";
     }
-    log_debug("QUERY: %s\n", qb->toString().c_str());
+    SPDLOG_TRACE(l, "QUERY: {}", qb->toString().c_str());
     res = select(qb);
 
     Ref<Array<CdsObject>> arr(new Array<CdsObject>());
@@ -801,9 +801,9 @@ Ref<Array<StringBase>> SQLStorage::getMimeTypes()
 
 Ref<CdsObject> SQLStorage::_findObjectByPath(String fullpath)
 {
-    //log_debug("fullpath: %s\n", fullpath.c_str());
+    //SPDLOG_TRACE(l, "fullpath: %s\n", fullpath.c_str());
     fullpath = fullpath.reduce(DIR_SEPARATOR);
-    //log_debug("fullpath after reduce: %s\n", fullpath.c_str());
+    //SPDLOG_TRACE(l, "fullpath after reduce: %s\n", fullpath.c_str());
     Ref<Array<StringBase>> pathAr = split_path(fullpath);
     String path = pathAr->get(0);
     String filename = pathAr->get(1);
@@ -1260,14 +1260,14 @@ String SQLStorage::findFolderImage(int id, String trackArtBase)
 #endif
     *q << " ORDER BY " << TQ("dc_title") << " DESC";
 
-    //log_debug("findFolderImage %d, %s\n", id, q->c_str());
+    //SPDLOG_TRACE(l, "findFolderImage %d, %s\n", id, q->c_str());
     Ref<SQLResult> res = select(q);
     if (res == nullptr)
         throw _Exception(_("db error"));
     Ref<SQLRow> row;
     if ((row = res->nextRow()) != nullptr) // we only care about the first result
     {
-        log_debug("findFolderImage result: %s\n", row->col(0).c_str());
+        SPDLOG_TRACE(l, "findFolderImage result: {}", row->col(0).c_str());
         return row->col(0);
     }
     return nullptr;
@@ -1395,11 +1395,11 @@ void SQLStorage::_removeObjects(Ref<StringBuffer> objectIDs, int offset)
     q->concat(objectIDs, offset);
     *q << ')';
 
-    log_debug("%s\n", q->c_str());
+    SPDLOG_TRACE(l, "{}", q->c_str());
 
     Ref<SQLResult> res = select(q);
     if (res != nullptr) {
-        log_debug("relevant autoscans!\n");
+        SPDLOG_TRACE(l, "relevant autoscans!\n");
         Ref<StringBuffer> delete_as(new StringBuffer());
         Ref<SQLRow> row;
         while ((row = res->nextRow()) != nullptr) {
@@ -1412,7 +1412,7 @@ void SQLStorage::_removeObjects(Ref<StringBuffer> objectIDs, int offset)
                    << " WHERE " << TQ("id") << '=' << quote(row->col(0));
             } else
                 *delete_as << ',' << row->col_c_str(0);
-            log_debug("relevant autoscan: %d; persistent: %d\n", row->col_c_str(0), persistent);
+            SPDLOG_TRACE(l, "relevant autoscan: {}; persistent: {}", row->col_c_str(0), persistent);
         }
 
         if (delete_as->length() > 0) {
@@ -1422,7 +1422,7 @@ void SQLStorage::_removeObjects(Ref<StringBuffer> objectIDs, int offset)
             q->concat(delete_as, 1);
             *q << ')';
             exec(q);
-            log_debug("deleting autoscans: %s\n", delete_as->c_str());
+            SPDLOG_TRACE(l, "deleting autoscans: {}", delete_as->c_str());
         }
     }
 
@@ -1481,7 +1481,7 @@ Ref<Storage::ChangedContainers> SQLStorage::removeObject(int objectID, bool all)
 
 Ref<SQLStorage::ChangedContainersStr> SQLStorage::_recursiveRemove(Ref<StringBuffer> items, Ref<StringBuffer> containers, bool all)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
     Ref<StringBuffer> recurseItems(new StringBuffer());
     *recurseItems << "SELECT DISTINCT " << TQ("id") << ',' << TQ("parent_id")
                   << " FROM " << TQ(CDS_OBJECT_TABLE) << " WHERE " << TQ("ref_id") << " IN (";
@@ -1556,7 +1556,7 @@ Ref<SQLStorage::ChangedContainersStr> SQLStorage::_recursiveRemove(Ref<StringBuf
             while ((row = res->nextRow()) != nullptr) {
                 *remove << ',' << row->col_c_str(0);
                 *changedContainers->upnp << ',' << row->col_c_str(1);
-                //log_debug("refs-add id: %s; parent_id: %s\n", id.c_str(), parentId.c_str());
+                //SPDLOG_TRACE(l, "refs-add id: %s; parent_id: %s\n", id.c_str(), parentId.c_str());
             }
         }
 
@@ -1590,7 +1590,7 @@ Ref<SQLStorage::ChangedContainersStr> SQLStorage::_recursiveRemove(Ref<StringBuf
                         *recurseItems << ',' << row->col_c_str(0);
                     }
                 }
-                //log_debug("id: %s; parent_id: %s\n", id.c_str(), parentId.c_str());
+                //SPDLOG_TRACE(l, "id: %s; parent_id: %s\n", id.c_str(), parentId.c_str());
             }
         }
 
@@ -1606,13 +1606,13 @@ Ref<SQLStorage::ChangedContainersStr> SQLStorage::_recursiveRemove(Ref<StringBuf
 
     if (remove->length() > 0)
         _removeObjects(remove, 1);
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
     return changedContainers;
 }
 
 Ref<Storage::ChangedContainers> SQLStorage::_purgeEmptyContainers(Ref<ChangedContainersStr> changedContainersStr)
 {
-    log_debug("start upnp: %s; ui: %s\n", changedContainersStr->upnp->c_str(), changedContainersStr->ui->c_str());
+    SPDLOG_TRACE(l, "start upnp: {}; ui: {}", changedContainersStr->upnp->c_str(), changedContainersStr->ui->c_str());
     Ref<ChangedContainers> changedContainers(new ChangedContainers());
     if (!string_ok(changedContainersStr->upnp) && !string_ok(changedContainersStr->ui))
         return changedContainers;
@@ -1648,7 +1648,7 @@ Ref<Storage::ChangedContainers> SQLStorage::_purgeEmptyContainers(Ref<ChangedCon
         if (bufSelUpnp->length() > bufSelLen) {
             bufSelUpnp->setCharAt(bufSelLen, ' ');
             *bufSelUpnp << strSel2;
-            log_debug("upnp-sql: %s\n", bufSelUpnp->c_str());
+            SPDLOG_TRACE(l, "upnp-sql: {}", bufSelUpnp->c_str());
             res = select(bufSelUpnp);
             bufSelUpnp->setLength(bufSelLen);
             if (res == nullptr)
@@ -1669,7 +1669,7 @@ Ref<Storage::ChangedContainers> SQLStorage::_purgeEmptyContainers(Ref<ChangedCon
         if (bufSelUI->length() > bufSelLen) {
             bufSelUI->setCharAt(bufSelLen, ' ');
             *bufSelUI << strSel2;
-            log_debug("ui-sql: %s\n", bufSelUI->c_str());
+            SPDLOG_TRACE(l, "ui-sql: {}", bufSelUI->c_str());
             res = select(bufSelUI);
             bufSelUI->setLength(bufSelLen);
             if (res == nullptr)
@@ -1688,7 +1688,7 @@ Ref<Storage::ChangedContainers> SQLStorage::_purgeEmptyContainers(Ref<ChangedCon
             }
         }
 
-        //log_debug("selecting: %s; removing: %s\n", bufSel->c_str(), bufDel->c_str());
+        //SPDLOG_TRACE(l, "selecting: %s; removing: %s\n", bufSel->c_str(), bufDel->c_str());
         if (bufDel->length() > 0) {
             _removeObjects(bufDel, 1);
             bufDel->clear();
@@ -1706,8 +1706,8 @@ Ref<Storage::ChangedContainers> SQLStorage::_purgeEmptyContainers(Ref<ChangedCon
     if (bufSelUpnp->length() > bufSelLen) {
         changedContainers->upnp->addCSV(bufSelUpnp->toString(bufSelLen + 1));
     }
-    log_debug("end; changedContainers (upnp): %s\n", changedContainers->upnp->toCSV().c_str());
-    log_debug("end; changedContainers (ui): %s\n", changedContainers->ui->toCSV().c_str());
+    SPDLOG_TRACE(l, "end; changedContainers (upnp): {}", changedContainers->upnp->toCSV().c_str());
+    SPDLOG_TRACE(l, "end; changedContainers (ui): {}", changedContainers->ui->toCSV().c_str());
 
     /* clear cache (for now) */
     if (cacheOn())
@@ -1738,7 +1738,7 @@ overwritten due to different SQL syntax for MySQL and SQLite3
 void SQLStorage::updateAutoscanPersistentList(ScanMode scanmode, Ref<AutoscanList> list)
 {
 
-    log_debug("setting persistent autoscans untouched - scanmode: %s;\n", AutoscanDirectory::mapScanmode(scanmode).c_str());
+    SPDLOG_TRACE(l, "setting persistent autoscans untouched - scanmode: {};", AutoscanDirectory::mapScanmode(scanmode).c_str());
     Ref<StringBuffer> q(new StringBuffer());
     *q << "UPDATE " << TQ(AUTOSCAN_TABLE)
        << " SET " << TQ("touched") << '=' << mapBool(false)
@@ -1749,9 +1749,9 @@ void SQLStorage::updateAutoscanPersistentList(ScanMode scanmode, Ref<AutoscanLis
     exec(q);
 
     int listSize = list->size();
-    log_debug("updating/adding persistent autoscans (count: %d)\n", listSize);
+    SPDLOG_TRACE(l, "updating/adding persistent autoscans (count: {})", listSize);
     for (int i = 0; i < listSize; i++) {
-        log_debug("getting ad %d from list..\n", i);
+        SPDLOG_TRACE(l, "getting ad {} from list..", i);
         Ref<AutoscanDirectory> ad = list->get(i);
         if (ad == nullptr)
             continue;
@@ -1769,7 +1769,7 @@ void SQLStorage::updateAutoscanPersistentList(ScanMode scanmode, Ref<AutoscanLis
         *q << "SELECT " << TQ("id") << " FROM " << TQ(AUTOSCAN_TABLE)
            << " WHERE ";
         int objectID = findObjectIDByPath(location + '/');
-        log_debug("objectID = %d\n", objectID);
+        SPDLOG_TRACE(l, "objectID = {}", objectID);
         if (objectID == INVALID_OBJECT_ID)
             *q << TQ("location") << '=' << quote(location);
         else
@@ -1866,7 +1866,7 @@ Ref<AutoscanDirectory> SQLStorage::_fillAutoscanDirectory(Ref<SQLRow> row)
         interval = row->col(6).toInt();
     time_t last_modified = row->col(7).toLong();
 
-    //log_debug("adding autoscan location: %s; recursive: %d\n", location.c_str(), recursive);
+    //SPDLOG_TRACE(l, "adding autoscan location: %s; recursive: %d\n", location.c_str(), recursive);
 
     Ref<AutoscanDirectory> dir(new AutoscanDirectory(location, mode, level, recursive, persistent, INVALID_SCAN_ID, interval, hidden));
     dir->setObjectID(objectID);
@@ -1923,7 +1923,7 @@ void SQLStorage::addAutoscanDirectory(Ref<AutoscanDirectory> adir)
 
 void SQLStorage::updateAutoscanDirectory(Ref<AutoscanDirectory> adir)
 {
-    log_debug("id: %d, obj_id: %d\n", adir->getStorageID(), adir->getObjectID());
+    SPDLOG_TRACE(l, "id: {}, obj_id: {}", adir->getStorageID(), adir->getObjectID());
 
     if (adir == nullptr)
         throw _Exception(_("updateAutoscanDirectory called with adir==nullptr"));
@@ -2048,7 +2048,7 @@ void SQLStorage::autoscanUpdateLM(Ref<AutoscanDirectory> adir)
             throw _Exception(_("autoscanUpdateLM called with adir with illegal objectID and location"));
     }
     */
-    log_debug("id: %d; last_modified: %d\n", adir->getStorageID(), adir->getPreviousLMT());
+    SPDLOG_TRACE(l, "id: {}; last_modified: {}", adir->getStorageID(), adir->getPreviousLMT());
     Ref<StringBuffer> q(new StringBuffer());
     *q << "UPDATE " << TQ(AUTOSCAN_TABLE)
        << " SET " << TQ("last_modified") << '=' << quote(adir->getPreviousLMT())
@@ -2103,7 +2103,7 @@ Ref<IntArray> SQLStorage::_checkOverlappingAutoscans(Ref<AutoscanDirectory> adir
         Ref<CdsObject> obj = loadObject(checkObjectID);
         if (obj == nullptr)
             throw _Exception(_("Referenced object (by Autoscan) not found."));
-        log_error("There is already an Autoscan set on %s\n", obj->getLocation().c_str());
+        l->error("There is already an Autoscan set on {}", obj->getLocation().c_str());
         throw _Exception(_("There is already an Autoscan set on ") + obj->getLocation());
     }
 
@@ -2117,18 +2117,18 @@ Ref<IntArray> SQLStorage::_checkOverlappingAutoscans(Ref<AutoscanDirectory> adir
             *q << " AND " << TQ("id") << " != " << quote(storageID);
         *q << " LIMIT 1";
 
-        log_debug("------------ %s\n", q->c_str());
+        SPDLOG_TRACE(l, "------------ {}", q->c_str());
 
         res = select(q);
         if (res == nullptr)
             throw _Exception(_("SQL error"));
         if ((row = res->nextRow()) != nullptr) {
             int objectID = row->col(0).toInt();
-            log_debug("-------------- %d\n", objectID);
+            SPDLOG_TRACE(l, "-------------- {}", objectID);
             Ref<CdsObject> obj = loadObject(objectID);
             if (obj == nullptr)
                 throw _Exception(_("Referenced object (by Autoscan) not found."));
-            log_error("Overlapping Autoscans are not allowed. There is already an Autoscan set on %s\n", obj->getLocation().c_str());
+            l->error("Overlapping Autoscans are not allowed. There is already an Autoscan set on {}", obj->getLocation().c_str());
             throw _Exception(_("Overlapping Autoscans are not allowed. There is already an Autoscan set on ") + obj->getLocation());
         }
     }
@@ -2156,7 +2156,7 @@ Ref<IntArray> SQLStorage::_checkOverlappingAutoscans(Ref<AutoscanDirectory> adir
         Ref<CdsObject> obj = loadObject(objectID);
         if (obj == nullptr)
             throw _Exception(_("Referenced object (by Autoscan) not found."));
-        log_error("Overlapping Autoscans are not allowed. There is already a recursive Autoscan set on %s\n", obj->getLocation().c_str());
+        l->error("Overlapping Autoscans are not allowed. There is already a recursive Autoscan set on {}", obj->getLocation().c_str());
         throw _Exception(_("Overlapping Autoscans are not allowed. There is already a recursive Autoscan set on ") + obj->getLocation());
     }
 }
@@ -2273,7 +2273,7 @@ void SQLStorage::flushInsertBuffer(bool dontLock)
     if (insertBufferEmpty)
         return;
     _flushInsertBuffer();
-    log_debug("flushing insert buffer (%d statements)\n", insertBufferStatementCount);
+    SPDLOG_TRACE(l, "flushing insert buffer ({} statements)", insertBufferStatementCount);
     insertBufferEmpty = true;
     insertBufferStatementCount = 0;
     insertBufferByteCount = 0;

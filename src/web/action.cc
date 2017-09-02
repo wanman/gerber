@@ -41,14 +41,15 @@ web::action::action() : WebRequestHandler()
 
 void web::action::process()
 {
-    log_debug("action: start\n");
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "action: start");
     check_request();
     
     String action = param(_("action"));
     if (!string_ok(action))
         throw _Exception(_("No action given!"))
             ;
-    log_debug("action: %s\n", action.c_str());
+    SPDLOG_TRACE(l, "action: {}", action.c_str());
 
 #ifdef YOUTUBE
     if (action == UI_ACTION_REFRESH_YOUTUBE)
@@ -57,5 +58,5 @@ void web::action::process()
     }
 #endif
 
-    log_debug("action: returning\n");
+    SPDLOG_TRACE(l, "action: returning\n");
 }

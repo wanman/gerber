@@ -49,7 +49,7 @@ duk_ret_t js_print(duk_context *ctx)
     duk_push_string(ctx, " ");
     duk_insert(ctx, 0);
     duk_join(ctx, duk_get_top(ctx)-1);
-    log_js("%s\n", duk_get_string(ctx, 0));
+    log_js("{}", duk_get_string(ctx, 0));
     return 0;
 }
 
@@ -66,6 +66,7 @@ duk_ret_t js_copyObject(duk_context *ctx)
 duk_ret_t
 js_addCdsObject(duk_context *ctx)
 {
+    auto l = spdlog::get("log");
     auto *self = Script::getContextScript(ctx);
 
     if (!duk_is_object(ctx, 0))
@@ -112,7 +113,7 @@ js_addCdsObject(duk_context *ctx)
 
         if (duk_is_undefined(ctx, -1))
         {
-            log_debug("Could not retrieve orig/playlist object\n");
+            SPDLOG_TRACE(l, "Could not retrieve orig/playlist object\n");
             return 0;
         }
 
@@ -131,7 +132,7 @@ js_addCdsObject(duk_context *ctx)
             int otype = self->getIntProperty(_("objectType"), -1);
             if (otype == -1)
             {
-                log_error("missing objectType property\n");
+                l->error("missing objectType property\n");
                 return 0;
             }
 
@@ -230,12 +231,12 @@ js_addCdsObject(duk_context *ctx)
     }
     catch (const ServerShutdownException & se)
     {
-        log_warning("Aborting script execution due to server shutdown.\n");
+        l->warn("Aborting script execution due to server shutdown.\n");
         return duk_error(ctx, DUK_ERR_ERROR, "Aborting script execution due to server shutdown.\n");
     }
     catch (const Exception & e)
     {
-        log_error("%s\n", e.getMessage().c_str());
+        l->error("{}", e.getMessage().c_str());
         e.printStackTrace();
     }
     return 0;
@@ -259,12 +260,12 @@ static duk_ret_t convert_charset_generic(duk_context *ctx, charset_convert_t chr
     }
     catch (const ServerShutdownException & se)
     {
-        log_warning("Aborting script execution due to server shutdown.\n");
+        spdlog::get("log")->warn("Aborting script execution due to server shutdown.\n");
         return DUK_RET_ERROR;
     }
     catch (const Exception & e)
     {
-        log_error("%s\n", e.getMessage().c_str());
+        spdlog::get("log")->error("{}", e.getMessage().c_str());
         e.printStackTrace();
     }
     return 0;

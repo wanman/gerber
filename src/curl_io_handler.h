@@ -57,6 +57,8 @@ private:
     
     static size_t curlCallback(void *ptr, size_t size, size_t nmemb, void *stream);
     virtual void threadProc();
+
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __CURL_IO_HANDLER_H__

@@ -59,8 +59,8 @@ public:
 private:
     zmm::Ref<IOHandler> underlyingHandler;
     size_t maxChunkSize;
-    
     virtual void threadProc();
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __BUFFERED_IO_HANDLER_H__

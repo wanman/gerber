@@ -130,7 +130,7 @@ void ConfigManager::init()
         throw _Exception(_("\nThe server configuration file could not be found in ~/.gerbera\n") + "Gerbera could not determine your home directory - automatic setup failed.\n" + "Try specifying an alternative configuration file on the command line.\n" + "For a list of options run: mediatomb -h\n");
     }
 
-    log_info("Loading configuration from: %s\n", filename.c_str());
+    l->info("Loading configuration from: {}", filename.c_str());
     load(filename);
 
     prepare_udn();
@@ -633,7 +633,7 @@ String ConfigManager::createDefaultConfig(String userhome)
 
     config->indent();
     save_text(config_filename, config->print());
-    log_info("Gerbera configuration was created in: %s\n",
+    l->info("Gerbera configuration was created in: {}",
         config_filename.c_str());
 
     if (mysql_flag) {
@@ -650,7 +650,7 @@ void ConfigManager::migrate()
 
     // pre 0.10.* to 0.11.0 -> storage layout has changed
     if (!string_ok(version)) {
-        log_info("Migrating server configuration to config version 1\n");
+        l->info("Migrating server configuration to config version 1\n");
         root->setAttribute(_("version"),
             String::from(CONFIG_XML_VERSION_0_11_0));
         root->setAttribute(_("xmlns"),
@@ -751,7 +751,7 @@ void ConfigManager::migrate()
 
     // from 0.11 to 0.12
     if (string_ok(version) && version.toInt() == 1) {
-        log_info("Migrating server configuration to config version 2\n");
+        l->info("Migrating server configuration to config version 2\n");
         root->setAttribute(_("version"), String::from(CONFIG_XML_VERSION));
         root->setAttribute(_("xmlns"), _(XML_XMLNS) + CONFIG_XML_VERSION);
         root->setAttribute(_("xsi:schemaLocation"),
@@ -800,7 +800,7 @@ void ConfigManager::migrate()
     if (migrated_flag) {
         root->indent();
         save();
-        log_info("Migration of configuration successfull\n");
+        l->info("Migration of configuration successfull\n");
     }
 }
 
@@ -860,7 +860,7 @@ void ConfigManager::validate(String serverhome)
     Ref<ObjectArrayOption> obj_array_opt;
 #endif
 
-    log_info("Checking configuration...\n");
+    l->info("Checking configuration...");
 
     // first check if the config file itself looks ok, it must have a config
     // and a server tag
@@ -1263,7 +1263,7 @@ void ConfigManager::validate(String serverhome)
 #if defined(HAVE_NL_LANGINFO) && defined(HAVE_SETLOCALE)
     if (setlocale(LC_ALL, "") != nullptr) {
         temp = nl_langinfo(CODESET);
-        log_debug("received %s from nl_langinfo\n", temp.c_str());
+        SPDLOG_TRACE(l, "received {} from nl_langinfo", temp.c_str());
     }
 
     if (!string_ok(temp))
@@ -1288,7 +1288,7 @@ void ConfigManager::validate(String serverhome)
             + charset);
     }
 
-    log_info("Setting filesystem import charset to %s\n", charset.c_str());
+    l->info("Setting filesystem import charset to {}", charset.c_str());
     NEW_OPTION(charset);
     SET_OPTION(CFG_IMPORT_FILESYSTEM_CHARSET);
 
@@ -1302,7 +1302,7 @@ void ConfigManager::validate(String serverhome)
             + charset);
     }
 
-    log_info("Setting metadata import charset to %s\n", charset.c_str());
+    l->info("Setting metadata import charset to {}", charset.c_str());
     NEW_OPTION(charset);
     SET_OPTION(CFG_IMPORT_METADATA_CHARSET);
 
@@ -1314,7 +1314,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: unsupported playlist-charset specified: ") + charset);
     }
 
-    log_info("Setting playlist charset to %s\n", charset.c_str());
+    l->info("Setting playlist charset to {}", charset.c_str());
     NEW_OPTION(charset);
     SET_OPTION(CFG_IMPORT_PLAYLIST_CHARSET);
 
@@ -1953,7 +1953,7 @@ void ConfigManager::validate(String serverhome)
                                "invalid hd value in <YouTube> tag"));
 
         if ((temp == "yes") && (!mp4))
-            log_warning("HD preference for YouTube content is only available for mp4 format selection!\n");
+            l->warn("HD preference for YouTube content is only available for mp4 format selection!\n");
 
         NEW_BOOL_OPTION(temp == "yes" ? true : false);
         SET_BOOL_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_PREFER_HD);
@@ -1996,7 +1996,7 @@ void ConfigManager::validate(String serverhome)
         NEW_OBJARR_OPTION(yt_opts);
         SET_OBJARR_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_TASK_LIST);
 
-        log_warning("You enabled the YouTube feature, which allows you\n"
+        l->warn("You enabled the YouTube feature, which allows you\n"
                     "                             to watch YouTube videos on your UPnP device!\n"
                     "                             Please check http://www.youtube.com/t/terms\n"
                     "                             By using this feature you may be violating YouTube\n"
@@ -2082,11 +2082,11 @@ void ConfigManager::validate(String serverhome)
     SET_OPTION(CFG_ONLINE_CONTENT_ATRAILERS_RESOLUTION);
 #endif
 
-    log_info("Configuration check succeeded.\n");
+    l->info("Configuration check succeeded.\n");
 
     //root->indent();
 
-    log_debug("Config file dump after validation: \n%s\n", rootDoc->print().c_str());
+    SPDLOG_TRACE(l, "Config file dump after validation: \n{}", rootDoc->print().c_str());
 }
 
 void ConfigManager::prepare_udn()
@@ -2118,7 +2118,7 @@ void ConfigManager::prepare_udn()
         uuid_unparse(uuid, uuid_str);
 #endif
 
-        log_debug("UUID generated: %s\n", uuid_str);
+        SPDLOG_TRACE(l, "UUID generated: {}", uuid_str);
 
         getOption(_("/server/udn"), _("uuid:") + uuid_str);
 #ifdef BSD
@@ -2190,7 +2190,7 @@ String ConfigManager::getOption(String xpath, String def)
     if (string_ok(value))
         return trim_string(value);
 
-    log_debug("Config: option not found: %s using default value: %s\n",
+    l->debug("Config: option not found: {} using default value: {}",
         xpath.c_str(), def.c_str());
 
     String pathPart = XPath::getPathPart(xpath);
@@ -2284,7 +2284,7 @@ void ConfigManager::writeBookmark(String ip, String port)
     filename = getOption(CFG_SERVER_BOOKMARK_FILE);
     path = construct_path(filename);
 
-    log_debug("Writing bookmark file to: %s\n", path.c_str());
+    SPDLOG_TRACE(l, "Writing bookmark file to: {}", path.c_str());
 
     f = fopen(path.c_str(), "w");
     if (f == nullptr) {
@@ -2790,20 +2790,20 @@ Ref<AutoscanList> ConfigManager::createAutoscanListFromNodeset(zmm::Ref<mxml::El
 void ConfigManager::dumpOptions()
 {
 #ifdef TOMBDEBUG
-    log_debug("Dumping options!\n");
+    SPDLOG_TRACE(l, "Dumping options!\n");
     for (int i = 0; i < (int)CFG_MAX; i++) {
         try {
-            log_debug("    Option %02d - %s\n", i,
+            l->debug("    Option {} - {}", i,
                 getOption((config_option_t)i).c_str());
         } catch (const Exception& e) {
         }
         try {
-            log_debug(" IntOption %02d - %d\n", i,
+            l->debug(" IntOption {} - {}", i,
                 getIntOption((config_option_t)i));
         } catch (const Exception& e) {
         }
         try {
-            log_debug("BoolOption %02d - %s\n", i,
+            l->debug("BoolOption {} - {}", i,
                 (getBoolOption((config_option_t)i) ? "true" : "false"));
         } catch (const Exception& e) {
         }

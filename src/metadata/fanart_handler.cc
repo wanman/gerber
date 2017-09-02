@@ -56,7 +56,7 @@ inline bool path_exists(String name) {
 
 String getFolderName(Ref<CdsItem> item) {
     String folder = item->getLocation().substring(0, item->getLocation().rindex('/'));
-    log_debug("Folder name: %s\n", folder.c_str());
+    spdlog::get("log")->debug("Folder name: {}", folder.c_str());
     return folder;
 }
 
@@ -64,7 +64,7 @@ String getFanArtPath(String folder) {
     String found;
     for (int i = 0; i < num_names; i++) {
         bool exists = path_exists(folder + names[i]);
-        log_debug("%s: %s\n", names[i], exists ? "found" : "missing");
+        spdlog::get("log")->debug("{}: {}", names[i], exists ? "found" : "missing");
         if (!exists)
             continue;
         found = folder + names[i];
@@ -75,7 +75,7 @@ String getFanArtPath(String folder) {
 
 void FanArtHandler::fillMetadata(Ref<CdsItem> item)
 {
-    log_debug("Running fanart handler on %s\n", item->getLocation().c_str());
+    SPDLOG_TRACE(l, "Running fanart handler on {}", item->getLocation().c_str());
 
     String found = getFanArtPath(getFolderName(item));
 
@@ -91,7 +91,7 @@ Ref<IOHandler> FanArtHandler::serveContent(Ref<CdsItem> item, int resNum, off_t 
 {
     String path = getFanArtPath(getFolderName(item));
 
-    log_debug("FanArt: Opening name: %s\n", path.c_str());
+    SPDLOG_TRACE(l, "FanArt: Opening name: {}", path.c_str());
 
     *data_size = -1;
     Ref<IOHandler> io_handler(new FileIOHandler(path));

@@ -114,7 +114,7 @@ void CurlIOHandler::threadProc()
         lock.lock();
         if (doSeek)
         {
-            log_debug("SEEK: %lld %d\n", seekOffset, seekWhence);
+            SPDLOG_TRACE(l, "SEEK: %lld {}", seekOffset, seekWhence);
             
             if (seekWhence == SEEK_SET)
             {
@@ -128,7 +128,7 @@ void CurlIOHandler::threadProc()
             }
             else
             {
-                log_error("CurlIOHandler currently does not support SEEK_END\n");
+                l->error("CurlIOHandler currently does not support SEEK_end");
                 assert(1);
             }
             
@@ -160,7 +160,7 @@ size_t CurlIOHandler::curlCallback(void *ptr, size_t size, size_t nmemb, void *d
     
     assert(wantWrite <= ego->bufSize);
     
-    //log_debug("URL: %s; size: %d; nmemb: %d; wantWrite: %d\n", ego->URL.c_str(), size, nmemb, wantWrite);
+    //SPDLOG_TRACE(l, "URL: %s; size: %d; nmemb: %d; wantWrite: %d\n", ego->URL.c_str(), size, nmemb, wantWrite);
     
     unique_lock<std::mutex> lock(ego->mutex);
     
@@ -270,7 +270,7 @@ size_t CurlIOHandler::curlCallback(void *ptr, size_t size, size_t nmemb, void *d
             currentFillSize += ego->bufSize;
         if ((size_t)currentFillSize >= ego->initialFillSize)
         {
-            log_debug("buffer: initial fillsize reached\n");
+            spdlog::get("log")->debug("buffer: initial fillsize reached\n");
             ego->waitForInitialFillSize = false;
             ego->cond.notify_one();
         }

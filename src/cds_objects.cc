@@ -191,7 +191,7 @@ int CdsItem::equals(Ref<CdsObject> obj, bool exactly)
 void CdsItem::validate()
 {
     CdsObject::validate();
-//    log_info("mime: [%s] loc [%s]\n", this->mimeType.c_str(), this->location.c_str());
+//    l->info("mime: [{}] loc [{}]\n", this->mimeType.c_str(), this->location.c_str());
     if (!string_ok(this->mimeType))
         throw _Exception(_("Item validation failed: missing mimetype"));
 

@@ -119,6 +119,9 @@ public:
     /// an event to all subscribed devices. Container updates are supported,
     /// and of course the mimimum required - systemUpdateID.
     void subscription_update(zmm::String containerUpdateIDs_CSV);
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __UPNP_CDS_H__

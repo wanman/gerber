@@ -69,7 +69,7 @@ main()
 	md5_init(&state);
 	md5_append(&state, (const md5_byte_t *)test[i], strlen(test[i]));
 	md5_finish(&state, digest);
-	printf("MD5 (\"%s\") = ", test[i]);
+	printf("MD5 (\"{}\") = ", test[i]);
 	for (di = 0; di < 16; ++di)
 	    printf("%02x", digest[di]);
 	printf("\n");
@@ -89,7 +89,7 @@ main()
     int i;
     for (i = 1; i <= 64; ++i) {
 	unsigned long v = (unsigned long)(4294967296.0 * fabs(sin((double)i)));
-	printf("#define T%d 0x%08lx\n", i, v);
+	printf("#define T{} 0x%08lx", i, v);
     }
     return 0;
 }

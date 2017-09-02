@@ -96,6 +96,9 @@ protected:
 
     std::condition_variable cond;
     std::mutex mutex;
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __IO_HANDLER_BUFFER_HELPER_H__

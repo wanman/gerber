@@ -38,7 +38,7 @@ using namespace mxml;
 
 void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
     Ref<Storage> storage = Storage::getInstance();
    
     Ref<Element> req = request->getRequest();
@@ -51,7 +51,7 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
     String RequestedCount = req->getChildText(_("RequestedCount"));
     // String SortCriteria; // not yet supported
 
-    //log_debug("Browse received parameters: ObjectID [%s] BrowseFlag [%s] StartingIndex [%s] RequestedCount [%s]\n",
+    //l->debug("Browse received parameters: ObjectID [%s] BrowseFlag [%s] StartingIndex [%s] RequestedCount [%s]\n",
 //            ObjectID.c_str(), BrowseFlag.c_str(), StartingIndex.c_str(), RequestedCount.c_str());
    
 
@@ -139,12 +139,12 @@ void ContentDirectoryService::upnp_action_Browse(Ref<ActionRequest> request)
     response->appendTextChild(_("UpdateID"), String::from(systemUpdateID));
 
     request->setResponse(response);
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void ContentDirectoryService::upnp_action_GetSearchCapabilities(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     Ref<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
@@ -152,12 +152,12 @@ void ContentDirectoryService::upnp_action_GetSearchCapabilities(Ref<ActionReques
             
     request->setResponse(response);
 
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void ContentDirectoryService::upnp_action_GetSortCapabilities(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     Ref<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
@@ -165,12 +165,12 @@ void ContentDirectoryService::upnp_action_GetSortCapabilities(Ref<ActionRequest>
             
     request->setResponse(response);
 
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void ContentDirectoryService::upnp_action_GetSystemUpdateID(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     Ref<Element> response;
     response = UpnpXML_CreateResponse(request->getActionName(), serviceType);
@@ -178,12 +178,12 @@ void ContentDirectoryService::upnp_action_GetSystemUpdateID(Ref<ActionRequest> r
 
     request->setResponse(response);
     
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 }
 
 void ContentDirectoryService::process_action_request(Ref<ActionRequest> request)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     if (request->getActionName() == "Browse")
     {
@@ -204,11 +204,11 @@ void ContentDirectoryService::process_action_request(Ref<ActionRequest> request)
     else
     {
         // invalid or unsupported action
-        log_debug("unrecognized action %s\n",
+        l->debug("unrecognized action {}",
                 request->getActionName().c_str());
         request->setErrorCode(UPNP_E_INVALID_ACTION);
     //    throw UpnpException(UPNP_E_INVALID_ACTION, _("unrecognized action"));
     }
 
-    log_debug("ContentDirectoryService::process_action_request: end\n");
+    SPDLOG_TRACE(l, "ContentDirectoryService::process_action_request: end");
 }

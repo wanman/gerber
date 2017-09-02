@@ -93,7 +93,7 @@ void BufferedIOHandler::threadProc()
                     currentFillSize += bufSize;
                 percentFillLevel = ((float)currentFillSize / (float)bufSize) * 100;
             }
-            log_debug("buffer fill level: %3.2f%%  (bufSize: %d; a: %d; b: %d)\n", percentFillLevel, bufSize, a, b);
+            SPDLOG_TRACE(l, "buffer fill level: %3.2f%%  (bufSize: {}; a: {}; b: {})", percentFillLevel, bufSize, a, b);
         }
 #endif
         if (empty)
@@ -146,7 +146,7 @@ void BufferedIOHandler::threadProc()
             }
             catch (const Exception & e)
             {
-                log_error("Error while seeking in buffer: %s\n", e.getMessage().c_str());
+                l->error("Error while seeking in buffer: {}", e.getMessage().c_str());
                 e.printStackTrace();
             }
             
@@ -186,7 +186,7 @@ void BufferedIOHandler::threadProc()
                         currentFillSize += bufSize;
                     if ((size_t)currentFillSize >= initialFillSize)
                     {
-                        log_debug("buffer: initial fillsize reached\n");
+                        SPDLOG_TRACE(l, "buffer: initial fillsize reached\n");
                         waitForInitialFillSize = false;
                         cond.notify_one();
                     }

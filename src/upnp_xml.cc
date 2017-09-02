@@ -50,6 +50,7 @@ Ref<Element> UpnpXML_CreateResponse(String actionName, String serviceType)
 
 Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, int stringLimit)
 {
+    auto l = spdlog::get("log");
     Ref<Element> result(new Element(_("")));
     
     result->setAttribute(_("id"), String::from(obj->getID()));
@@ -129,7 +130,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
                         CONTENT_MEDIA_HANDLER + _(_URL_PARAM_SEPARATOR) +
                         dict->encodeSimple() + _(_URL_PARAM_SEPARATOR) +
                         _(URL_RESOURCE_ID) + _(_URL_PARAM_SEPARATOR) + "0";
-                log_debug("UpnpXML_DIDLRenderObject: url: %s\n", url.c_str());
+                SPDLOG_TRACE(l, "UpnpXML_DIDLRenderObject: url: {}", url.c_str());
                 Ref<Element> aa(new Element(MetadataHandler::getMetaFieldName(M_ALBUMARTURI)));
                 aa->setText(url);
                 result->appendElementChild(aa);
@@ -147,7 +148,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
             result->setAttribute(_("childCount"), String::from(childCount));
 
         String upnp_class = obj->getClass();
-        log_debug("container is class: %s\n", upnp_class.c_str());
+        SPDLOG_TRACE(l, "container is class: {}", upnp_class.c_str());
         if (upnp_class == UPNP_DEFAULT_CLASS_MUSIC_ALBUM) {
             Ref<Dictionary> meta = obj->getMetadata();
 
@@ -165,7 +166,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
             String aa_id = storage->findFolderImage(cont->getID(), String());
 
             if (aa_id != nullptr) {
-                log_debug("Using folder image as artwork for container\n");
+                SPDLOG_TRACE(l, "Using folder image as artwork for container\n");
 
                 String url;
                 Ref<Dictionary> dict(new Dictionary());
@@ -230,7 +231,7 @@ Ref<Element> UpnpXML_DIDLRenderObject(Ref<CdsObject> obj, bool renderActions, in
         result->appendTextChild(_("mime-type"), aitem->getMimeType());
     }
    
-    // log_debug("Rendered DIDL: \n%s\n", result->print().c_str());
+    // SPDLOG_TRACE(l, "Rendered DIDL: \n%s\n", result->print().c_str());
 
     return result;
 }
@@ -289,8 +290,8 @@ Ref<Element> UpnpXML_CreateEventPropertySet()
 
 Ref<Element> UpnpXML_RenderDeviceDescription(String presentationURL)
 {
-
-    log_debug("start\n");
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "start");
     Ref<ConfigManager> config = ConfigManager::getInstance();
 
     Ref<Element> root(new Element(_("root"))); 

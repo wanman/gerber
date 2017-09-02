@@ -98,6 +98,9 @@ protected:
     /// \brief This function is installed as a callback for libcurl, when
     /// we download data from a remote site.
     static size_t dl(void *buf, size_t size, size_t nmemb, void *data);
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif//__URL_H__

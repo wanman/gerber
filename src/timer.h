@@ -73,11 +73,11 @@ public:
 
     class Subscriber {
     public:
-        virtual ~Subscriber() { log_debug("Subscriber destroyed\n"); }
+        virtual ~Subscriber() { spdlog::get("log")->debug("Subscriber destroyed\n"); }
         virtual void timerNotify(zmm::Ref<Parameter> parameter) = 0;
     };
 
-    ~Timer() { log_debug("Timer destroyed!\n"); }
+    ~Timer() { SPDLOG_TRACE(l, "Timer destroyed!\n"); }
     void init() override;
     void shutdown() override;
     zmm::String getName() override { return _("Timer"); }
@@ -110,7 +110,7 @@ protected:
             try {
                 subscriber->timerNotify(parameter);
             } catch (const zmm::Exception& e) {
-                log_debug("timer caught exception!\n");
+                SPDLOG_TRACE(l, "timer caught exception!\n");
                 e.printStackTrace();
             }
         }
@@ -132,6 +132,7 @@ protected:
         zmm::Ref<Parameter> parameter;
         struct timespec nextNotify;
         bool once;
+        std::shared_ptr<spdlog::logger> l = spdlog::get("log");
     };
 
     std::mutex waitMutex;
@@ -143,6 +144,7 @@ protected:
     struct timespec* getNextNotifyTime();
 
 private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
     static void *staticThreadProc(void *arg);
     void threadProc();
     pthread_t thread;

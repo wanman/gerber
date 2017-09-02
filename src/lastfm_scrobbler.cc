@@ -83,9 +83,10 @@ void LastFm::startedPlaying(Ref<CdsItem> item)
 
     currentTrackId = item->getID();
 
-    log_debug("Artist:\t%s\n", 
+    auto l = spdlog::get("log");
+    l->debug("Artist:\t{}",
         item->getMetadata(MetadataHandler::getMetaFieldName(M_ARTIST)).c_str());
-    log_debug("Title:\t%s\n", 
+    l->debug("Title:\t{}",
          item->getMetadata(MetadataHandler::getMetaFieldName(M_TITLE)).c_str());
 
     String artist = 

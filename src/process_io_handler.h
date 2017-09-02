@@ -113,6 +113,9 @@ protected:
     void killall();
     void registerAll();
     void unregisterAll();
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 

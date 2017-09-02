@@ -47,6 +47,9 @@ public:
 protected:
     pid_t process_id;
     int exit_status;
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 #endif // __PROCESS_EXECUTOR_H__

@@ -253,7 +253,7 @@ static int getTagFromString(String tag)
     if (tag == "EXIF_TAG_IMAGE_UNIQUE_ID") 
         return  EXIF_TAG_IMAGE_UNIQUE_ID;
 
-    log_warning("Ignoring unknown libexif tag: %s\n", tag.c_str());
+    spdlog::get("log")->warn("Ignoring unknown libexif tag: {}", tag.c_str());
     return -1;
 }
 
@@ -272,7 +272,7 @@ void LibExifHandler::process_ifd (ExifContent *content, Ref<CdsItem> item, Ref<S
     for (i = 0; i < content->count; i++) {
         e = content->entries[i];
 
-//        log_debug("Processing entry: %d\n", i);
+//        SPDLOG_TRACE(l, "Processing entry: %d\n", i);
         
         switch (e->tag)
         {
@@ -345,7 +345,7 @@ void LibExifHandler::process_ifd (ExifContent *content, Ref<CdsItem> item, Ref<S
                         {
                             value = sc->convert(value);
                             item->setAuxData(tmp, value);
-//                            log_debug(("Adding tag: %s with value %s\n", tmp.c_str(), value.c_str()));
+//                            SPDLOG_TRACE(l, ("Adding tag: %s with value %s\n", tmp.c_str(), value.c_str()));
                         }
                     }
                 }
@@ -357,6 +357,7 @@ void LibExifHandler::process_ifd (ExifContent *content, Ref<CdsItem> item, Ref<S
 
 void LibExifHandler::fillMetadata(Ref<CdsItem> item)
 {
+    auto l = spdlog::get("log");
     ExifData    *ed;
     Ref<Array<StringBase> > aux;
     
@@ -366,7 +367,7 @@ void LibExifHandler::fillMetadata(Ref<CdsItem> item)
 
     if (!ed)
     {
-        log_debug("Exif data not found, attempting to set resolution internally...\n");
+        SPDLOG_TRACE(l, "Exif data not found, attempting to set resolution internally...\n");
         set_jpeg_resolution_resource(item, 0);
         return;
     }
@@ -397,7 +398,7 @@ void LibExifHandler::fillMetadata(Ref<CdsItem> item)
             Ref<IOHandler> io_h(new MemIOHandler(ed->data, ed->size));
             io_h->open(UPNP_READ);
             String th_resolution = get_jpeg_resolution(io_h);
-            log_debug("RESOLUTION: %s\n", th_resolution.c_str());
+            SPDLOG_TRACE(l, "RESOLUTION: {}", th_resolution.c_str());
 
             Ref<CdsResource> resource(new CdsResource(CH_LIBEXIF));
             resource->addAttribute(MetadataHandler::getResAttrName(R_PROTOCOLINFO), renderProtocolInfo(item->getMimeType()));

@@ -55,6 +55,9 @@ protected:
     using AutoLock = std::lock_guard<std::mutex>;
     
     zmm::Ref<zmm::ObjectStack<Singleton<zmm::Object> > > singletonStack;
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 template <class T, class MutexT>
@@ -107,7 +110,7 @@ private:
     
     virtual void inactivateSingleton()
     {
-        //log_debug("%d %d\n", singletonActive, instance.getPtr());
+        //SPDLOG_TRACE(l, "%d %d\n", singletonActive, instance.getPtr());
         singletonActive = false;
         instance = nullptr;
     }

@@ -83,14 +83,14 @@ Ref<Element> SopCastService::getData()
     
     try 
     {
-        log_debug("DOWNLOADING URL: %s\n", SOPCAST_CHANNEL_URL);
+        SPDLOG_TRACE(l, "DOWNLOADING URL: {}", SOPCAST_CHANNEL_URL);
         buffer = url->download(_(SOPCAST_CHANNEL_URL), &retcode, 
                                curl_handle, false, true, true);
     
     }
     catch (const Exception & ex)
     {
-        log_error("Failed to download SopCast XML data: %s\n", 
+        l->error("Failed to download SopCast XML data: {}",
                   ex.getMessage().c_str());
         return nullptr;
     }
@@ -101,7 +101,7 @@ Ref<Element> SopCastService::getData()
     if (retcode != 200)
         return nullptr;
 
-    log_debug("GOT BUFFER\n%s\n", buffer->toString().c_str()); 
+    SPDLOG_TRACE(l, "GOT BUFFER\n{}", buffer->toString().c_str());
     Ref<Parser> parser(new Parser());
     try
     {
@@ -109,7 +109,7 @@ Ref<Element> SopCastService::getData()
     }
     catch (const ParseException & pe)
     {
-        log_error("Error parsing SopCast XML %s line %d:\n%s\n",
+        l->error("Error parsing SopCast XML {} line {}:\n{}",
                pe.context->location.c_str(),
                pe.context->line,
                pe.getMessage().c_str());
@@ -117,7 +117,7 @@ Ref<Element> SopCastService::getData()
     }
     catch (const Exception & ex)
     {
-        log_error("Error parsing SopCast XML %s\n", ex.getMessage().c_str());
+        l->error("Error parsing SopCast XML {}", ex.getMessage().c_str());
         return nullptr;
     }
     
@@ -126,7 +126,7 @@ Ref<Element> SopCastService::getData()
 
 bool SopCastService::refreshServiceData(Ref<Layout> layout)
 {
-    log_debug("Refreshing SopCast service\n");
+    SPDLOG_TRACE(l, "Refreshing SopCast service\n");
     // the layout is in full control of the service items
     
     // this is a safeguard to ensure that this class is not called from
@@ -147,7 +147,7 @@ bool SopCastService::refreshServiceData(Ref<Layout> layout)
         sc->setServiceContent(reply);
     else
     {
-        log_debug("Failed to get XML content from SopCast service\n");
+        SPDLOG_TRACE(l, "Failed to get XML content from SopCast service\n");
         throw _Exception(_("Failed to get XML content from SopCast service"));
     }
 
@@ -165,14 +165,14 @@ bool SopCastService::refreshServiceData(Ref<Layout> layout)
         Ref<CdsObject> old = Storage::getInstance()->loadObjectByServiceID(RefCast(obj, CdsItem)->getServiceID());
         if (old == nullptr)
         {
-            log_debug("Adding new SopCast object\n");
+            SPDLOG_TRACE(l, "Adding new SopCast object\n");
             
             if (layout != nullptr)
                 layout->processCdsObject(obj, nullptr);
         }
         else
         {
-            log_debug("Updating existing SopCast object\n");
+            SPDLOG_TRACE(l, "Updating existing SopCast object\n");
             obj->setID(old->getID());
             obj->setParentID(old->getParentID());
             struct timespec oldt, newt;

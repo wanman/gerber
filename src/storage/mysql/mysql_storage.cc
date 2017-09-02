@@ -85,18 +85,18 @@ MysqlStorage::~MysqlStorage()
         mysql_close(&db);
         mysql_connection = false;
     }
-    log_debug("calling mysql_server_end...\n");
+    SPDLOG_TRACE(l, "calling mysql_server_end...\n");
     mysql_server_end();
-    log_debug("...ok\n");
+    SPDLOG_TRACE(l, "...ok\n");
 }
 
 void MysqlStorage::checkMysqlThreadInit()
 {
     if (!mysql_connection)
         throw _Exception(_("mysql connection is not open or already closed"));
-    //log_debug("checkMysqlThreadInit; thread_id=%d\n", pthread_self());
+    //SPDLOG_TRACE(l, "checkMysqlThreadInit; thread_id=%d\n", pthread_self());
     if (pthread_getspecific(mysql_init_key) == nullptr) {
-        log_debug("running mysql_thread_init(); thread_id=%d\n", pthread_self());
+        SPDLOG_TRACE(l, "running mysql_thread_init(); thread_id={}", pthread_self());
         if (mysql_thread_init())
             throw _Exception(_("error while calling mysql_thread_init()"));
         if (pthread_setspecific(mysql_init_key, (void*)1))
@@ -106,7 +106,7 @@ void MysqlStorage::checkMysqlThreadInit()
 
 void MysqlStorage::threadCleanup()
 {
-    log_debug("thread cleanup; thread_id=%d\n", pthread_self());
+    SPDLOG_TRACE(l, "thread cleanup; thread_id={}", pthread_self());
     if (pthread_getspecific(mysql_init_key) != nullptr) {
         mysql_thread_end();
     }
@@ -114,7 +114,7 @@ void MysqlStorage::threadCleanup()
 
 void MysqlStorage::init()
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
     SQLStorage::init();
 
     unique_lock<decltype(mysqlMutex)> lock(mysqlMutex);
@@ -187,7 +187,7 @@ void MysqlStorage::init()
 
     if (dbVersion == nullptr) {
 #ifdef AUTO_CREATE_DATABASE
-        log_info("database doesn't seem to exist. automatically creating database...\n");
+        l->info("database doesn't seem to exist. automatically creating database...\n");
         unsigned char buf[MS_CREATE_SQL_INFLATED_SIZE + 1]; // + 1 for '\0' at the end of the string
         unsigned long uncompressed_size = MS_CREATE_SQL_INFLATED_SIZE;
         int ret = uncompress(buf, &uncompressed_size, mysql_create_sql, MS_CREATE_SQL_DEFLATED_SIZE);
@@ -217,43 +217,43 @@ void MysqlStorage::init()
             shutdown();
             throw _Exception(_("error while creating database"));
         }
-        log_info("database created successfully.\n");
+        l->info("database created successfully.\n");
 #else
         shutdown();
         throw _Exception(_("database doesn't seem to exist yet and autocreation wasn't compiled in"));
 #endif
     }
-    log_debug("db_version: %s\n", dbVersion.c_str());
+    SPDLOG_TRACE(l, "db_version: {}", dbVersion.c_str());
 
     /* --- database upgrades --- */
     if (dbVersion == "1") {
-        log_info("Doing an automatic database upgrade from database version 1 to version 2...\n");
+        l->info("Doing an automatic database upgrade from database version 1 to version 2...\n");
         _exec(MYSQL_UPDATE_1_2_1);
         _exec(MYSQL_UPDATE_1_2_2);
         _exec(MYSQL_UPDATE_1_2_3);
         _exec(MYSQL_UPDATE_1_2_4);
         _exec(MYSQL_UPDATE_1_2_5);
         _exec(MYSQL_UPDATE_1_2_6);
-        log_info("database upgrade successful.\n");
+        l->info("database upgrade successful.\n");
         dbVersion = _("2");
     }
 
     if (dbVersion == "2") {
-        log_info("Doing an automatic database upgrade from database version 2 to version 3...\n");
+        l->info("Doing an automatic database upgrade from database version 2 to version 3...\n");
         _exec(MYSQL_UPDATE_2_3_1);
         _exec(MYSQL_UPDATE_2_3_2);
         _exec(MYSQL_UPDATE_2_3_3);
         _exec(MYSQL_UPDATE_2_3_4);
-        log_info("database upgrade successful.\n");
+        l->info("database upgrade successful.\n");
         dbVersion = _("3");
     }
 
     if (dbVersion == "3") {
-        log_info("Doing an automatic database upgrade from database version 3 to version 4...\n");
+        l->info("Doing an automatic database upgrade from database version 3 to version 4...\n");
         _exec(MYSQL_UPDATE_3_4_1);
         _exec(MYSQL_UPDATE_3_4_2);
         _exec(MYSQL_UPDATE_3_4_3);
-        log_info("database upgrade successful.\n");
+        l->info("database upgrade successful.\n");
         dbVersion = _("4");
     }
 
@@ -264,7 +264,7 @@ void MysqlStorage::init()
 
     lock.unlock();
 
-    log_debug("end\n");
+    SPDLOG_TRACE(l, "end");
 
     dbReady();
 }
@@ -290,14 +290,14 @@ String MysqlStorage::getError(MYSQL* db)
     Ref<StringBuffer> err_buf(new StringBuffer());
     *err_buf << "mysql_error (" << String::from(mysql_errno(db));
     *err_buf << "): \"" << mysql_error(db) << "\"";
-    log_debug("%s\n", err_buf->c_str());
+    SPDLOG_TRACE(l, "{}", err_buf->c_str());
     return err_buf->toString();
 }
 
 Ref<SQLResult> MysqlStorage::select(const char* query, int length)
 {
 #ifdef MYSQL_SELECT_DEBUG
-    log_debug("%s\n", query);
+    SPDLOG_TRACE(l, "{}", query);
     print_backtrace();
 #endif
 
@@ -323,7 +323,7 @@ Ref<SQLResult> MysqlStorage::select(const char* query, int length)
 int MysqlStorage::exec(const char* query, int length, bool getLastInsertId)
 {
 #ifdef MYSQL_EXEC_DEBUG
-    log_debug("%s\n", query);
+    SPDLOG_TRACE(l, "{}", query);
     print_backtrace();
 #endif
 

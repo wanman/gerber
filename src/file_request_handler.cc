@@ -54,7 +54,7 @@ FileRequestHandler::FileRequestHandler()
 
 void FileRequestHandler::get_info(IN const char* filename, OUT UpnpFileInfo* info)
 {
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
 
     String mimeType;
     int objectID;
@@ -71,17 +71,17 @@ void FileRequestHandler::get_info(IN const char* filename, OUT UpnpFileInfo* inf
     Ref<Dictionary> dict(new Dictionary());
     dict->decodeSimple(parameters);
 
-    log_debug("full url (filename): %s, parameters: %s\n",
+    l->debug("full url (filename): {}, parameters: {}",
         filename, parameters.c_str());
 
     String objID = dict->get(_("object_id"));
     if (objID == nullptr) {
-        //log_error("object_id not found in url\n");
+        //l->error("object_id not found in url\n");
         throw _Exception(_("get_info: object_id not found"));
     } else
         objectID = objID.toInt();
 
-    //log_debug("got ObjectID: [%s]\n", object_id.c_str());
+    //SPDLOG_TRACE(l, "got ObjectID: [%s]\n", object_id.c_str());
 
     Ref<Storage> storage = Storage::getInstance();
 
@@ -145,7 +145,7 @@ void FileRequestHandler::get_info(IN const char* filename, OUT UpnpFileInfo* inf
     }
 
     String header;
-    log_debug("path: %s\n", path.c_str());
+    SPDLOG_TRACE(l, "path: {}", path.c_str());
     int slash_pos = path.rindex(DIR_SEPARATOR);
     if (slash_pos >= 0) {
         if (slash_pos < path.length() - 1) {
@@ -161,13 +161,13 @@ void FileRequestHandler::get_info(IN const char* filename, OUT UpnpFileInfo* inf
 #endif
 
     // for transcoded resourecs res_id will always be negative
-    log_debug("fetching resource id %d\n", res_id);
+    SPDLOG_TRACE(l, "fetching resource id {}", res_id);
     String rh = dict->get(_(RESOURCE_HANDLER));
 
     if (((res_id > 0) && (res_id < item->getResourceCount()))
         || ((res_id > 0) && string_ok(rh))) {
 
-        log_debug("setting content length to unknown\n");
+        SPDLOG_TRACE(l, "setting content length to unknown\n");
         /// \todo we could figure out the content length...
         UpnpFileInfo_set_FileLength(info, -1);
 
@@ -289,8 +289,8 @@ void FileRequestHandler::get_info(IN const char* filename, OUT UpnpFileInfo* inf
     if (!string_ok(mimeType))
         mimeType = item->getMimeType();
 
-//log_debug("sizeof off_t %d, statbuf.st_size %d\n", sizeof(off_t), sizeof(statbuf.st_size));
-//log_debug("get_info: file_length: " OFF_T_SPRINTF "\n", statbuf.st_size);
+//SPDLOG_TRACE(l, "sizeof off_t %d, statbuf.st_size %d\n", sizeof(off_t), sizeof(statbuf.st_size));
+//SPDLOG_TRACE(l, "get_info: file_length: " OFF_T_SPRINTF "\n", statbuf.st_size);
 
 #ifdef EXTEND_PROTOCOLINFO
     header = getDLNAtransferHeader(mimeType, header);
@@ -310,10 +310,10 @@ UpnpFileInfo_set_LastModified(info, statbuf.st_mtime);
     UpnpFileInfo_set_ContentType(info,
         ixmlCloneDOMString(mimeType.c_str()));
 
-    // log_debug("get_info: Requested %s, ObjectID: %s, Location: %s\n, MimeType: %s\n",
+    // l->debug("get_info: Requested %s, ObjectID: %s, Location: %s\n, MimeType: %s\n",
     //      filename, object_id.c_str(), path.c_str(), info->content_type);
 
-    log_debug("web_get_info(): end\n");
+    SPDLOG_TRACE(l, "web_get_info(): end");
 }
 
 Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
@@ -328,7 +328,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
     String tr_profile;
 #endif
 
-    log_debug("start\n");
+    SPDLOG_TRACE(l, "start");
     struct stat statbuf;
 
     // Currently we explicitly do not support UPNP_WRITE
@@ -342,7 +342,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
 
     Ref<Dictionary> dict(new Dictionary());
     dict->decodeSimple(parameters);
-    log_debug("full url (filename): %s, parameters: %s\n", filename, parameters.c_str());
+    SPDLOG_TRACE(l, "full url (filename): {}, parameters: {}", filename, parameters.c_str());
 
     String objID = dict->get(_("object_id"));
     if (objID == nullptr) {
@@ -350,7 +350,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
     } else
         objectID = objID.toInt();
 
-    log_debug("Opening media file with object id %d\n", objectID);
+    SPDLOG_TRACE(l, "Opening media file with object id {}", objectID);
     Ref<Storage> storage = Storage::getInstance();
 
     Ref<CdsObject> obj = storage->loadObject(objectID);
@@ -386,7 +386,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
         String input = inputElement->print();
         String output;
 
-        log_debug("Script input: %s\n", input.c_str());
+        SPDLOG_TRACE(l, "Script input: {}", input.c_str());
         if (strncmp(action.c_str(), "http://", 7)) {
 #ifdef TOMBDEBUG
             struct timespec before;
@@ -395,14 +395,14 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
             output = run_simple_process(action, _("run"), input);
 #ifdef TOMBDEBUG
             long delta = getDeltaMillis(&before);
-            log_debug("script executed in %ld milliseconds\n", delta);
+            SPDLOG_TRACE(l, "script executed in %ld milliseconds\n", delta);
 #endif
         } else {
             /// \todo actually fetch...
-            log_debug("fetching %s\n", action.c_str());
+            SPDLOG_TRACE(l, "fetching {}", action.c_str());
             output = input;
         }
-        log_debug("Script output: %s\n", output.c_str());
+        SPDLOG_TRACE(l, "Script output: {}", output.c_str());
 
         Ref<CdsObject> clone = CdsObject::createObject(objectType);
         aitem->copyTo(clone);
@@ -414,7 +414,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
             Ref<UpdateManager> um = UpdateManager::getInstance();
             Ref<SessionManager> sm = SessionManager::getInstance();
 
-            log_debug("Item changed, updating database\n");
+            SPDLOG_TRACE(l, "Item changed, updating database\n");
             int containerChanged = INVALID_OBJECT_ID;
             storage->updateObject(clone, &containerChanged);
             um->containerChanged(containerChanged);
@@ -422,12 +422,12 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
 
             if (!aitem->equals(clone)) // check for visible differences
             {
-                log_debug("Item changed visually, updating parent\n");
+                SPDLOG_TRACE(l, "Item changed visually, updating parent\n");
                 um->containerChanged(clone->getParentID(), FLUSH_ASAP);
             }
             obj = clone;
         } else {
-            log_debug("Item untouched...\n");
+            SPDLOG_TRACE(l, "Item untouched...\n");
         }
     }
 
@@ -475,7 +475,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
     info->last_modified = statbuf.st_mtime;
     info->is_directory = S_ISDIR(statbuf.st_mode);
 
-    log_debug("path: %s\n", path.c_str());
+    SPDLOG_TRACE(l, "path: %s\n", path.c_str());
     int slash_pos = path.rindex(DIR_SEPARATOR);
     if (slash_pos >= 0)
     {
@@ -490,7 +490,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
     }
     */
 
-    log_debug("fetching resource id %d\n", res_id);
+    SPDLOG_TRACE(l, "fetching resource id {}", res_id);
 
 #ifdef EXTERNAL_TRANSCODING
     tr_profile = dict->get(_(URL_PARAM_TRANSCODE_PROFILE_NAME));
@@ -569,7 +569,7 @@ Ref<IOHandler> FileRequestHandler::open(IN const char* filename,
             info->file_length = statbuf.st_size;
             info->content_type = ixmlCloneDOMString(mimeType.c_str());
 
-            log_debug("Adding content disposition header: %s\n", 
+            l->debug("Adding content disposition header: %s\n",
                     header.c_str());
             // if we are dealing with a regular file we should add the
             // Accept-Ranges: bytes header, in order to indicate that we support

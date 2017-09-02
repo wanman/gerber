@@ -124,7 +124,7 @@ bool Session::hasUIUpdateIDs()
 
 void Session::clearUpdateIDs()
 {
-    log_debug("clearing UI updateIDs\n");
+    spdlog::get("log")->debug("clearing UI updateIDs\n");
     AutoLock lock(mutex);
     uiUpdateIDs->clear();
     updateAll = false;
@@ -243,7 +243,7 @@ void SessionManager::checkTimer()
 
 void SessionManager::timerNotify(Ref<Timer::Parameter> parameter)
 {
-    log_debug("notified... %d web sessions.\n", sessions->size());
+    SPDLOG_TRACE(l, "notified... {} web sessions.", sessions->size());
     AutoLock lock(mutex);
     struct timespec now;
     getTimespecNow(&now);
@@ -252,7 +252,7 @@ void SessionManager::timerNotify(Ref<Timer::Parameter> parameter)
         Ref<Session> session = sessions->get(i);
         if (getDeltaMillis(session->getLastAccessTime(), &now) > 1000 * session->getTimeout())
         {
-            log_debug("session timeout: %s - diff: %ld\n", session->getID().c_str(), getDeltaMillis(session->getLastAccessTime(), &now));
+            SPDLOG_TRACE(l, "session timeout: {} - diff: %ld", session->getID().c_str(), getDeltaMillis(session->getLastAccessTime(), &now));
             sessions->remove(i);
             checkTimer();
             i--; // to not skip a session. the removed id is now taken by another session

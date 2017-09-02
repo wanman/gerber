@@ -46,7 +46,8 @@ web::add::add() : WebRequestHandler()
 
 void web::add::process()
 {
-    log_debug("add: start\n");
+    auto l = spdlog::get("log");
+    SPDLOG_TRACE(l, "add: start");
 
     check_request();
     
@@ -60,5 +61,5 @@ void web::add::process()
 
     Ref<ContentManager> cm = ContentManager::getInstance();
     cm->addFile(path, true);
-    log_debug("add: returning\n");
+    SPDLOG_TRACE(l, "add: returning\n");
 }

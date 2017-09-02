@@ -83,6 +83,9 @@ public:
 
     /// \brief Close a previously opened file.
     virtual void close();
+
+private:
+    std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };
 
 

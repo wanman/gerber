@@ -44,7 +44,7 @@ static int maxAlloc = 0;
 
 static void print_stats()
 {
-    printf("MAL:%d FRE:%d CUR:%d TOT:%d MAX:%d\n",
+    printf("MAL:{} FRE:{} CUR:{} TOT:{} MAX:{}",
            mallocCount, freeCount, curAlloc, totalAlloc, maxAlloc);
 }
 

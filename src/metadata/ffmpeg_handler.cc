@@ -83,6 +83,7 @@ FfmpegHandler::FfmpegHandler()
 
 static void addFfmpegMetadataFields(Ref<CdsItem> item, AVFormatContext* pFormatCtx)
 {
+    auto l = spdlog::get("log");
     AVDictionaryEntry* e = NULL;
     Ref<StringConverter> sc = StringConverter::m2i();
     metadata_fields_t field;
@@ -92,29 +93,29 @@ static void addFfmpegMetadataFields(Ref<CdsItem> item, AVFormatContext* pFormatC
         value = e->value;
 
         if (strcmp(e->key, "title") == 0) {
-            log_debug("Identified metadata title: %s\n", e->value);
+            SPDLOG_TRACE(l, "Identified metadata title: {}", e->value);
             field = M_TITLE;
         } else if (strcmp(e->key, "artist") == 0) {
-            log_debug("Identified metadata artist: %s\n", e->value);
+            SPDLOG_TRACE(l, "Identified metadata artist: {}", e->value);
             field = M_ARTIST;
         } else if (strcmp(e->key, "album") == 0) {
-            log_debug("Identified metadata album: %s\n", e->value);
+            SPDLOG_TRACE(l, "Identified metadata album: {}", e->value);
             field = M_ALBUM;
         } else if (strcmp(e->key, "date") == 0) {
             if ((value.length() == 4) && (value.toInt() > 0)) {
                 value = value + _("-01-01");
-                log_debug("Identified metadata date: %s\n", value.c_str());
+                SPDLOG_TRACE(l, "Identified metadata date: {}", value.c_str());
             }
             /// \toto parse possible ISO8601 timestamp
             field = M_DATE;
         } else if (strcmp(e->key, "genre") == 0) {
-            log_debug("Identified metadata genre: %s\n", e->value);
+            SPDLOG_TRACE(l, "Identified metadata genre: {}", e->value);
             field = M_GENRE;
         } else if (strcmp(e->key, "comment") == 0) {
-            log_debug("Identified metadata comment: %s\n", e->value);
+            SPDLOG_TRACE(l, "Identified metadata comment: {}", e->value);
             field = M_DESCRIPTION;
         } else if (strcmp(e->key, "track") == 0) {
-            log_debug("Identified metadata track: %d\n", e->value);
+            SPDLOG_TRACE(l, "Identified metadata track: {}", e->value);
             field = M_TRACKNUMBER;
         } else {
             continue;
@@ -127,9 +128,12 @@ static void addFfmpegMetadataFields(Ref<CdsItem> item, AVFormatContext* pFormatC
 // ffmpeg library calls
 static void addFfmpegResourceFields(Ref<CdsItem> item, AVFormatContext* pFormatCtx, int* x, int* y)
 {
+    auto l = spdlog::get("log");
     int64_t hours, mins, secs, us;
-    int audioch = 0, samplefreq = 0;
-    bool audioset, videoset;
+    int audioch = 0;
+    int samplefreq = 0;
+    bool audioset;
+    bool videoset;
     String resolution;
     char duration[15];
 
@@ -148,7 +152,7 @@ static void addFfmpegResourceFields(Ref<CdsItem> item, AVFormatContext* pFormatC
     mins %= 60;
     if ((hours + mins + secs) > 0) {
         sprintf(duration, "%02" PRId64 ":%02" PRId64 ":%02" PRId64 ".%01" PRId64, hours, mins, secs, (10 * us) / AV_TIME_BASE);
-        log_debug("Added duration: %s\n", duration);
+        SPDLOG_TRACE(l, "Added duration: {}", duration);
         item->getResource(0)->addAttribute(MetadataHandler::getResAttrName(R_DURATION), duration);
     }
 
@@ -156,7 +160,7 @@ static void addFfmpegResourceFields(Ref<CdsItem> item, AVFormatContext* pFormatC
     if (pFormatCtx->bit_rate > 0) {
         // ffmpeg's bit_rate is in bits/sec, upnp wants it in bytes/sec
         // See http://www.upnp.org/schemas/av/didl-lite-v3.xsd
-        log_debug("Added overall bitrate: %d kb/s\n", pFormatCtx->bit_rate / 8);
+        SPDLOG_TRACE(l, "Added overall bitrate: {} kb/s", pFormatCtx->bit_rate / 8);
         item->getResource(0)->addAttribute(MetadataHandler::getResAttrName(R_BITRATE), String::from(pFormatCtx->bit_rate / 8));
     }
 
@@ -174,7 +178,7 @@ static void addFfmpegResourceFields(Ref<CdsItem> item, AVFormatContext* pFormatC
                 fourcc[3] = as_codecpar(st)->codec_tag >> 24;
                 fourcc[4] = '\0';
 
-                log_debug("FourCC: %x = %s\n",
+                l->debug("FourCC: %x = {}",
                     as_codecpar(st)->codec_tag, fourcc);
                 String fcc = fourcc;
                 if (string_ok(fcc))
@@ -185,7 +189,7 @@ static void addFfmpegResourceFields(Ref<CdsItem> item, AVFormatContext* pFormatC
             if ((as_codecpar(st)->width > 0) && (as_codecpar(st)->height > 0)) {
                 resolution = String::from(as_codecpar(st)->width) + "x" + String::from(as_codecpar(st)->height);
 
-                log_debug("Added resolution: %s pixel\n", resolution.c_str());
+                SPDLOG_TRACE(l, "Added resolution: {} pixel", resolution.c_str());
                 item->getResource(0)->addAttribute(MetadataHandler::getResAttrName(R_RESOLUTION), resolution);
                 videoset = true;
                 *x = as_codecpar(st)->width;
@@ -196,13 +200,13 @@ static void addFfmpegResourceFields(Ref<CdsItem> item, AVFormatContext* pFormatC
             // find the first stream that has a valid sample rate
             if (as_codecpar(st)->sample_rate > 0) {
                 samplefreq = as_codecpar(st)->sample_rate;
-                log_debug("Added sample frequency: %d Hz\n", samplefreq);
+                SPDLOG_TRACE(l, "Added sample frequency: {} Hz", samplefreq);
                 item->getResource(0)->addAttribute(MetadataHandler::getResAttrName(R_SAMPLEFREQUENCY), String::from(samplefreq));
                 audioset = true;
 
                 audioch = as_codecpar(st)->channels;
                 if (audioch > 0) {
-                    log_debug("Added number of audio channels: %d\n", audioch);
+                    SPDLOG_TRACE(l, "Added number of audio channels: {}", audioch);
                     item->getResource(0)->addAttribute(MetadataHandler::getResAttrName(R_NRAUDIOCHANNELS), String::from(audioch));
                 }
             }
@@ -219,7 +223,7 @@ void FfmpegNoOutputStub(void* ptr, int level, const char* fmt, va_list vl)
 
 void FfmpegHandler::fillMetadata(Ref<CdsItem> item)
 {
-    log_debug("Running ffmpeg handler on %s\n", item->getLocation().c_str());
+    spdlog::get("log")->debug("Running ffmpeg handler on {}", item->getLocation().c_str());
 
     int x = 0;
     int y = 0;
@@ -260,19 +264,20 @@ static pthread_mutex_t thumb_lock;
 
 static int _mkdir(const char* path)
 {
+    auto l = spdlog::get("log");
     int ret = mkdir(path, 0777);
 
     if (ret == 0) {
         // Make sure we are +x in case of restrictive umask that strips +x.
         struct stat st;
         if (stat(path, &st)) {
-            log_warning("could not stat(%s): %s\n", path, strerror(errno));
+            l->warn("could not stat({}): {}", path, strerror(errno));
             return -1;
         }
         mode_t xbits = S_IXUSR | S_IXGRP | S_IXOTH;
         if (!(st.st_mode & xbits)) {
             if (chmod(path, st.st_mode | xbits)) {
-                log_warning("could not chmod(%s, +x): %s\n", path, strerror(errno));
+                l->warn("could not chmod({}, +x): {}", path, strerror(errno));
                 return -1;
             }
         }
@@ -389,7 +394,7 @@ Ref<IOHandler> FfmpegHandler::serveContent(Ref<CdsItem> item, int resNum, off_t*
             *data_size = (off_t)size_image;
             Ref<IOHandler> h(new MemIOHandler(ptr_image, size_image));
             free(ptr_image);
-            log_debug("Returning cached thumbnail for file: %s\n", item->getLocation().c_str());
+            spdlog::get("log")->debug("Returning cached thumbnail for file: {}", item->getLocation().c_str());
             return h;
         }
     }
@@ -415,7 +420,7 @@ Ref<IOHandler> FfmpegHandler::serveContent(Ref<CdsItem> item, int resNum, off_t*
     th->thumbnail_image_quality = cfg->getIntOption(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_IMAGE_QUALITY);
     th->thumbnail_image_type = Jpeg;
 
-    log_debug("Generating thumbnail for file: %s\n", item->getLocation().c_str());
+    spdlog::get("log")->debug("Generating thumbnail for file: {}", item->getLocation().c_str());
 
 #ifdef FFMPEGTHUMBNAILER_OLD_API
     if (generate_thumbnail_to_buffer(th, item->getLocation().c_str(), img) != 0)
