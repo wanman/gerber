@@ -64,7 +64,7 @@ void FallbackLayout::add(Ref<CdsObject> obj, int parentID, bool use_ref)
         obj->setFlag(OBJECT_FLAG_USE_RESOURCE_REF);
     obj->setID(INVALID_OBJECT_ID);
 
-    ContentManager::getInstance()->addObject(obj);
+    contentManager->addObject(obj);
 }
 
 zmm::String FallbackLayout::esc(zmm::String str)
@@ -75,7 +75,7 @@ zmm::String FallbackLayout::esc(zmm::String str)
 void FallbackLayout::addVideo(zmm::Ref<CdsObject> obj, String rootpath)
 {
     Ref<StringConverter> f2i = StringConverter::f2i();
-    int id = ContentManager::getInstance()->addContainerChain(_("/Video/All Video"));
+    int id = contentManager->addContainerChain(_("/Video/All Video"));
 
     if (obj->getID() != INVALID_OBJECT_ID)
     {
@@ -106,7 +106,7 @@ void FallbackLayout::addVideo(zmm::Ref<CdsObject> obj, String rootpath)
 
     if (string_ok(dir))
     {
-        id = ContentManager::getInstance()->addContainerChain(_("/Video/Directories/") + dir);
+        id = contentManager->addContainerChain(_("/Video/Directories/") + dir);
         add(obj, id);
     }
 }
@@ -117,7 +117,7 @@ void FallbackLayout::addImage(Ref<CdsObject> obj, String rootpath)
     Ref<StringConverter> f2i = StringConverter::f2i();
 
     
-    id = ContentManager::getInstance()->addContainerChain(_("/Photos/All Photos"));
+    id = contentManager->addContainerChain(_("/Photos/All Photos"));
     if (obj->getID() != INVALID_OBJECT_ID)
     {
         obj->setRefID(obj->getID());
@@ -150,12 +150,12 @@ void FallbackLayout::addImage(Ref<CdsObject> obj, String rootpath)
         if ((y > 0) && (m > 0))
         {
             chain = _("/Photos/Year/") + esc(year) + "/" + esc(month);
-            id = ContentManager::getInstance()->addContainerChain(chain);
+            id = contentManager->addContainerChain(chain);
             add(obj, id);
         }
 
         chain = _("/Photos/Date/") + esc(date);
-        id = ContentManager::getInstance()->addContainerChain(chain);
+        id = contentManager->addContainerChain(chain);
         add(obj, id);
     }
 
@@ -177,7 +177,7 @@ void FallbackLayout::addImage(Ref<CdsObject> obj, String rootpath)
 
     if (string_ok(dir))
     {
-        id = ContentManager::getInstance()->addContainerChain(_("/Photos/Directories/") + dir);
+        id = contentManager->addContainerChain(_("/Photos/Directories/") + dir);
         add(obj, id);
     }
 }
@@ -248,7 +248,7 @@ void FallbackLayout::addAudio(zmm::Ref<CdsObject> obj)
         obj->setMetadata(meta);
     }
 
-    id = ContentManager::getInstance()->addContainerChain(_("/Audio/All Audio"));
+    id = contentManager->addContainerChain(_("/Audio/All Audio"));
     obj->setTitle(title);
 
     // we get the main object here, so the object that we will add below
@@ -273,7 +273,7 @@ void FallbackLayout::addAudio(zmm::Ref<CdsObject> obj)
 
     chain = _("/Audio/Artists/") + artist + "/All Songs";
 
-    id = ContentManager::getInstance()->addContainerChain(chain);
+    id = contentManager->addContainerChain(chain);
     add(obj, id);
 
     String temp;
@@ -287,28 +287,28 @@ void FallbackLayout::addAudio(zmm::Ref<CdsObject> obj)
 
     album = esc(album);
     chain = _("/Audio/Artists/") +  artist + _("/") + album;
-    id = ContentManager::getInstance()->addContainerChain(chain, _(UPNP_DEFAULT_CLASS_MUSIC_ALBUM), obj->getID());
+    id = contentManager->addContainerChain(chain, _(UPNP_DEFAULT_CLASS_MUSIC_ALBUM), obj->getID());
     add(obj, id);
 
     chain = _("/Audio/Albums/") + album;
-    id = ContentManager::getInstance()->addContainerChain(chain, _(UPNP_DEFAULT_CLASS_MUSIC_ALBUM), obj->getID());
+    id = contentManager->addContainerChain(chain, _(UPNP_DEFAULT_CLASS_MUSIC_ALBUM), obj->getID());
     add(obj, id);
 
     chain = _("/Audio/Genres/") + esc(genre);
-    id = ContentManager::getInstance()->addContainerChain(chain, _(UPNP_DEFAULT_CLASS_MUSIC_GENRE));
+    id = contentManager->addContainerChain(chain, _(UPNP_DEFAULT_CLASS_MUSIC_GENRE));
     add(obj, id);
 
     chain = _("/Audio/Year/") + esc(date);
-    id = ContentManager::getInstance()->addContainerChain(chain);
+    id = contentManager->addContainerChain(chain);
     add(obj, id);
 
     obj->setTitle(temp + title);
 
-    id = ContentManager::getInstance()->addContainerChain(_("/Audio/All - full name"));
+    id = contentManager->addContainerChain(_("/Audio/All - full name"));
     add(obj, id);
 
     chain = _("/Audio/Artists/") + artist + "/All - full name";
-    id = ContentManager::getInstance()->addContainerChain(chain);
+    id = contentManager->addContainerChain(chain);
     add(obj, id);
 
 
@@ -335,7 +335,7 @@ void FallbackLayout::addYouTube(zmm::Ref<CdsObject> obj)
         if (rating > 3)
         {
             chain = _(YT_VPATH "/Rating/") + esc(String::from(rating));
-            id = ContentManager::getInstance()->addContainerChain(chain);
+            id = contentManager->addContainerChain(chain);
             add(obj, id, ref_set);
             if (!ref_set)
             {
@@ -373,7 +373,7 @@ void FallbackLayout::addYouTube(zmm::Ref<CdsObject> obj)
             }
         }
 
-        id = ContentManager::getInstance()->addContainerChain(chain);
+        id = contentManager->addContainerChain(chain);
         add(obj, id, ref_set);
     }
 }
@@ -395,7 +395,7 @@ void FallbackLayout::addSopCast(zmm::Ref<CdsObject> obj)
     }
 
     chain = _(SP_VPATH "/" "All Channels");
-    id =  ContentManager::getInstance()->addContainerChain(chain);
+    id =  contentManager->addContainerChain(chain);
     add(obj, id, ref_set);
     if (!ref_set)
     {
@@ -407,7 +407,7 @@ void FallbackLayout::addSopCast(zmm::Ref<CdsObject> obj)
     if (string_ok(temp))
     {
         chain = _(SP_VPATH "/" "Groups" "/") + esc(temp);
-        id =  ContentManager::getInstance()->addContainerChain(chain);
+        id =  contentManager->addContainerChain(chain);
         add(obj, id, ref_set);
     }
 }
@@ -420,7 +420,7 @@ void FallbackLayout::addATrailers(zmm::Ref<CdsObject> obj)
     String chain;
     String temp;
 
-    int id = ContentManager::getInstance()->addContainerChain(_(AT_VPATH 
+    int id = contentManager->addContainerChain(_(AT_VPATH 
                                                               "/All Trailers"));
 
     if (obj->getID() != INVALID_OBJECT_ID)
@@ -453,7 +453,7 @@ void FallbackLayout::addATrailers(zmm::Ref<CdsObject> obj)
             if (!string_ok(genre))
                 break;
 
-            id = ContentManager::getInstance()->addContainerChain(_(AT_VPATH
+            id = contentManager->addContainerChain(_(AT_VPATH
                         "/Genres/") + esc(genre));
             add(obj, id);
 
@@ -468,7 +468,7 @@ void FallbackLayout::addATrailers(zmm::Ref<CdsObject> obj)
     temp = meta->get(MetadataHandler::getMetaFieldName(M_DATE));
     if (string_ok(temp) && temp.length() >= 7)
     {
-        id = ContentManager::getInstance()->addContainerChain(_(AT_VPATH
+        id = contentManager->addContainerChain(_(AT_VPATH
                     "/Release Date/") + esc(temp.substring(0, 7)));
         add(obj, id);
     }
@@ -476,14 +476,14 @@ void FallbackLayout::addATrailers(zmm::Ref<CdsObject> obj)
     temp = obj->getAuxData(_(ATRAILERS_AUXDATA_POST_DATE));
     if (string_ok(temp) && temp.length() >= 7)
     {
-        id = ContentManager::getInstance()->addContainerChain(_(AT_VPATH
+        id = contentManager->addContainerChain(_(AT_VPATH
                     "/Post Date/") + esc(temp.substring(0, 7)));
         add(obj, id);
     }
 }
 #endif
 
-FallbackLayout::FallbackLayout() : Layout()
+FallbackLayout::FallbackLayout(const std::shared_ptr<ContentManager>& contentManager) : Layout(), contentManager(contentManager)
 {
 #ifdef ENABLE_PROFILING
     PROF_INIT_GLOBAL(layout_profiling, "fallback layout");

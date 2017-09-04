@@ -74,12 +74,12 @@ static Ref<RequestHandler> create_request_handler(const char* filename)
         } else {
             ret = create_web_request_handler(_("index"));
         }
-    } else if (link.startsWith(_("/") + SERVER_VIRTUAL_DIR + "/" + CONTENT_SERVE_HANDLER)) {
+    }/* else if (link.startsWith(_("/") + SERVER_VIRTUAL_DIR + "/" + CONTENT_SERVE_HANDLER)) {
         if (string_ok(ConfigManager::getInstance()->getOption(CFG_SERVER_SERVEDIR)))
             ret = new ServeRequestHandler();
         else
             throw _Exception(_("Serving directories is not enabled in configuration"));
-    }
+    }*/
 
 #if defined(HAVE_CURL)
     else if (link.startsWith(_("/") + SERVER_VIRTUAL_DIR + "/" + CONTENT_ONLINE_HANDLER)) {

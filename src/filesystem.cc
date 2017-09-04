@@ -66,8 +66,8 @@ int FsObjectComparator(void *arg1, void *arg2)
 Filesystem::Filesystem() : Object()
 {
     includeRules = Ref<Array<RExp> >(new Array<RExp>());
+    /*
     Ref<ConfigManager> cm = ConfigManager::getInstance();
-/*    
     Ref<Element> rules = cm->getElement(_("filter"));
     if (rules == nullptr)
         return;

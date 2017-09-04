@@ -41,24 +41,24 @@
 #include "upnp_mrreg.h"
 #include "config_manager.h"
 #include "storage.h"
+#include "content_manager.h"
+#include "update_manager.h"
 
 /// \brief Provides methods to initialize and shutdown
 /// and to retrieve various information about the server.
-class Server : public Singleton<Server>
+class Server
 {
 public:
     
-    Server();
-
-    zmm::String getName() override { return _("Server"); }
+    Server(std::shared_ptr<ConfigManager> configManager);
+    ~Server();
     
     /// \brief Initializes the server.
     /// 
     /// This function reads information from the config and initializes
     /// various variables (like server UDN and so forth).
-    virtual void init() override;
-    
-    
+    void init();
+
     /// \brief Initializes UPnP portion, only ip or interface can be given
     ///
     /// Reads information from the config and creates a 
@@ -71,7 +71,7 @@ public:
     ///
     /// Unregisters the device with the SDK, shuts down the
     /// update manager task, storage task, content manager.
-    virtual void shutdown() override;
+    void shutdown();
     
     /// \brief Returns the virtual web server URL.
     ///
@@ -92,7 +92,7 @@ public:
     /// data structures (ActionRequest or SubscriptionRequest) and is then
     /// passed on to the appropriate request handler - to upnp_actions() or
     /// upnp_subscriptions()
-    int upnp_callback(Upnp_EventType eventtype, const void *event, void *cookie);
+    int upnp_callback(Upnp_EventType eventtype, const void *event);
   
     /// \brief Returns the device handle.
     ///
@@ -173,14 +173,18 @@ protected:
     /// The ContentDirectoryService class is instantiated in the
     /// constructor. The class is responsible for processing
     /// an ActionRequest or a SubscriptionRequest.
-    zmm::Ref<ContentDirectoryService> cds;
+    ContentDirectoryService cds;
     
     /// \brief ConnectionManagerService instance.
     /// 
     /// The ConnectionManagerService class is instantiated in the
     /// constructor. The class is responsible for processing
     /// an ActionRequest or a SubscriptionRequest.
-    zmm::Ref<ConnectionManagerService> cmgr;
+    ConnectionManagerService cmgr;
+
+    ContentManager contentManager;
+
+    UpdateManager updateManager;
 
 #if defined(ENABLE_MRREG)    
     /// \brief MediaReceiverRegistrarService instance.
@@ -208,6 +212,8 @@ protected:
     /// of the request and calls the process_subscription_request() for the 
     /// appropriate service.
     void upnp_subscriptions(zmm::Ref<SubscriptionRequest> request);
+
+    std::shared_ptr<ConfigManager> configManager;
 private:
     std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 };

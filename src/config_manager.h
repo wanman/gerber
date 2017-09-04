@@ -48,7 +48,7 @@
 #ifdef ONLINE_SERVICES
     #include "online_service.h"
 #endif
-typedef enum
+enum class config_option_t
 {
     CFG_SERVER_PORT = 0,
     CFG_SERVER_IP,
@@ -189,70 +189,59 @@ typedef enum
     CFG_ONLINE_CONTENT_ATRAILERS_RESOLUTION,
 #endif
     CFG_MAX
-} config_option_t;
+};
 
-class ConfigManager : public Singleton<ConfigManager, std::mutex>
+class ConfigManager
 {
 public:
-    ConfigManager();
+    ConfigManager(zmm::String _filename, zmm::String _userhome,
+        zmm::String _config_dir, zmm::String _prefix_dir,
+        zmm::String _magic, bool _debug_logging,
+        zmm::String _ip, zmm::String _interface, int _port);
 
-    void init() override;
-    zmm::String getName() override { return _("Config Manager"); }
-
-    virtual ~ConfigManager();
+    ~ConfigManager();
     
     /// \brief Returns the name of the config file that was used to launch the server.
-    inline zmm::String getConfigFilename() { return filename; }
+    inline zmm::String getConfigFilename() const { return filename; }
     
-    void load(zmm::String filename);
+    void load();
   
     /// \brief returns a config option of type String
     /// \param option option to retrieve.
-    zmm::String getOption(config_option_t option);
+    zmm::String getOption(config_option_t option) const;
 
     /// \brief returns a config option of type int 
     /// \param option option to retrieve.
-    int getIntOption(config_option_t option);
+    int getIntOption(config_option_t option) const;
 
     /// \brief returns a config option of type bool
     /// \param option option to retrieve.
-    bool getBoolOption(config_option_t option);
+    bool getBoolOption(config_option_t option) const;
     
     /// \brief returns a config option of type Dictionary
     /// \param option option to retrieve.
-    zmm::Ref<Dictionary> getDictionaryOption(config_option_t option);
+    zmm::Ref<Dictionary> getDictionaryOption(config_option_t option) const;
     
     /// \brief returns a config option of type Array of StringBase
     /// \param option option to retrieve.
-    zmm::Ref<zmm::Array<zmm::StringBase> > getStringArrayOption(config_option_t option);
+    zmm::Ref<zmm::Array<zmm::StringBase> > getStringArrayOption(config_option_t option) const;
 
-    zmm::Ref<ObjectDictionary<zmm::Object> > getObjectDictionaryOption(config_option_t option);
+    zmm::Ref<ObjectDictionary<zmm::Object> > getObjectDictionaryOption(config_option_t option) const;
 #ifdef ONLINE_SERVICES
     /// \brief returns a config option of type Array of Object
     /// \param option option to retrieve.
-    zmm::Ref<zmm::Array<zmm::Object> > getObjectArrayOption(config_option_t option);
+    zmm::Ref<zmm::Array<zmm::Object> > getObjectArrayOption(config_option_t option) const;
 #endif
 
     /// \brief returns a config option of type AutoscanList
     /// \param option to retrieve
-    zmm::Ref<AutoscanList> getAutoscanListOption(config_option_t option);
+    zmm::Ref<AutoscanList> getAutoscanListOption(config_option_t option) const;
 
 #ifdef EXTERNAL_TRANSCODING
     /// \brief returns a config option of type TranscodingProfileList
     /// \param option to retrieve
-    zmm::Ref<TranscodingProfileList> getTranscodingProfileListOption(config_option_t option);
+    zmm::Ref<TranscodingProfileList> getTranscodingProfileListOption(config_option_t option) const;
 #endif
-
-    /// \brief sets static configuration parameters that will be used by
-    /// when the ConfigManager class initializes
-    static void setStaticArgs(zmm::String _filename, zmm::String _userhome,
-                              zmm::String _config_dir = _(DEFAULT_CONFIG_HOME),
-                              zmm::String _prefix_dir = _(PACKAGE_DATADIR),
-                              zmm::String _magic = nullptr,
-                              bool _debug_logging = false,
-                              zmm::String _ip = nullptr, zmm::String _interface = nullptr, int _port = 0);
-
-    static bool isDebugLogging() { return debug_logging; };
 
     /// \brief Creates a html file that is a redirector to the current server i
     /// instance
@@ -314,7 +303,7 @@ protected:
     /// Currently only two xpath constructs are supported:
     /// "/path/to/option" will return the text value of the given "option" element
     /// "/path/to/option/attribute::attr" will return the value of the attribute "attr"
-    zmm::String getOption(zmm::String xpath);
+    zmm::String getOption(zmm::String xpath) const;
     
     /// \brief same as getOption but returns an integer value of the option
     int getIntOption(zmm::String xpath);

@@ -94,9 +94,9 @@ void CurlIOHandler::threadProc()
     
     bool logEnabled;
 #ifdef TOMBDEBUG
-    logEnabled = !ConfigManager::isDebugLogging();
+    logEnabled = true;
 #else
-    logEnabled = ConfigManager::isDebugLogging();
+    logEnabled = false;
 #endif
     if (logEnabled)
         curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);

@@ -64,28 +64,7 @@
 using namespace zmm;
 using namespace mxml;
 
-String ConfigManager::filename = nullptr;
-String ConfigManager::userhome = nullptr;
-String ConfigManager::config_dir = _(DEFAULT_CONFIG_HOME);
-String ConfigManager::prefix_dir = _(PACKAGE_DATADIR);
-String ConfigManager::magic = nullptr;
-bool ConfigManager::debug_logging = false;
-String ConfigManager::ip = nullptr;
-String ConfigManager::interface = nullptr;
-int ConfigManager::port = 0;
-
-ConfigManager::~ConfigManager()
-{
-    filename = nullptr;
-    userhome = nullptr;
-    config_dir = _(DEFAULT_CONFIG_HOME);
-    prefix_dir = _(PACKAGE_DATADIR);
-    magic = nullptr;
-    ip = nullptr;
-    interface = nullptr;
-}
-
-void ConfigManager::setStaticArgs(String _filename, String _userhome,
+ConfigManager::ConfigManager(String _filename, String _userhome,
     String _config_dir, String _prefix_dir,
     String _magic, bool _debug_logging,
     String _ip, String _interface, int _port)
@@ -101,13 +80,36 @@ void ConfigManager::setStaticArgs(String _filename, String _userhome,
     port = _port;
 }
 
-ConfigManager::ConfigManager()
-    : Singleton<ConfigManager, std::mutex>()
-{}
-
-void ConfigManager::init()
+ConfigManager::~ConfigManager()
 {
-    options = Ref<Array<ConfigOption> >(new Array<ConfigOption>(CFG_MAX));
+    filename = nullptr;
+    userhome = nullptr;
+    config_dir = _(DEFAULT_CONFIG_HOME);
+    prefix_dir = _(PACKAGE_DATADIR);
+    magic = nullptr;
+    ip = nullptr;
+    interface = nullptr;
+}
+
+
+String ConfigManager::construct_path(String path)
+{
+    String home = getOption(config_option_t::CFG_SERVER_HOME);
+
+    if (path.charAt(0) == '/')
+        return path;
+    if (home == "." && path.charAt(0) == '.')
+        return path;
+
+    if (home == "")
+        return _(".") + DIR_SEPARATOR + path;
+    else
+        return home + DIR_SEPARATOR + path;
+}
+
+void ConfigManager::load()
+{
+    options = Ref<Array<ConfigOption> >(new Array<ConfigOption>(config_option_t::CFG_MAX));
 
     String home = userhome + DIR_SEPARATOR + config_dir;
     bool home_ok = true;
@@ -131,7 +133,15 @@ void ConfigManager::init()
     }
 
     l->info("Loading configuration from: '{}'", filename.c_str());
-    load(filename);
+
+    this->filename = filename;
+    Ref<Parser> parser(new Parser());
+    rootDoc = parser->parseFile(filename);
+    root = rootDoc->getRoot();
+
+    if (rootDoc == nullptr) {
+        throw _Exception(_("Unable to parse server configuration!"));
+    }
 
     prepare_udn();
     validate(home);
@@ -140,21 +150,6 @@ void ConfigManager::init()
 #endif
     // now the XML is no longer needed we can destroy it
     root = nullptr;
-}
-
-String ConfigManager::construct_path(String path)
-{
-    String home = getOption(CFG_SERVER_HOME);
-
-    if (path.charAt(0) == '/')
-        return path;
-    if (home == "." && path.charAt(0) == '.')
-        return path;
-
-    if (home == "")
-        return _(".") + DIR_SEPARATOR + path;
-    else
-        return home + DIR_SEPARATOR + path;
 }
 
 Ref<Element> ConfigManager::map_from_to(String from, String to)
@@ -885,14 +880,14 @@ void ConfigManager::validate(String serverhome)
     /// \todo clean up the construct path / prepare path mess
     getOption(_("/server/home"), serverhome);
     NEW_OPTION(getOption(_("/server/home")));
-    SET_OPTION(CFG_SERVER_HOME);
+    SET_OPTION(config_option_t::CFG_SERVER_HOME);
     prepare_path(_("/server/home"), true);
     NEW_OPTION(getOption(_("/server/home")));
-    SET_OPTION(CFG_SERVER_HOME);
+    SET_OPTION(config_option_t::CFG_SERVER_HOME);
 
     prepare_path(_("/server/webroot"), true);
     NEW_OPTION(getOption(_("/server/webroot")));
-    SET_OPTION(CFG_SERVER_WEBROOT);
+    SET_OPTION(config_option_t::CFG_SERVER_WEBROOT);
 
     temp = getOption(_("/server/tmpdir"), _(DEFAULT_TMPDIR));
     if (!check_path(temp, true)) {
@@ -900,18 +895,18 @@ void ConfigManager::validate(String serverhome)
     }
     temp = temp + _("/");
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_TMPDIR);
+    SET_OPTION(config_option_t::CFG_SERVER_TMPDIR);
 
     if (string_ok(getOption(_("/server/servedir"), _(""))))
         prepare_path(_("/server/servedir"), true);
 
     NEW_OPTION(getOption(_("/server/servedir")));
-    SET_OPTION(CFG_SERVER_SERVEDIR);
+    SET_OPTION(config_option_t::CFG_SERVER_SERVEDIR);
 
     // udn should be already prepared
     checkOptionString(_("/server/udn"));
     NEW_OPTION(getOption(_("/server/udn")));
-    SET_OPTION(CFG_SERVER_UDN);
+    SET_OPTION(config_option_t::CFG_SERVER_UDN);
 
     // checking database driver options
     String mysql_en = _("no");
@@ -927,7 +922,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: incorrect parameter "
                            "for <storage caching=\"\" /> attribute"));
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_STORAGE_CACHING_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_STORAGE_CACHING_ENABLED);
 
     tmpEl = getElement(_("/server/storage/mysql"));
     if (tmpEl != nullptr) {
@@ -958,18 +953,18 @@ void ConfigManager::validate(String serverhome)
     if (mysql_en == "yes") {
         NEW_OPTION(getOption(_("/server/storage/mysql/host"),
             _(DEFAULT_MYSQL_HOST)));
-        SET_OPTION(CFG_SERVER_STORAGE_MYSQL_HOST);
+        SET_OPTION(config_option_t::CFG_SERVER_STORAGE_MYSQL_HOST);
 
         NEW_OPTION(getOption(_("/server/storage/mysql/database"),
             _(DEFAULT_MYSQL_DB)));
-        SET_OPTION(CFG_SERVER_STORAGE_MYSQL_DATABASE);
+        SET_OPTION(config_option_t::CFG_SERVER_STORAGE_MYSQL_DATABASE);
 
         NEW_OPTION(getOption(_("/server/storage/mysql/username"),
             _(DEFAULT_MYSQL_USER)));
-        SET_OPTION(CFG_SERVER_STORAGE_MYSQL_USERNAME);
+        SET_OPTION(config_option_t::CFG_SERVER_STORAGE_MYSQL_USERNAME);
 
         NEW_INT_OPTION(getIntOption(_("/server/storage/mysql/port"), 0));
-        SET_INT_OPTION(CFG_SERVER_STORAGE_MYSQL_PORT);
+        SET_INT_OPTION(config_option_t::CFG_SERVER_STORAGE_MYSQL_PORT);
 
         if (getElement(_("/server/storage/mysql/socket")) == nullptr) {
             NEW_OPTION(nullptr);
@@ -977,14 +972,14 @@ void ConfigManager::validate(String serverhome)
             NEW_OPTION(getOption(_("/server/storage/mysql/socket")));
         }
 
-        SET_OPTION(CFG_SERVER_STORAGE_MYSQL_SOCKET);
+        SET_OPTION(config_option_t::CFG_SERVER_STORAGE_MYSQL_SOCKET);
 
         if (getElement(_("/server/storage/mysql/password")) == nullptr) {
             NEW_OPTION(nullptr);
         } else {
             NEW_OPTION(getOption(_("/server/storage/mysql/password")));
         }
-        SET_OPTION(CFG_SERVER_STORAGE_MYSQL_PASSWORD);
+        SET_OPTION(config_option_t::CFG_SERVER_STORAGE_MYSQL_PASSWORD);
     }
 #else
     if (mysql_en == "yes") {
@@ -999,7 +994,7 @@ void ConfigManager::validate(String serverhome)
     if (sqlite3_en == "yes") {
         prepare_path(_("/server/storage/sqlite3/database-file"), false, true);
         NEW_OPTION(getOption(_("/server/storage/sqlite3/database-file")));
-        SET_OPTION(CFG_SERVER_STORAGE_SQLITE_DATABASE_FILE);
+        SET_OPTION(config_option_t::CFG_SERVER_STORAGE_SQLITE_DATABASE_FILE);
 
         temp = getOption(_("/server/storage/sqlite3/synchronous"),
             _(DEFAULT_SQLITE_SYNC));
@@ -1017,7 +1012,7 @@ void ConfigManager::validate(String serverhome)
                                "section"));
 
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_SERVER_STORAGE_SQLITE_SYNCHRONOUS);
+        SET_INT_OPTION(config_option_t::CFG_SERVER_STORAGE_SQLITE_SYNCHRONOUS);
 
         temp = getOption(_("/server/storage/sqlite3/on-error"),
             _(DEFAULT_SQLITE_RESTORE));
@@ -1033,7 +1028,7 @@ void ConfigManager::validate(String serverhome)
                                "section"));
 
         NEW_BOOL_OPTION(tmp_bool);
-        SET_BOOL_OPTION(CFG_SERVER_STORAGE_SQLITE_RESTORE);
+        SET_BOOL_OPTION(config_option_t::CFG_SERVER_STORAGE_SQLITE_RESTORE);
 #ifdef SQLITE_BACKUP_ENABLED
         temp = getOption(_("/server/storage/sqlite3/backup/attribute::enabled"),
             _(YES));
@@ -1045,7 +1040,7 @@ void ConfigManager::validate(String serverhome)
             throw _Exception(_("Error in config file: incorrect parameter "
                                "for <backup enabled=\"\" /> attribute"));
         NEW_BOOL_OPTION(temp == "yes" ? true : false);
-        SET_BOOL_OPTION(CFG_SERVER_STORAGE_SQLITE_BACKUP_ENABLED);
+        SET_BOOL_OPTION(config_option_t::CFG_SERVER_STORAGE_SQLITE_BACKUP_ENABLED);
 
         temp_int = getIntOption(_("/server/storage/sqlite3/backup/attribute::interval"),
             DEFAULT_SQLITE_BACKUP_INTERVAL);
@@ -1053,7 +1048,7 @@ void ConfigManager::validate(String serverhome)
             throw _Exception(_("Error in config file: incorrect parameter for "
                                "<backup interval=\"\" /> attribute"));
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_SERVER_STORAGE_SQLITE_BACKUP_INTERVAL);
+        SET_INT_OPTION(config_option_t::CFG_SERVER_STORAGE_SQLITE_BACKUP_INTERVAL);
     }
 #else
     if (sqlite3_en == "yes") {
@@ -1072,7 +1067,7 @@ void ConfigManager::validate(String serverhome)
         dbDriver = _("mysql");
 
     NEW_OPTION(dbDriver);
-    SET_OPTION(CFG_SERVER_STORAGE_DRIVER);
+    SET_OPTION(config_option_t::CFG_SERVER_STORAGE_DRIVER);
 
     //    temp = checkOption_("/server/storage/database-file");
     //    check_path_ex(construct_path(temp));
@@ -1085,7 +1080,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: incorrect parameter "
                            "for <ui enabled=\"\" /> attribute"));
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_UI_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_UI_ENABLED);
 
     temp = getOption(_("/server/ui/attribute::show-tooltips"),
         _(DEFAULT_UI_SHOW_TOOLTIPS_VALUE));
@@ -1093,7 +1088,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: incorrect parameter "
                            "for <ui show-tooltips=\"\" /> attribute"));
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_UI_SHOW_TOOLTIPS);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_UI_SHOW_TOOLTIPS);
 
     temp = getOption(_("/server/ui/attribute::poll-when-idle"),
         _(DEFAULT_POLL_WHEN_IDLE_VALUE));
@@ -1101,7 +1096,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: incorrect parameter "
                            "for <ui poll-when-idle=\"\" /> attribute"));
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_UI_POLL_WHEN_IDLE);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_UI_POLL_WHEN_IDLE);
 
     temp_int = getIntOption(_("/server/ui/attribute::poll-interval"),
         DEFAULT_POLL_INTERVAL);
@@ -1109,7 +1104,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: incorrect parameter for "
                            "<ui poll-interval=\"\" /> attribute"));
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_SERVER_UI_POLL_INTERVAL);
+    SET_INT_OPTION(config_option_t::CFG_SERVER_UI_POLL_INTERVAL);
 
     temp_int = getIntOption(_("/server/ui/items-per-page/attribute::default"),
         DEFAULT_ITEMS_PER_PAGE_2);
@@ -1117,7 +1112,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: incorrect parameter for "
                            "<items-per-page default=\"\" /> attribute"));
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_SERVER_UI_DEFAULT_ITEMS_PER_PAGE);
+    SET_INT_OPTION(config_option_t::CFG_SERVER_UI_DEFAULT_ITEMS_PER_PAGE);
 
     // now get the option list for the drop down menu
     Ref<Element> element = getElement(_("/server/ui/items-per-page"));
@@ -1168,7 +1163,7 @@ void ConfigManager::validate(String serverhome)
             menu_opts->append(child->getText());
     }
     NEW_STRARR_OPTION(menu_opts);
-    SET_STRARR_OPTION(CFG_SERVER_UI_ITEMS_PER_PAGE_DROPDOWN);
+    SET_STRARR_OPTION(config_option_t::CFG_SERVER_UI_ITEMS_PER_PAGE_DROPDOWN);
 
     temp = getOption(_("/server/ui/accounts/attribute::enabled"),
         _(DEFAULT_ACCOUNTS_EN_VALUE));
@@ -1177,11 +1172,11 @@ void ConfigManager::validate(String serverhome)
                            "<accounts enabled=\"\" /> attribute"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_UI_ACCOUNTS_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_UI_ACCOUNTS_ENABLED);
 
     tmpEl = getElement(_("/server/ui/accounts"));
     NEW_DICT_OPTION(createDictionaryFromNodeset(tmpEl, _("account"), _("user"), _("password")));
-    SET_DICT_OPTION(CFG_SERVER_UI_ACCOUNT_LIST);
+    SET_DICT_OPTION(config_option_t::CFG_SERVER_UI_ACCOUNT_LIST);
 
     temp_int = getIntOption(_("/server/ui/accounts/attribute::session-timeout"),
         DEFAULT_SESSION_TIMEOUT);
@@ -1190,7 +1185,7 @@ void ConfigManager::validate(String serverhome)
                            "(must be > 0)\n"));
     }
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_SERVER_UI_SESSION_TIMEOUT);
+    SET_INT_OPTION(config_option_t::CFG_SERVER_UI_SESSION_TIMEOUT);
 
     temp = getOption(_("/import/attribute::hidden-files"),
         _(DEFAULT_HIDDEN_FILES_VALUE));
@@ -1198,7 +1193,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: incorrect parameter for "
                            "<import hidden-files=\"\" /> attribute"));
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_IMPORT_HIDDEN_FILES);
+    SET_BOOL_OPTION(config_option_t::CFG_IMPORT_HIDDEN_FILES);
 
     temp = getOption(
         _("/import/mappings/extension-mimetype/attribute::ignore-unknown"),
@@ -1209,7 +1204,7 @@ void ConfigManager::validate(String serverhome)
                            "<extension-mimetype ignore-unknown=\"\" /> attribute"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_IMPORT_MAPPINGS_IGNORE_UNKNOWN_EXTENSIONS);
+    SET_BOOL_OPTION(config_option_t::CFG_IMPORT_MAPPINGS_IGNORE_UNKNOWN_EXTENSIONS);
 
     temp = getOption(
         _("/import/mappings/extension-mimetype/attribute::case-sensitive"),
@@ -1225,12 +1220,12 @@ void ConfigManager::validate(String serverhome)
         csens = true;
 
     NEW_BOOL_OPTION(csens);
-    SET_BOOL_OPTION(CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_CASE_SENSITIVE);
+    SET_BOOL_OPTION(config_option_t::CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_CASE_SENSITIVE);
 
     tmpEl = getElement(_("/import/mappings/extension-mimetype"));
     NEW_DICT_OPTION(createDictionaryFromNodeset(tmpEl, _("map"),
         _("from"), _("to"), !csens));
-    SET_DICT_OPTION(CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_LIST);
+    SET_DICT_OPTION(config_option_t::CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_LIST);
 
     tmpEl = getElement(_("/import/mappings/mimetype-contenttype"));
     if (tmpEl != nullptr) {
@@ -1258,7 +1253,7 @@ void ConfigManager::validate(String serverhome)
     }
 
     NEW_DICT_OPTION(mime_content);
-    SET_DICT_OPTION(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
+    SET_DICT_OPTION(config_option_t::CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
 
 #if defined(HAVE_NL_LANGINFO) && defined(HAVE_SETLOCALE)
     if (setlocale(LC_ALL, "") != nullptr) {
@@ -1290,7 +1285,7 @@ void ConfigManager::validate(String serverhome)
 
     l->info("Setting filesystem import charset to {}", charset.c_str());
     NEW_OPTION(charset);
-    SET_OPTION(CFG_IMPORT_FILESYSTEM_CHARSET);
+    SET_OPTION(config_option_t::CFG_IMPORT_FILESYSTEM_CHARSET);
 
     charset = getOption(_("/import/metadata-charset"), temp);
     try {
@@ -1304,7 +1299,7 @@ void ConfigManager::validate(String serverhome)
 
     l->info("Setting metadata import charset to {}", charset.c_str());
     NEW_OPTION(charset);
-    SET_OPTION(CFG_IMPORT_METADATA_CHARSET);
+    SET_OPTION(config_option_t::CFG_IMPORT_METADATA_CHARSET);
 
     charset = getOption(_("/import/playlist-charset"), temp);
     try {
@@ -1316,7 +1311,7 @@ void ConfigManager::validate(String serverhome)
 
     l->info("Setting playlist charset to {}", charset.c_str());
     NEW_OPTION(charset);
-    SET_OPTION(CFG_IMPORT_PLAYLIST_CHARSET);
+    SET_OPTION(config_option_t::CFG_IMPORT_PLAYLIST_CHARSET);
 
 #ifdef EXTEND_PROTOCOLINFO
     temp = getOption(_("/server/protocolInfo/attribute::extend"),
@@ -1326,7 +1321,7 @@ void ConfigManager::validate(String serverhome)
                            "protocolInfo tag must be either \"yes\" or \"no\""));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_EXTEND_PROTOCOLINFO);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTEND_PROTOCOLINFO);
 
     /*
     temp = getOption(_("/server/protocolInfo/attribute::ps3-hack"),
@@ -1336,7 +1331,7 @@ void ConfigManager::validate(String serverhome)
                           "protocolInfo tag must be either \"yes\" or \"no\""));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_EXTEND_PROTOCOLINFO_CL_HACK);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTEND_PROTOCOLINFO_CL_HACK);
 */
     temp = getOption(_("/server/protocolInfo/attribute::samsung-hack"),
         _(DEFAULT_EXTEND_PROTOCOLINFO_SM_HACK));
@@ -1345,7 +1340,7 @@ void ConfigManager::validate(String serverhome)
                            "protocolInfo tag must be either \"yes\" or \"no\""));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_EXTEND_PROTOCOLINFO_SM_HACK);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTEND_PROTOCOLINFO_SM_HACK);
 #endif
 
     temp = getOption(_("/server/pc-directory/attribute::upnp-hide"),
@@ -1355,7 +1350,7 @@ void ConfigManager::validate(String serverhome)
                            "pc-directory tag must be either \"yes\" or \"no\""));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_HIDE_PC_DIRECTORY);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_HIDE_PC_DIRECTORY);
 
     if (!string_ok(interface)) {
         temp = getOption(_("/server/interface"), _(""));
@@ -1366,7 +1361,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: you can not specify interface and ip at the same time!"));
 
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_NETWORK_INTERFACE);
+    SET_OPTION(config_option_t::CFG_SERVER_NETWORK_INTERFACE);
 
     if (!string_ok(ip)) {
         temp = getOption(_("/server/ip"), _("")); // bind to any IP address
@@ -1374,39 +1369,39 @@ void ConfigManager::validate(String serverhome)
         temp = ip;
     }
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_IP);
+    SET_OPTION(config_option_t::CFG_SERVER_IP);
 
     temp = getOption(_("/server/bookmark"), _(DEFAULT_BOOKMARK_FILE));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_BOOKMARK_FILE);
+    SET_OPTION(config_option_t::CFG_SERVER_BOOKMARK_FILE);
 
     temp = getOption(_("/server/name"), _(DESC_FRIENDLY_NAME));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_NAME);
+    SET_OPTION(config_option_t::CFG_SERVER_NAME);
 
     temp = getOption(_("/server/modelName"), _(DESC_MODEL_NAME));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_MODEL_NAME);
+    SET_OPTION(config_option_t::CFG_SERVER_MODEL_NAME);
 
     temp = getOption(_("/server/modelDescription"), _(DESC_MODEL_DESCRIPTION));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_MODEL_DESCRIPTION);
+    SET_OPTION(config_option_t::CFG_SERVER_MODEL_DESCRIPTION);
 
     temp = getOption(_("/server/modelNumber"), _(DESC_MODEL_NUMBER));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_MODEL_NUMBER);
+    SET_OPTION(config_option_t::CFG_SERVER_MODEL_NUMBER);
 
     temp = getOption(_("/server/serialNumber"), _(DESC_SERIAL_NUMBER));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_SERIAL_NUMBER);
+    SET_OPTION(config_option_t::CFG_SERVER_SERIAL_NUMBER);
 
     temp = getOption(_("/server/manufacturerURL"), _(DESC_MANUFACTURER_URL));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_MANUFACTURER_URL);
+    SET_OPTION(config_option_t::CFG_SERVER_MANUFACTURER_URL);
 
     temp = getOption(_("/server/presentationURL"), _(""));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_PRESENTATION_URL);
+    SET_OPTION(config_option_t::CFG_SERVER_PRESENTATION_URL);
 
     temp = getOption(_("/server/presentationURL/attribute::append-to"),
         _(DEFAULT_PRES_URL_APPENDTO_ATTR));
@@ -1423,7 +1418,7 @@ void ConfigManager::validate(String serverhome)
             + temp + _("\" but no URL is specified"));
     }
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_APPEND_PRESENTATION_URL_TO);
+    SET_OPTION(config_option_t::CFG_SERVER_APPEND_PRESENTATION_URL_TO);
 
     temp_int = getIntOption(_("/server/upnp-string-limit"),
         DEFAULT_UPNP_STRING_LIMIT);
@@ -1432,7 +1427,7 @@ void ConfigManager::validate(String serverhome)
                            "<upnp-string-limit>"));
     }
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_SERVER_UPNP_TITLE_AND_DESC_STRING_LIMIT);
+    SET_INT_OPTION(config_option_t::CFG_SERVER_UPNP_TITLE_AND_DESC_STRING_LIMIT);
 
 #ifdef HAVE_JS
     temp = getOption(_("/import/scripting/playlist-script"),
@@ -1441,7 +1436,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("playlist script location invalid"));
     prepare_path(_("/import/scripting/playlist-script"));
     NEW_OPTION(getOption(_("/import/scripting/playlist-script")));
-    SET_OPTION(CFG_IMPORT_SCRIPTING_PLAYLIST_SCRIPT);
+    SET_OPTION(config_option_t::CFG_IMPORT_SCRIPTING_PLAYLIST_SCRIPT);
 
     temp = getOption(_("/import/scripting/common-script"),
         prefix_dir + DIR_SEPARATOR + _(DEFAULT_JS_DIR) + DIR_SEPARATOR + _(DEFAULT_COMMON_SCRIPT));
@@ -1449,7 +1444,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("common script location invalid"));
     prepare_path(_("/import/scripting/common-script"));
     NEW_OPTION(getOption(_("/import/scripting/common-script")));
-    SET_OPTION(CFG_IMPORT_SCRIPTING_COMMON_SCRIPT);
+    SET_OPTION(config_option_t::CFG_IMPORT_SCRIPTING_COMMON_SCRIPT);
 
     temp = getOption(
         _("/import/scripting/playlist-script/attribute::create-link"),
@@ -1461,7 +1456,7 @@ void ConfigManager::validate(String serverhome)
                            "<playlist-script> tag"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_IMPORT_SCRIPTING_PLAYLIST_SCRIPT_LINK_OBJECTS);
+    SET_BOOL_OPTION(config_option_t::CFG_IMPORT_SCRIPTING_PLAYLIST_SCRIPT_LINK_OBJECTS);
 #endif
 
     temp = getOption(_("/import/scripting/virtual-layout/attribute::type"),
@@ -1470,7 +1465,7 @@ void ConfigManager::validate(String serverhome)
         throw _Exception(_("Error in config file: invalid virtual layout "
                            "type specified!"));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_IMPORT_SCRIPTING_VIRTUAL_LAYOUT_TYPE);
+    SET_OPTION(config_option_t::CFG_IMPORT_SCRIPTING_VIRTUAL_LAYOUT_TYPE);
 
 #ifndef HAVE_JS
     if (temp == "js")
@@ -1490,7 +1485,7 @@ void ConfigManager::validate(String serverhome)
     }
 
     NEW_OPTION(charset);
-    SET_OPTION(CFG_IMPORT_SCRIPTING_CHARSET);
+    SET_OPTION(config_option_t::CFG_IMPORT_SCRIPTING_CHARSET);
 
     String script_path = getOption(
         _("/import/scripting/virtual-layout/import-script"),
@@ -1507,7 +1502,7 @@ void ConfigManager::validate(String serverhome)
     }
 
     NEW_OPTION(script_path);
-    SET_OPTION(CFG_IMPORT_SCRIPTING_IMPORT_SCRIPT);
+    SET_OPTION(config_option_t::CFG_IMPORT_SCRIPTING_IMPORT_SCRIPT);
 
 #endif
 
@@ -1518,7 +1513,7 @@ void ConfigManager::validate(String serverhome)
         temp_int = port;
     }
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_SERVER_PORT);
+    SET_INT_OPTION(config_option_t::CFG_SERVER_PORT);
 
     temp_int = getIntOption(_("/server/alive"), DEFAULT_ALIVE_INTERVAL);
     if (temp_int < ALIVE_INTERVAL_MIN)
@@ -1526,7 +1521,7 @@ void ConfigManager::validate(String serverhome)
                            "for /server/alive, must be at least ")
             + ALIVE_INTERVAL_MIN);
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_SERVER_ALIVE_INTERVAL);
+    SET_INT_OPTION(config_option_t::CFG_SERVER_ALIVE_INTERVAL);
 
     Ref<Element> el = getElement(_("/import/mappings/mimetype-upnpclass"));
     if (el == nullptr) {
@@ -1534,7 +1529,7 @@ void ConfigManager::validate(String serverhome)
     }
     NEW_DICT_OPTION(createDictionaryFromNodeset(el, _("map"),
         _("from"), _("to")));
-    SET_DICT_OPTION(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_UPNP_CLASS_LIST);
+    SET_DICT_OPTION(config_option_t::CFG_IMPORT_MAPPINGS_MIMETYPE_TO_UPNP_CLASS_LIST);
 
     temp = getOption(_("/import/autoscan/attribute::use-inotify"), _("auto"));
     if ((temp != "auto") && !validateYesNo(temp))
@@ -1544,7 +1539,7 @@ void ConfigManager::validate(String serverhome)
     el = getElement(_("/import/autoscan"));
 
     NEW_AUTOSCANLIST_OPTION(createAutoscanListFromNodeset(el, ScanMode::Timed));
-    SET_AUTOSCANLIST_OPTION(CFG_IMPORT_AUTOSCAN_TIMED_LIST);
+    SET_AUTOSCANLIST_OPTION(config_option_t::CFG_IMPORT_AUTOSCAN_TIMED_LIST);
 
 #ifdef HAVE_INOTIFY
     bool inotify_supported = false;
@@ -1570,17 +1565,17 @@ void ConfigManager::validate(String serverhome)
     if (temp == _("auto") || (temp == _(YES))) {
         if (inotify_supported) {
             NEW_AUTOSCANLIST_OPTION(createAutoscanListFromNodeset(el, ScanMode::INotify));
-            SET_AUTOSCANLIST_OPTION(CFG_IMPORT_AUTOSCAN_INOTIFY_LIST);
+            SET_AUTOSCANLIST_OPTION(config_option_t::CFG_IMPORT_AUTOSCAN_INOTIFY_LIST);
 
             NEW_BOOL_OPTION(true);
-            SET_BOOL_OPTION(CFG_IMPORT_AUTOSCAN_USE_INOTIFY);
+            SET_BOOL_OPTION(config_option_t::CFG_IMPORT_AUTOSCAN_USE_INOTIFY);
         } else {
             NEW_BOOL_OPTION(false);
-            SET_BOOL_OPTION(CFG_IMPORT_AUTOSCAN_USE_INOTIFY);
+            SET_BOOL_OPTION(config_option_t::CFG_IMPORT_AUTOSCAN_USE_INOTIFY);
         }
     } else {
         NEW_BOOL_OPTION(false);
-        SET_BOOL_OPTION(CFG_IMPORT_AUTOSCAN_USE_INOTIFY);
+        SET_BOOL_OPTION(config_option_t::CFG_IMPORT_AUTOSCAN_USE_INOTIFY);
     }
 #endif
 
@@ -1599,7 +1594,7 @@ void ConfigManager::validate(String serverhome)
         el = nullptr;
 
     NEW_TRANSCODING_PROFILELIST_OPTION(createTranscodingProfileListFromNodeset(el));
-    SET_TRANSCODING_PROFILELIST_OPTION(CFG_TRANSCODING_PROFILE_LIST);
+    SET_TRANSCODING_PROFILELIST_OPTION(config_option_t::CFG_TRANSCODING_PROFILE_LIST);
 
 #ifdef HAVE_CURL
     if (temp == "yes") {
@@ -1612,7 +1607,7 @@ void ConfigManager::validate(String serverhome)
                                "must be at least ")
                 + CURL_MAX_WRITE_SIZE);
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_EXTERNAL_TRANSCODING_CURL_BUFFER_SIZE);
+        SET_INT_OPTION(config_option_t::CFG_EXTERNAL_TRANSCODING_CURL_BUFFER_SIZE);
 
         temp_int = getIntOption(
             _("/transcoding/attribute::fetch-buffer-fill-size"),
@@ -1622,7 +1617,7 @@ void ConfigManager::validate(String serverhome)
                                "for <transcoding fetch-buffer-fill-size=\"\"> attribute"));
 
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_EXTERNAL_TRANSCODING_CURL_FILL_SIZE);
+        SET_INT_OPTION(config_option_t::CFG_EXTERNAL_TRANSCODING_CURL_FILL_SIZE);
     }
 
 #endif //HAVE_CURL
@@ -1630,7 +1625,7 @@ void ConfigManager::validate(String serverhome)
 
     el = getElement(_("/server/custom-http-headers"));
     NEW_STRARR_OPTION(createArrayFromNodeset(el, _("add"), _("header")));
-    SET_STRARR_OPTION(CFG_SERVER_CUSTOM_HTTP_HEADERS);
+    SET_STRARR_OPTION(config_option_t::CFG_SERVER_CUSTOM_HTTP_HEADERS);
 
 #ifdef HAVE_LIBEXIF
 
@@ -1640,7 +1635,7 @@ void ConfigManager::validate(String serverhome)
             _(""));
     }
     NEW_STRARR_OPTION(createArrayFromNodeset(el, _("add-data"), _("tag")));
-    SET_STRARR_OPTION(CFG_IMPORT_LIBOPTS_EXIF_AUXDATA_TAGS_LIST);
+    SET_STRARR_OPTION(config_option_t::CFG_IMPORT_LIBOPTS_EXIF_AUXDATA_TAGS_LIST);
 
 #endif // HAVE_LIBEXIF
 
@@ -1652,7 +1647,7 @@ void ConfigManager::validate(String serverhome)
             _(""));
     }
     NEW_STRARR_OPTION(createArrayFromNodeset(el, _("add-data"), _("tag")));
-    SET_STRARR_OPTION(CFG_IMPORT_LIBOPTS_EXIV2_AUXDATA_TAGS_LIST);
+    SET_STRARR_OPTION(config_option_t::CFG_IMPORT_LIBOPTS_EXIV2_AUXDATA_TAGS_LIST);
 
 #endif // HAVE_EXIV2
 
@@ -1662,7 +1657,7 @@ void ConfigManager::validate(String serverhome)
         getOption(_("/import/library-options/id3/auxdata"), _(""));
     }
     NEW_STRARR_OPTION(createArrayFromNodeset(el, _("add-data"), _("tag")));
-    SET_STRARR_OPTION(CFG_IMPORT_LIBOPTS_ID3_AUXDATA_TAGS_LIST);
+    SET_STRARR_OPTION(config_option_t::CFG_IMPORT_LIBOPTS_ID3_AUXDATA_TAGS_LIST);
 #endif
 
 #if defined(HAVE_FFMPEG) && defined(HAVE_FFMPEGTHUMBNAILER)
@@ -1676,7 +1671,7 @@ void ConfigManager::validate(String serverhome)
                            "<ffmpegthumbnailer> tag"));
 
     NEW_BOOL_OPTION(temp == YES ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_ENABLED);
 
     if (temp == YES) {
         temp_int = getIntOption(_("/server/extended-runtime-options/ffmpegthumbnailer/"
@@ -1689,7 +1684,7 @@ void ConfigManager::validate(String serverhome)
                                "<thumbnail-size> tag"));
 
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_THUMBSIZE);
+        SET_INT_OPTION(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_THUMBSIZE);
 
         temp_int = getIntOption(_("/server/extended-runtime-options/ffmpegthumbnailer/"
                                   "seek-percentage"),
@@ -1701,7 +1696,7 @@ void ConfigManager::validate(String serverhome)
                                "<seek-percentage> tag"));
 
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_SEEK_PERCENTAGE);
+        SET_INT_OPTION(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_SEEK_PERCENTAGE);
 
         temp = getOption(_("/server/extended-runtime-options/ffmpegthumbnailer/"
                            "filmstrip-overlay"),
@@ -1712,7 +1707,7 @@ void ConfigManager::validate(String serverhome)
                                "invalid value in <filmstrip-overlay> tag"));
 
         NEW_BOOL_OPTION(temp == YES ? true : false);
-        SET_BOOL_OPTION(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_FILMSTRIP_OVERLAY);
+        SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_FILMSTRIP_OVERLAY);
 
         temp = getOption(_("/server/extended-runtime-options/ffmpegthumbnailer/"
                            "workaround-bugs"),
@@ -1723,7 +1718,7 @@ void ConfigManager::validate(String serverhome)
                                "invalid value in <workaround-bugs> tag"));
 
         NEW_BOOL_OPTION(temp == YES ? true : false);
-        SET_BOOL_OPTION(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_WORKAROUND_BUGS);
+        SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_WORKAROUND_BUGS);
 
         temp_int = getIntOption(_("/server/extended-runtime-options/"
                                   "ffmpegthumbnailer/image-quality"),
@@ -1740,14 +1735,14 @@ void ConfigManager::validate(String serverhome)
                                "<image-quality> tag, allowed values: 0-10"));
 
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_IMAGE_QUALITY);
+        SET_INT_OPTION(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_IMAGE_QUALITY);
 
         temp = getOption("/server/extended-runtime-options/ffmpegthumbnailer/"
                          "cache-dir",
             DEFAULT_FFMPEGTHUMBNAILER_CACHE_DIR);
 
         NEW_OPTION(temp);
-        SET_OPTION(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_CACHE_DIR);
+        SET_OPTION(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_CACHE_DIR);
 
         temp = getOption("/server/extended-runtime-options/ffmpegthumbnailer/"
                          "cache-dir/attribute::enabled",
@@ -1759,7 +1754,7 @@ void ConfigManager::validate(String serverhome)
                                "ffmpegthumbnailer <cache-dir> tag"));
 
         NEW_BOOL_OPTION(temp == YES ? true : false);
-        SET_BOOL_OPTION(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_CACHE_DIR_ENABLED);
+        SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_CACHE_DIR_ENABLED);
     }
 #endif
 
@@ -1774,7 +1769,7 @@ void ConfigManager::validate(String serverhome)
 
     bool markingEnabled = temp == YES ? true : false;
     NEW_BOOL_OPTION(markingEnabled);
-    SET_BOOL_OPTION(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_ENABLED);
 
     temp = getOption(_("/server/extended-runtime-options/mark-played-items/"
                        "attribute::suppress-cds-updates"),
@@ -1785,7 +1780,7 @@ void ConfigManager::validate(String serverhome)
                            "value in <mark-played-items> tag"));
 
     NEW_BOOL_OPTION(temp == YES ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_SUPPRESS_CDS_UPDATES);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_SUPPRESS_CDS_UPDATES);
 
     temp = getOption(_("/server/extended-runtime-options/mark-played-items/"
                        "string/attribute::mode"),
@@ -1797,7 +1792,7 @@ void ConfigManager::validate(String serverhome)
                            "<string> tag in the <mark-played-items> section"));
 
     NEW_BOOL_OPTION(temp == DEFAULT_MARK_PLAYED_ITEMS_STRING_MODE ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_STRING_MODE_PREPEND);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_STRING_MODE_PREPEND);
 
     temp = getOption(_("/server/extended-runtime-options/mark-played-items/"
                        "string"),
@@ -1807,7 +1802,7 @@ void ConfigManager::validate(String serverhome)
                            "empty string given for the <string> tag in the "
                            "<mark-played-items> section"));
     NEW_OPTION(temp);
-    SET_OPTION(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_STRING);
+    SET_OPTION(config_option_t::CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_STRING);
 
     Ref<Array<StringBase> > mark_content_list(new Array<StringBase>());
     tmpEl = getElement(_("/server/extended-runtime-options/mark-played-items/mark"));
@@ -1830,7 +1825,7 @@ void ConfigManager::validate(String serverhome)
 
             mark_content_list->append(mark_content);
             NEW_STRARR_OPTION(mark_content_list);
-            SET_STRARR_OPTION(CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_CONTENT_LIST);
+            SET_STRARR_OPTION(config_option_t::CFG_SERVER_EXTOPTS_MARK_PLAYED_ITEMS_CONTENT_LIST);
         }
     }
 
@@ -1847,7 +1842,7 @@ void ConfigManager::validate(String serverhome)
                            "<lastfm> tag"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_SERVER_EXTOPTS_LASTFM_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_SERVER_EXTOPTS_LASTFM_ENABLED);
 
     if (temp == YES) {
         temp = getOption(_("/server/extended-runtime-options/lastfm/username"),
@@ -1859,7 +1854,7 @@ void ConfigManager::validate(String serverhome)
                                "<username> tag"));
 
         NEW_OPTION(temp);
-        SET_OPTION(CFG_SERVER_EXTOPTS_LASTFM_USERNAME);
+        SET_OPTION(config_option_t::CFG_SERVER_EXTOPTS_LASTFM_USERNAME);
 
         temp = getOption(_("/server/extended-runtime-options/lastfm/password"),
             _(DEFAULT_LASTFM_PASSWORD));
@@ -1870,7 +1865,7 @@ void ConfigManager::validate(String serverhome)
                                "<password> tag"));
 
         NEW_OPTION(temp);
-        SET_OPTION(CFG_SERVER_EXTOPTS_LASTFM_PASSWORD);
+        SET_OPTION(config_option_t::CFG_SERVER_EXTOPTS_LASTFM_PASSWORD);
     }
 #endif
 
@@ -1886,7 +1881,7 @@ void ConfigManager::validate(String serverhome)
         magic_file = magic;
 
     NEW_OPTION(magic_file);
-    SET_OPTION(CFG_IMPORT_MAGIC_FILE);
+    SET_OPTION(config_option_t::CFG_IMPORT_MAGIC_FILE);
 #endif
 
 #ifdef HAVE_INOTIFY
@@ -1914,7 +1909,7 @@ void ConfigManager::validate(String serverhome)
                            "<YouTube> tag"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_ENABLED);
 
     /// \todo well, tough scenario: YT service is disabled, but the database
     /// is populated with YT items from some time before. We still need to
@@ -1932,7 +1927,7 @@ void ConfigManager::validate(String serverhome)
         }
 
         NEW_OPTION(temp);
-        SET_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_RACY);
+        SET_OPTION(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_RACY);
 
         temp = getOption(_("/import/online-content/YouTube/attribute::format"),
             _(DEFAULT_YOUTUBE_FORMAT));
@@ -1943,7 +1938,7 @@ void ConfigManager::validate(String serverhome)
         }
         bool mp4 = (temp == "mp4" ? true : false);
         NEW_BOOL_OPTION(mp4);
-        SET_BOOL_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_FORMAT_MP4);
+        SET_BOOL_OPTION(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_FORMAT_MP4);
 
         temp = getOption(_("/import/online-content/YouTube/attribute::hd"),
             _(DEFAULT_YOUTUBE_HD));
@@ -1956,11 +1951,11 @@ void ConfigManager::validate(String serverhome)
             l->warn("HD preference for YouTube content is only available for mp4 format selection!\n");
 
         NEW_BOOL_OPTION(temp == "yes" ? true : false);
-        SET_BOOL_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_PREFER_HD);
+        SET_BOOL_OPTION(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_PREFER_HD);
 
         temp_int = getIntOption(_("/import/online-content/YouTube/attribute::refresh"), DEFAULT_YOUTUBE_REFRESH);
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_REFRESH);
+        SET_INT_OPTION(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_REFRESH);
 
         temp_int = getIntOption(_("/import/online-content/YouTube/attribute::purge-after"), DEFAULT_YOUTUBE_PURGE_AFTER);
         if (getIntOption(_("/import/online-content/YouTube/attribute::refresh")) >= temp_int) {
@@ -1969,7 +1964,7 @@ void ConfigManager::validate(String serverhome)
         }
 
         NEW_INT_OPTION(temp_int);
-        SET_INT_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_PURGE_AFTER);
+        SET_INT_OPTION(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_PURGE_AFTER);
 
         temp = getOption(_("/import/online-content/YouTube/attribute::update-at-start"),
             _(DEFAULT_YOUTUBE_UPDATE_AT_START));
@@ -1980,7 +1975,7 @@ void ConfigManager::validate(String serverhome)
                                "<YouTube> tag"));
 
         NEW_BOOL_OPTION(temp == "yes" ? true : false);
-        SET_BOOL_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_UPDATE_AT_START);
+        SET_BOOL_OPTION(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_UPDATE_AT_START);
 
         el = getElement(_("/import/online-content/YouTube"));
         if (el == nullptr) {
@@ -1988,13 +1983,13 @@ void ConfigManager::validate(String serverhome)
                 _(""));
         }
         Ref<Array<Object> > yt_opts = createServiceTaskList(OS_YouTube, el);
-        if (getBoolOption(CFG_ONLINE_CONTENT_YOUTUBE_ENABLED) && (yt_opts->size() == 0))
+        if (getBoolOption(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_ENABLED) && (yt_opts->size() == 0))
             throw _Exception(_("Error in config file: "
                                "YouTube service enabled but no imports "
                                "specified."));
 
         NEW_OBJARR_OPTION(yt_opts);
-        SET_OBJARR_OPTION(CFG_ONLINE_CONTENT_YOUTUBE_TASK_LIST);
+        SET_OBJARR_OPTION(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_TASK_LIST);
 
         l->warn("You enabled the YouTube feature, which allows you\n"
                     "                             to watch YouTube videos on your UPnP device!\n"
@@ -2014,11 +2009,11 @@ void ConfigManager::validate(String serverhome)
                            "<SopCast> tag"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_ONLINE_CONTENT_SOPCAST_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_ONLINE_CONTENT_SOPCAST_ENABLED);
 
     temp_int = getIntOption(_("/import/online-content/SopCast/attribute::refresh"), 0);
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_ONLINE_CONTENT_SOPCAST_REFRESH);
+    SET_INT_OPTION(config_option_t::CFG_ONLINE_CONTENT_SOPCAST_REFRESH);
 
     temp_int = getIntOption(_("/import/online-content/SopCast/attribute::purge-after"), 0);
     if (getIntOption(_("/import/online-content/SopCast/attribute::refresh")) >= temp_int) {
@@ -2027,7 +2022,7 @@ void ConfigManager::validate(String serverhome)
     }
 
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_ONLINE_CONTENT_SOPCAST_PURGE_AFTER);
+    SET_INT_OPTION(config_option_t::CFG_ONLINE_CONTENT_SOPCAST_PURGE_AFTER);
 
     temp = getOption(_("/import/online-content/SopCast/attribute::update-at-start"),
         _(DEFAULT_SOPCAST_UPDATE_AT_START));
@@ -2038,7 +2033,7 @@ void ConfigManager::validate(String serverhome)
                            "<SopCast> tag"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_ONLINE_CONTENT_SOPCAST_UPDATE_AT_START);
+    SET_BOOL_OPTION(config_option_t::CFG_ONLINE_CONTENT_SOPCAST_UPDATE_AT_START);
 #endif
 
 #ifdef ATRAILERS
@@ -2051,12 +2046,12 @@ void ConfigManager::validate(String serverhome)
                            "<AppleTrailers> tag"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_ONLINE_CONTENT_ATRAILERS_ENABLED);
+    SET_BOOL_OPTION(config_option_t::CFG_ONLINE_CONTENT_ATRAILERS_ENABLED);
 
     temp_int = getIntOption(_("/import/online-content/AppleTrailers/attribute::refresh"), DEFAULT_ATRAILERS_REFRESH);
     NEW_INT_OPTION(temp_int);
-    SET_INT_OPTION(CFG_ONLINE_CONTENT_ATRAILERS_REFRESH);
-    SET_INT_OPTION(CFG_ONLINE_CONTENT_ATRAILERS_PURGE_AFTER);
+    SET_INT_OPTION(config_option_t::CFG_ONLINE_CONTENT_ATRAILERS_REFRESH);
+    SET_INT_OPTION(config_option_t::CFG_ONLINE_CONTENT_ATRAILERS_PURGE_AFTER);
 
     temp = getOption(_("/import/online-content/AppleTrailers/attribute::update-at-start"),
         _(DEFAULT_ATRAILERS_UPDATE_AT_START));
@@ -2067,7 +2062,7 @@ void ConfigManager::validate(String serverhome)
                            "<AppleTrailers> tag"));
 
     NEW_BOOL_OPTION(temp == "yes" ? true : false);
-    SET_BOOL_OPTION(CFG_ONLINE_CONTENT_ATRAILERS_UPDATE_AT_START);
+    SET_BOOL_OPTION(config_option_t::CFG_ONLINE_CONTENT_ATRAILERS_UPDATE_AT_START);
 
     temp = getOption(_("/import/online-content/AppleTrailers/attribute::resolution"),
         String::from(DEFAULT_ATRAILERS_RESOLUTION));
@@ -2079,7 +2074,7 @@ void ConfigManager::validate(String serverhome)
     }
 
     NEW_OPTION(temp);
-    SET_OPTION(CFG_ONLINE_CONTENT_ATRAILERS_RESOLUTION);
+    SET_OPTION(config_option_t::CFG_ONLINE_CONTENT_ATRAILERS_RESOLUTION);
 #endif
 
     l->info("Configuration check succeeded.\n");
@@ -2169,18 +2164,6 @@ void ConfigManager::save_text(String filename, String content)
     }
 
     fclose(file);
-}
-
-void ConfigManager::load(String filename)
-{
-    this->filename = filename;
-    Ref<Parser> parser(new Parser());
-    rootDoc = parser->parseFile(filename);
-    root = rootDoc->getRoot();
-
-    if (rootDoc == nullptr) {
-        throw _Exception(_("Unable to parse server configuration!"));
-    }
 }
 
 String ConfigManager::getOption(String xpath, String def)
@@ -2275,13 +2258,13 @@ void ConfigManager::writeBookmark(String ip, String port)
     String data;
     int size;
 
-    if (!getBoolOption(CFG_SERVER_UI_ENABLED)) {
+    if (!getBoolOption(config_option_t::CFG_SERVER_UI_ENABLED)) {
         data = http_redirect_to(ip, port, _("disabled.html"));
     } else {
         data = http_redirect_to(ip, port);
     }
 
-    filename = getOption(CFG_SERVER_BOOKMARK_FILE);
+    filename = getOption(config_option_t::CFG_SERVER_BOOKMARK_FILE);
     path = construct_path(filename);
 
     SPDLOG_TRACE(l, "Writing bookmark file to: {}", path.c_str());
@@ -2791,7 +2774,7 @@ void ConfigManager::dumpOptions()
 {
 #ifdef TOMBDEBUG
     SPDLOG_TRACE(l, "Dumping options!\n");
-    for (int i = 0; i < (int)CFG_MAX; i++) {
+    for (int i = 0; i < (int)config_option_t::CFG_MAX; i++) {
         try {
             l->debug("    Option {} - {}", i,
                 getOption((config_option_t)i).c_str());
@@ -2833,7 +2816,7 @@ Ref<Array<StringBase> > ConfigManager::createArrayFromNodeset(Ref<mxml::Element>
 
 // The validate function ensures that the array is completely filled!
 // None of the options->get() calls will ever return nullptr!
-String ConfigManager::getOption(config_option_t option)
+String ConfigManager::getOption(config_option_t option) const
 {
     Ref<ConfigOption> r = options->get(option);
     if (r.getPtr() == nullptr) {
@@ -2842,7 +2825,7 @@ String ConfigManager::getOption(config_option_t option)
     return r->getOption();
 }
 
-int ConfigManager::getIntOption(config_option_t option)
+int ConfigManager::getIntOption(config_option_t option) const
 {
     Ref<ConfigOption> o = options->get(option);
     if (o.getPtr() == nullptr) {
@@ -2851,46 +2834,46 @@ int ConfigManager::getIntOption(config_option_t option)
     return o->getIntOption();
 }
 
-bool ConfigManager::getBoolOption(config_option_t option)
+bool ConfigManager::getBoolOption(config_option_t option) const
 {
-    Ref<ConfigOption> o = options->get(option);
+    Ref<ConfigOption> o = options->get(static_cast<int>(option));
     if (o.getPtr() == nullptr) {
         throw _Exception(_("option not set"));
     }
     return o->getBoolOption();
 }
 
-Ref<Dictionary> ConfigManager::getDictionaryOption(config_option_t option)
+Ref<Dictionary> ConfigManager::getDictionaryOption(config_option_t option) const
 {
-    return options->get(option)->getDictionaryOption();
+    return options->get(static_cast<int>(option))->getDictionaryOption();
 }
 
-Ref<Array<StringBase> > ConfigManager::getStringArrayOption(config_option_t option)
+Ref<Array<StringBase> > ConfigManager::getStringArrayOption(config_option_t option) const
 {
-    return options->get(option)->getStringArrayOption();
+    return options->get(static_cast<int>(option))->getStringArrayOption();
 }
 
-Ref<ObjectDictionary<zmm::Object> > ConfigManager::getObjectDictionaryOption(config_option_t option)
+Ref<ObjectDictionary<zmm::Object> > ConfigManager::getObjectDictionaryOption(config_option_t option) const
 {
-    return options->get(option)->getObjectDictionaryOption();
+    return options->get(static_cast<int>(option))->getObjectDictionaryOption();
 }
 
 #ifdef ONLINE_SERVICES
-Ref<Array<Object> > ConfigManager::getObjectArrayOption(config_option_t option)
+Ref<Array<Object> > ConfigManager::getObjectArrayOption(config_option_t option) const
 {
-    return options->get(option)->getObjectArrayOption();
+    return options->get(static_cast<int>(option))->getObjectArrayOption();
 }
 #endif
 
-Ref<AutoscanList> ConfigManager::getAutoscanListOption(config_option_t option)
+Ref<AutoscanList> ConfigManager::getAutoscanListOption(config_option_t option) const
 {
-    return options->get(option)->getAutoscanListOption();
+    return options->get(static_cast<int>(option))->getAutoscanListOption();
 }
 
 #ifdef EXTERNAL_TRANSCODING
-Ref<TranscodingProfileList> ConfigManager::getTranscodingProfileListOption(config_option_t option)
+Ref<TranscodingProfileList> ConfigManager::getTranscodingProfileListOption(config_option_t option) const
 {
-    return options->get(option)->getTranscodingProfileListOption();
+    return options->get(static_cast<int>(option))->getTranscodingProfileListOption();
 }
 #endif
 
@@ -2906,7 +2889,8 @@ Ref<Array<Object> > ConfigManager::createServiceTaskList(service_type_t service,
     if (service == OS_YouTube) {
         Ref<YouTubeService> yt(new YouTubeService());
         for (int i = 0; i < element->elementChildCount(); i++) {
-            Ref<Object> option = yt->defineServiceTask(element->getElementChild(i), RefCast(options->get(CFG_ONLINE_CONTENT_YOUTUBE_RACY), Object));
+            Ref<Object> option = yt->defineServiceTask(element->getElementChild(i),
+                                                       RefCast(options->get(static_cast<int>(config_option_t::config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_RACY)), Object));
             arr->append(option);
         }
     }

@@ -46,7 +46,9 @@
 using namespace zmm;
 using namespace std;
 
-AutoscanInotify::AutoscanInotify()
+AutoscanInotify::AutoscanInotify(const ContentManager& cm, const Storage& sc)
+    : cm(cm),
+      sc(sc)
 {
     if (check_path(_(INOTIFY_MAX_USER_WATCHES_FILE))) {
         try {
@@ -91,22 +93,10 @@ void AutoscanInotify::run()
 
 void AutoscanInotify::threadProc()
 {
-    Ref<ContentManager> cm;
-    Ref<Storage> st;
-
     inotify_event* event;
 
     Ref<StringBuffer> pathBuf(new StringBuffer());
 
-    try {
-        cm = ContentManager::getInstance();
-        st = Storage::getInstance();
-    } catch (const Exception& e) {
-        l->error("Inotify thread caught: {}", e.getMessage().c_str());
-        e.printStackTrace();
-        shutdownFlag = true;
-        inotify = nullptr;
-    }
     while (!shutdownFlag) {
         try {
             Ref<AutoscanDirectory> adir;
@@ -148,7 +138,7 @@ void AutoscanInotify::threadProc()
                     SPDLOG_TRACE(l, "adding non-recursive watch: {}", location.c_str());
                     monitorDirectory(location, adir, location, true);
                 }
-                cm->rescanDirectory(adir->getObjectID(), adir->getScanID(), adir->getScanMode(), nullptr, false);
+                cm.rescanDirectory(adir->getObjectID(), adir->getScanID(), adir->getScanMode(), nullptr, false);
 
                 lock.lock();
             }

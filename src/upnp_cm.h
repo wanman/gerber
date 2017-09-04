@@ -41,9 +41,8 @@
 /// \brief This class is responsible for the UPnP Connection Manager Service operations.
 ///
 /// Handles subscription and action invocation requests for the Connection Manager.
-class ConnectionManagerService : public Singleton<ConnectionManagerService>
+class ConnectionManagerService
 {
-
 protected:
     /// \brief UPnP standard defined service type
     /// \todo Check if it makes sense to use it as it is done now...why not define constants here?
@@ -76,16 +75,11 @@ protected:
     void upnp_action_GetProtocolInfo(zmm::Ref<ActionRequest> request);
     
 public:
-    zmm::String getName() override { return _("CM"); }
-
     /// \brief Constructor for the CMS, saves the service type and service id
     /// in internal variables.
     /// \todo Check if it makes sense to use it as it is done now...why not define them as constants?
     ConnectionManagerService();
-    
-    virtual ~ConnectionManagerService();
-    
-    static void setStaticArgs(zmm::String serviceType, zmm::String serviceID);
+    ~ConnectionManagerService();
     
     /// \brief Dispatches the ActionRequest between the available actions.
     /// \param request Incoming ActionRequest.

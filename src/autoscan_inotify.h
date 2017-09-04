@@ -39,15 +39,17 @@
 #include "zmm/zmmf.h"
 #include "autoscan.h"
 #include "mt_inotify.h"
-#include "singleton.h"
 
 #define INOTIFY_ROOT -1
 #define INOTIFY_UNKNOWN_PARENT_WD -2
 
+class ContentManager;
+class Storage;
+
 class AutoscanInotify
 {
 public:
-    AutoscanInotify();
+    AutoscanInotify(const ContentManager& cm, const Storage& sc);
     ~AutoscanInotify();
 
     void run();
@@ -60,10 +62,13 @@ public:
 
 private:
     void threadProc();
-    
+
     std::thread thread_;
     
     zmm::Ref<Inotify> inotify;
+
+    const ContentManager& cm;
+    const Storage& sc;
 
     std::shared_ptr<spdlog::logger> l = spdlog::get("log");
 

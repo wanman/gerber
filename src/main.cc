@@ -241,20 +241,23 @@ int main(int argc, char** argv, char** envp)
     if (!string_ok(magic))
         magic = nullptr;
 
-    ConfigManager::setStaticArgs(config_file, home, cfgdir, prefix, magic, debug, ip, interface, port);
+    std::shared_ptr<ConfigManager> configManager = std::make_shared<ConfigManager>(
+        config_file, home, cfgdir, prefix, magic, debug, ip, interface, port);
+
     try {
-        ConfigManager::getInstance();
-        port = ConfigManager::getInstance()->getIntOption(CFG_SERVER_PORT);
+        configManager->load();
     } catch (const mxml::ParseException& pe) {
         l->error("Error parsing config file: {} line {}:{}",
-            pe.context->location.c_str(),
-            pe.context->line,
-            pe.getMessage().c_str());
+                 pe.context->location.c_str(),
+                 pe.context->line,
+                 pe.getMessage().c_str());
         exit(EXIT_FAILURE);
     } catch (const Exception& e) {
         l->error("{}", e.getMessage().c_str());
         exit(EXIT_FAILURE);
     }
+
+    port = configManager->getIntOption(CFG_SERVER_PORT);
 
     main_thread_id = pthread_self();
     // install signal handlers
@@ -282,9 +285,8 @@ int main(int argc, char** argv, char** envp)
     }
 
     Ref<SingletonManager> singletonManager = SingletonManager::getInstance();
-    Ref<Server> server;
+    std::shared_ptr<Server> server = std::make_shared<Server>();
     try {
-        server = Server::getInstance();
         server->upnp_init();
     } catch (const UpnpException& upnp_e) {
 
@@ -325,7 +327,7 @@ int main(int argc, char** argv, char** envp)
                 // add file/directory recursively and asynchronously
                 l->info("Adding {}", f.c_str());
                 ContentManager::getInstance()->addFile(String(f.c_str()), true,
-                       true, ConfigManager::getInstance()->getBoolOption(CFG_IMPORT_HIDDEN_FILES));
+                       true, configManager->getBoolOption(CFG_IMPORT_HIDDEN_FILES));
             } catch (const Exception& e) {
                 l->error("Failed to add file {}: {}", f.c_str(),
                     e.getMessage().c_str());
@@ -341,6 +343,8 @@ int main(int argc, char** argv, char** envp)
     while (!shutdown_flag) {
         cond.wait(lock);
 
+
+        /* FIXME doesnt work correctly anyway
         if (restart_flag != 0) {
             l->info("Restarting Gerbera!\n");
             try {
@@ -382,7 +386,7 @@ int main(int argc, char** argv, char** envp)
                 pthread_sigmask(SIG_SETMASK, &mask_set, nullptr);
                 l->error("Could not restart Gerbera\n");
             }
-        }
+        }*/
     }
 
     // shutting down

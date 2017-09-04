@@ -74,20 +74,20 @@ String CdsResourceManager::renderExtension(String contentType, String location)
     return nullptr;
 }
 
-void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
+void CdsResourceManager::addResources(const ConfigManager& config, Ref<CdsItem> item, Ref<Element> element)
 {
     Ref<UrlBase> urlBase = addResources_getUrlBase(item);
-    Ref<ConfigManager> config = ConfigManager::getInstance();
+
     bool skipURL = ((IS_CDS_ITEM_INTERNAL_URL(item->getObjectType()) || 
                     IS_CDS_ITEM_EXTERNAL_URL(item->getObjectType())) &&
                     (!item->getFlag(OBJECT_FLAG_PROXY_URL)));
 
     bool isExtThumbnail = false; // this sucks
-    Ref<Dictionary> mappings = config->getDictionaryOption(
-                        CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
+    Ref<Dictionary> mappings = config.getDictionaryOption(
+                        config_option_t::CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
 
 #if defined(HAVE_FFMPEG) && defined(HAVE_FFMPEGTHUMBNAILER)
-    if (config->getBoolOption(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_ENABLED) && 
+    if (config.getBoolOption(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_ENABLED) &&
        (item->getMimeType().startsWith(_("video")) || 
         item->getFlag(OBJECT_FLAG_OGG_THEORA)))
     {
@@ -108,8 +108,8 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
                     renderProtocolInfo(thumb_mimetype));
             ffres->addOption(_(RESOURCE_CONTENT_TYPE), _(THUMBNAIL));
 
-            y = config->getIntOption(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_THUMBSIZE) * y / x;
-            x = config->getIntOption(CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_THUMBSIZE);
+            y = config.getIntOption(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_THUMBSIZE) * y / x;
+            x = config.getIntOption(config_option_t::CFG_SERVER_EXTOPTS_FFMPEGTHUMBNAILER_THUMBSIZE);
             String resolution = String::from(x) + "x" + String::from(y);
             ffres->addAttribute(MetadataHandler::getResAttrName(R_RESOLUTION),
                     resolution);
@@ -134,8 +134,8 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
     // TODO: allow transcoding for URLs
         
     // now get the profile
-    Ref<TranscodingProfileList> tlist = config->getTranscodingProfileListOption(
-            CFG_TRANSCODING_PROFILE_LIST);
+    Ref<TranscodingProfileList> tlist = config.getTranscodingProfileListOption(
+            config_option_t::CFG_TRANSCODING_PROFILE_LIST);
     Ref<ObjectDictionary<TranscodingProfile> > tp_mt = tlist->get(item->getMimeType());
     if (tp_mt != nullptr)
     {
@@ -385,7 +385,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
                     Ref<Element> aa(new Element(MetadataHandler::getMetaFieldName(M_ALBUMARTURI)));
                     aa->setText(url);
 #ifdef EXTEND_PROTOCOLINFO
-                    if (config->getBoolOption(CFG_SERVER_EXTEND_PROTOCOLINFO)) {
+                    if (config.getBoolOption(config_option_t::CFG_SERVER_EXTEND_PROTOCOLINFO)) {
                         /// \todo clean this up, make sure to check the mimetype and
                         /// provide the profile correctly
                         aa->setAttribute(_("xmlns:dlna"),
@@ -426,7 +426,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
 #endif
         }
 #ifdef EXTEND_PROTOCOLINFO
-        if (config->getBoolOption(CFG_SERVER_EXTEND_PROTOCOLINFO))
+        if (config.getBoolOption(config_option_t::CFG_SERVER_EXTEND_PROTOCOLINFO))
         {
             String extend;
             if (contentType == CONTENT_TYPE_MP3)
@@ -483,7 +483,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
         res_attrs->put(MetadataHandler::getResAttrName(R_PROTOCOLINFO),
                        protocolInfo);
 
-        if (config->getBoolOption(CFG_SERVER_EXTEND_PROTOCOLINFO_SM_HACK))
+        if (config.getBoolOption(config_option_t::CFG_SERVER_EXTEND_PROTOCOLINFO_SM_HACK))
         {
             if (mimeType.startsWith(_("video")))
             {
@@ -502,7 +502,7 @@ void CdsResourceManager::addResources(Ref<CdsItem> item, Ref<Element> element)
     }
 }
 
-Ref<CdsResourceManager::UrlBase> CdsResourceManager::addResources_getUrlBase(Ref<CdsItem> item, bool forceLocal)
+Ref<CdsResourceManager::UrlBase> CdsResourceManager::addResources_getUrlBase(String virtualUrl, Ref<CdsItem> item, bool forceLocal)
 {
     Ref<Element> res;
 

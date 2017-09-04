@@ -102,7 +102,8 @@ static String get_filename(String path)
         return path.substring(pos + 1);
 }
 
-ContentManager::ContentManager()
+ContentManager::ContentManager(shared_ptr<ConfigManager> configManager)
+    : configManager(configManager)
 {
     int i;
     ignore_unknown_extensions = false;
@@ -117,14 +118,13 @@ ContentManager::ContentManager()
     taskQueue1 = Ref<ObjectQueue<GenericTask>>(new ObjectQueue<GenericTask>(CM_INITIAL_QUEUE_SIZE));
     taskQueue2 = Ref<ObjectQueue<GenericTask>>(new ObjectQueue<GenericTask>(CM_INITIAL_QUEUE_SIZE));
 
-    Ref<ConfigManager> cm = ConfigManager::getInstance();
     Ref<Element> tmpEl;
 
     // loading extension - mimetype map
     // we can always be sure to get a valid element because everything was prepared by the config manager
-    extension_mimetype_map = cm->getDictionaryOption(CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_LIST);
+    extension_mimetype_map = configManager->getDictionaryOption(config_option_t::CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_LIST);
 
-    ignore_unknown_extensions = cm->getBoolOption(CFG_IMPORT_MAPPINGS_IGNORE_UNKNOWN_EXTENSIONS);
+    ignore_unknown_extensions = configManager->getBoolOption(config_option_t::CFG_IMPORT_MAPPINGS_IGNORE_UNKNOWN_EXTENSIONS);
 
     if (ignore_unknown_extensions && (extension_mimetype_map->size() == 0)) {
         l->warn("Ignore unknown extensions set, but no mappings specified\n");
@@ -132,12 +132,12 @@ ContentManager::ContentManager()
         ignore_unknown_extensions = false;
     }
 
-    extension_map_case_sensitive = cm->getBoolOption(CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_CASE_SENSITIVE);
+    extension_map_case_sensitive = configManager->getBoolOption(config_option_t::CFG_IMPORT_MAPPINGS_EXTENSION_TO_MIMETYPE_CASE_SENSITIVE);
 
-    mimetype_upnpclass_map = cm->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_UPNP_CLASS_LIST);
+    mimetype_upnpclass_map = configManager->getDictionaryOption(config_option_t::CFG_IMPORT_MAPPINGS_MIMETYPE_TO_UPNP_CLASS_LIST);
 
-    mimetype_contenttype_map = cm->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
-    Ref<AutoscanList> config_timed_list = cm->getAutoscanListOption(CFG_IMPORT_AUTOSCAN_TIMED_LIST);
+    mimetype_contenttype_map = configManager->getDictionaryOption(config_option_t::CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
+    Ref<AutoscanList> config_timed_list = configManager->getAutoscanListOption(config_option_t::CFG_IMPORT_AUTOSCAN_TIMED_LIST);
 
     for (i = 0; i < config_timed_list->size(); i++) {
         Ref<AutoscanDirectory> dir = config_timed_list->get(i);
@@ -149,13 +149,15 @@ ContentManager::ContentManager()
         }
     }
 
-    Ref<Storage> storage = Storage::getInstance();
-    storage->updateAutoscanPersistentList(ScanMode::Timed, config_timed_list);
-    autoscan_timed = storage->getAutoscanList(ScanMode::Timed);
+    storage = Storage{};
+    storage.updateAutoscanPersistentList(ScanMode::Timed, config_timed_list);
+    autoscan_timed = storage.getAutoscanList(ScanMode::Timed);
 
 #ifdef HAVE_INOTIFY
-    if (cm->getBoolOption(CFG_IMPORT_AUTOSCAN_USE_INOTIFY)) {
-        Ref<AutoscanList> config_inotify_list = cm->getAutoscanListOption(CFG_IMPORT_AUTOSCAN_INOTIFY_LIST);
+    AutoscanInotify inotify{*this, storage};
+
+    if (configManager->getBoolOption(config_option_t::CFG_IMPORT_AUTOSCAN_USE_INOTIFY)) {
+        Ref<AutoscanList> config_inotify_list = configManager->getAutoscanListOption(config_option_t::CFG_IMPORT_AUTOSCAN_INOTIFY_LIST);
 
         for (i = 0; i < config_inotify_list->size(); i++) {
             Ref<AutoscanDirectory> dir = config_inotify_list->get(i);
@@ -167,9 +169,9 @@ ContentManager::ContentManager()
             }
         }
 
-        storage->updateAutoscanPersistentList(ScanMode::INotify,
+        storage.updateAutoscanPersistentList(ScanMode::INotify,
             config_inotify_list);
-        autoscan_inotify = storage->getAutoscanList(ScanMode::INotify);
+        autoscan_inotify = storage.getAutoscanList(ScanMode::INotify);
     } else {
         // make an empty list so we do not have to do extra checks on shutdown
         autoscan_inotify = Ref<AutoscanList>(new AutoscanList());
@@ -185,7 +187,7 @@ ContentManager::ContentManager()
         if (ms == nullptr) {
             l->error("magic_open failed\n");
         } else {
-            String magicFile = cm->getOption(CFG_IMPORT_MAGIC_FILE);
+            String magicFile = configManager->getOption(config_option_t::CFG_IMPORT_MAGIC_FILE);
             if (!string_ok(magicFile))
                 magicFile = nullptr;
             if (magic_load(ms, (magicFile == nullptr) ? nullptr : magicFile.c_str()) == -1) {
@@ -197,24 +199,24 @@ ContentManager::ContentManager()
     }
 #endif // HAVE_MAGIC
 
-    String layout_type = cm->getOption(CFG_IMPORT_SCRIPTING_VIRTUAL_LAYOUT_TYPE);
+    String layout_type = configManager->getOption(config_option_t::CFG_IMPORT_SCRIPTING_VIRTUAL_LAYOUT_TYPE);
     if ((layout_type == "builtin") || (layout_type == "js"))
         layout_enabled = true;
 
 #ifdef ONLINE_SERVICES
     online_services = Ref<OnlineServiceList>(new OnlineServiceList());
 #ifdef YOUTUBE
-    if (cm->getBoolOption(CFG_ONLINE_CONTENT_YOUTUBE_ENABLED)) {
+    if (configManager->getBoolOption(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_ENABLED)) {
         try {
             Ref<OnlineService> yt((OnlineService*)new YouTubeService());
 
-            i = cm->getIntOption(CFG_ONLINE_CONTENT_YOUTUBE_REFRESH);
+            i = configManager->getIntOption(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_REFRESH);
             yt->setRefreshInterval(i);
 
-            i = cm->getIntOption(CFG_ONLINE_CONTENT_YOUTUBE_PURGE_AFTER);
+            i = configManager->getIntOption(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_PURGE_AFTER);
             yt->setItemPurgeInterval(i);
 
-            if (cm->getBoolOption(CFG_ONLINE_CONTENT_YOUTUBE_UPDATE_AT_START))
+            if (configManager->getBoolOption(config_option_t::CFG_ONLINE_CONTENT_YOUTUBE_UPDATE_AT_START))
                 i = CFG_DEFAULT_UPDATE_AT_START;
 
             Ref<Timer::Parameter> yt_param(new Timer::Parameter(Timer::Parameter::IDOnlineContent, OS_YouTube));
@@ -236,17 +238,17 @@ ContentManager::ContentManager()
 #endif //YOUTUBE
 
 #ifdef SOPCAST
-    if (cm->getBoolOption(CFG_ONLINE_CONTENT_SOPCAST_ENABLED)) {
+    if (configManager->getBoolOption(CFG_ONLINE_CONTENT_SOPCAST_ENABLED)) {
         try {
             Ref<OnlineService> sc((OnlineService*)new SopCastService());
 
-            i = cm->getIntOption(CFG_ONLINE_CONTENT_SOPCAST_REFRESH);
+            i = configManager->getIntOption(CFG_ONLINE_CONTENT_SOPCAST_REFRESH);
             sc->setRefreshInterval(i);
 
-            i = cm->getIntOption(CFG_ONLINE_CONTENT_SOPCAST_PURGE_AFTER);
+            i = configManager->getIntOption(CFG_ONLINE_CONTENT_SOPCAST_PURGE_AFTER);
             sc->setItemPurgeInterval(i);
 
-            if (cm->getBoolOption(CFG_ONLINE_CONTENT_SOPCAST_UPDATE_AT_START))
+            if (configManager->getBoolOption(CFG_ONLINE_CONTENT_SOPCAST_UPDATE_AT_START))
                 i = CFG_DEFAULT_UPDATE_AT_START;
 
             Ref<Parameter> sc_param(new Parameter(Parameter::IDOnlineContent, OS_SopCast));
@@ -263,15 +265,15 @@ ContentManager::ContentManager()
 #endif //SOPCAST
 
 #ifdef ATRAILERS
-    if (cm->getBoolOption(CFG_ONLINE_CONTENT_ATRAILERS_ENABLED)) {
+    if (configManager->getBoolOption(CFG_ONLINE_CONTENT_ATRAILERS_ENABLED)) {
         try {
             Ref<OnlineService> at((OnlineService*)new ATrailersService());
-            i = cm->getIntOption(CFG_ONLINE_CONTENT_ATRAILERS_REFRESH);
+            i = configManager->getIntOption(CFG_ONLINE_CONTENT_ATRAILERS_REFRESH);
             at->setRefreshInterval(i);
 
-            i = cm->getIntOption(CFG_ONLINE_CONTENT_ATRAILERS_PURGE_AFTER);
+            i = configManager->getIntOption(CFG_ONLINE_CONTENT_ATRAILERS_PURGE_AFTER);
             at->setItemPurgeInterval(i);
-            if (cm->getBoolOption(CFG_ONLINE_CONTENT_ATRAILERS_UPDATE_AT_START))
+            if (configManager->getBoolOption(CFG_ONLINE_CONTENT_ATRAILERS_UPDATE_AT_START))
                 i = CFG_DEFAULT_UPDATE_AT_START;
 
             Ref<Parameter> at_param(new Parameter(Parameter::IDOnlineContent, OS_ATrailers));
@@ -312,7 +314,7 @@ void ContentManager::init()
     autoscan_timed->notifyAll(this);
 
 #ifdef HAVE_INOTIFY
-    if (ConfigManager::getInstance()->getBoolOption(CFG_IMPORT_AUTOSCAN_USE_INOTIFY)) {
+    if (configManager->getBoolOption(config_option_t::CFG_IMPORT_AUTOSCAN_USE_INOTIFY)) {
         /// \todo change this (we need a new autoscan architecture)
         for (int i = 0; i < autoscan_inotify->size(); i++) {
             Ref<AutoscanDirectory> dir = autoscan_inotify->get(i);
@@ -337,7 +339,7 @@ void ContentManager::init()
 #if defined(EXTERNAL_TRANSCODING) || defined(SOPCAST)
 void ContentManager::registerExecutor(Ref<Executor> exec)
 {
-    AutoLock lock(mutex);
+    lock_guard<mutex> lock(mutex);
     process_list->append(exec);
 }
 
@@ -352,7 +354,7 @@ void ContentManager::unregisterExecutor(Ref<Executor> exec)
     if (shutdownFlag)
         return;
 
-    AutoLock lock(mutex);
+    lock_guard<mutex> lock(mutex);
     for (int i = 0; i < process_list->size(); i++) {
         if (process_list->get(i) == exec)
             process_list->remove(i);
@@ -2003,7 +2005,7 @@ void CMAddFileTask::run()
 {
     spdlog::get("log")->debug("running add file task with path {} recursive: {}", path.c_str(), recursive);
     Ref<ContentManager> cm = ContentManager::getInstance();
-    cm->_addFile(path, nullptr, recursive, hidden, Ref<GenericTask>(this));
+    configManager->_addFile(path, nullptr, recursive, hidden, Ref<GenericTask>(this));
 }
 
 CMRemoveObjectTask::CMRemoveObjectTask(int objectID, bool all)
@@ -2018,7 +2020,7 @@ CMRemoveObjectTask::CMRemoveObjectTask(int objectID, bool all)
 void CMRemoveObjectTask::run()
 {
     Ref<ContentManager> cm = ContentManager::getInstance();
-    cm->_removeObject(objectID, all);
+    configManager->_removeObject(objectID, all);
 }
 
 CMRescanDirectoryTask::CMRescanDirectoryTask(int objectID, int scanID, ScanMode scanMode, bool cancellable)
@@ -2034,11 +2036,11 @@ CMRescanDirectoryTask::CMRescanDirectoryTask(int objectID, int scanID, ScanMode 
 void CMRescanDirectoryTask::run()
 {
     Ref<ContentManager> cm = ContentManager::getInstance();
-    Ref<AutoscanDirectory> dir = cm->getAutoscanDirectory(scanID, scanMode);
+    Ref<AutoscanDirectory> dir = configManager->getAutoscanDirectory(scanID, scanMode);
     if (dir == nullptr)
         return;
 
-    cm->_rescanDirectory(objectID, dir->getScanID(), dir->getScanMode(), dir->getScanLevel(), Ref<GenericTask>(this));
+    configManager->_rescanDirectory(objectID, dir->getScanID(), dir->getScanMode(), dir->getScanLevel(), Ref<GenericTask>(this));
     dir->decTaskCount();
 
     if (dir->getTaskCount() == 0) {
@@ -2086,7 +2088,7 @@ CMLoadAccountingTask::CMLoadAccountingTask()
 void CMLoadAccountingTask::run()
 {
     Ref<ContentManager> cm = ContentManager::getInstance();
-    cm->_loadAccounting();
+    configManager->_loadAccounting();
 }
 
 CMAccounting::CMAccounting()

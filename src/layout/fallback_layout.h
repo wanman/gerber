@@ -32,6 +32,7 @@
 #ifndef __FALLBACK_LAYOUT_H__
 #define __FALLBACK_LAYOUT_H__
 
+#include <content_manager.h>
 #include "layout.h"
 #include "../cds_objects.h"
 
@@ -41,12 +42,14 @@
 class FallbackLayout : public Layout
 {
 public:
-    FallbackLayout();
-    virtual void processCdsObject(zmm::Ref<CdsObject> obj, zmm::String rootpath) override;
+    FallbackLayout(const std::shared_ptr<ContentManager>& contentManager);
+    void processCdsObject(zmm::Ref<CdsObject> obj, zmm::String rootpath) override;
 #ifdef ENABLE_PROFILING
     virtual ~FallbackLayout();
 #endif
 protected:
+    const std::shared_ptr<ContentManager>& contentManager;
+
     void add(zmm::Ref<CdsObject> obj, int parentID, bool use_ref = true);
     zmm::String esc(zmm::String str);
     void addVideo(zmm::Ref<CdsObject> obj, zmm::String rootpath);

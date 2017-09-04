@@ -37,6 +37,7 @@
 #include <condition_variable>
 
 #include "common.h"
+#include "config_manager.h"
 #include "cds_objects.h"
 #include "storage.h"
 #include "dictionary.h"
@@ -173,16 +174,15 @@ public:
 };
 */
 
-class ContentManager : public Timer::Subscriber, public Singleton<ContentManager, std::recursive_mutex>
+class ContentManager : public Timer::Subscriber
 {
 public:
-    ContentManager();
-    void init() override;
-    zmm::String getName() override { return _("Content Manager"); }
+    ContentManager(std::shared_ptr<ConfigManager> configManager);
+    void init();
     virtual ~ContentManager();
-    void shutdown() override;
+    void shutdown();
 
-    virtual void timerNotify(zmm::Ref<Timer::Parameter> parameter) override;
+    void timerNotify(zmm::Ref<Timer::Parameter> parameter) override;
 
     bool isBusy() { return working; }
 
@@ -455,6 +455,9 @@ protected:
     friend void CMFetchOnlineContentTask::run();
 #endif
     friend void CMLoadAccountingTask::run();
+
+    std::shared_ptr<ConfigManager> configManager;
+    Storage& storage;
 
 private:
     std::shared_ptr<spdlog::logger> l = spdlog::get("log");

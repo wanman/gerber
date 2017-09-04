@@ -53,7 +53,7 @@ static int static_upnp_callback(Upnp_EventType eventtype, void* event, void* coo
 static int static_upnp_callback(Upnp_EventType eventtype, const void* event, void* cookie)
 #endif
 {
-    return Server::getInstance()->upnp_callback(eventtype, event, cookie);
+    return static_cast<Server*>(cookie)->upnp_callback(eventtype, event);
 }
 
 void Server::static_cleanup_callback()
@@ -66,22 +66,17 @@ void Server::static_cleanup_callback()
     }
 }
 
-Server::Server()
+Server::Server(std::shared_ptr<ConfigManager> configManager)
+    : configManager(configManager)
 {
     server_shutdown_flag = false;
-}
-
-void Server::init()
-{
     virtual_directory = _(SERVER_VIRTUAL_DIR);
 
-    ContentDirectoryService::setStaticArgs(_(DESC_CDS_SERVICE_TYPE),
-        _(DESC_CDS_SERVICE_ID));
-    cds = ContentDirectoryService::getInstance();
+    // Create a CDS
+    cds = ContentDirectoryService{configManager->getIntOption(CFG_SERVER_UPNP_TITLE_AND_DESC_STRING_LIMIT)};
 
-    ConnectionManagerService::setStaticArgs(_(DESC_CM_SERVICE_TYPE),
-        _(DESC_CM_SERVICE_ID));
-    cmgr = ConnectionManagerService::getInstance();
+    // Create Connection Manager
+    cmgr = ConnectionManagerService{};
 
 #if defined(ENABLE_MRREG)
     MRRegistrarService::setStaticArgs(_(DESC_MRREG_SERVICE_TYPE),
@@ -89,10 +84,8 @@ void Server::init()
     mrreg = MRRegistrarService::getInstance();
 #endif
 
-    Ref<ConfigManager> config = ConfigManager::getInstance();
-
-    serverUDN = config->getOption(CFG_SERVER_UDN);
-    alive_advertisement = config->getIntOption(CFG_SERVER_ALIVE_INTERVAL);
+    serverUDN = configManager->getOption(CFG_SERVER_UDN);
+    alive_advertisement = configManager->getIntOption(CFG_SERVER_ALIVE_INTERVAL);
 
 #ifdef HAVE_CURL
     curl_global_init(CURL_GLOBAL_ALL);
@@ -108,10 +101,8 @@ void Server::upnp_init()
     int ret = 0; // general purpose error code
     SPDLOG_TRACE(l, "start");
 
-    Ref<ConfigManager> config = ConfigManager::getInstance();
-
-    String iface = config->getOption(CFG_SERVER_NETWORK_INTERFACE);
-    String ip = config->getOption(CFG_SERVER_IP);
+    String iface = configManager->getOption(CFG_SERVER_NETWORK_INTERFACE);
+    String ip = configManager->getOption(CFG_SERVER_IP);
 
     if (string_ok(ip) && string_ok(iface))
         throw _Exception(_("You can not specify interface and IP at the same time!"));
@@ -122,7 +113,7 @@ void Server::upnp_init()
     if (string_ok(ip) && !string_ok(iface))
         throw _Exception(_("Could not find ip: ") + ip);
 
-    int port = config->getIntOption(CFG_SERVER_PORT);
+    int port = configManager->getIntOption(CFG_SERVER_PORT);
 
     // this is important, so the storage lives a little longer when
     // shutdown is initiated
@@ -147,7 +138,7 @@ void Server::upnp_init()
     virtual_url = _("http://") + ip + ":" + port + "/" + virtual_directory;
 
     // next set webroot directory
-    String web_root = config->getOption(CFG_SERVER_WEBROOT);
+    String web_root = configManager->getOption(CFG_SERVER_WEBROOT);
 
     if (!string_ok(web_root)) {
         throw _Exception(_("invalid web server root directory"));
@@ -160,7 +151,7 @@ void Server::upnp_init()
 
     SPDLOG_TRACE(l, "webroot: {}", web_root.c_str());
 
-    Ref<Array<StringBase> > arr = config->getStringArrayOption(CFG_SERVER_CUSTOM_HTTP_HEADERS);
+    Ref<Array<StringBase>> arr = configManager->getStringArrayOption(CFG_SERVER_CUSTOM_HTTP_HEADERS);
 
     if (arr != nullptr) {
         String tmp;
@@ -189,11 +180,11 @@ void Server::upnp_init()
         throw _UpnpException(ret, _("upnp_init: UpnpSetVirtualDirCallbacks failed"));
     }
 
-    String presentationURL = config->getOption(CFG_SERVER_PRESENTATION_URL);
+    String presentationURL = configManager->getOption(CFG_SERVER_PRESENTATION_URL);
     if (!string_ok(presentationURL)) {
         presentationURL = _("http://") + ip + ":" + port + "/";
     } else {
-        String appendto = config->getOption(CFG_SERVER_APPEND_PRESENTATION_URL_TO);
+        String appendto = configManager->getOption(CFG_SERVER_APPEND_PRESENTATION_URL_TO);
         if (appendto == "ip") {
             presentationURL = _("http://") + ip + ":" + presentationURL;
         } else if (appendto == "port") {
@@ -212,7 +203,7 @@ void Server::upnp_init()
         device_description.length() + 1,
         true,
         static_upnp_callback,
-        &device_handle,
+        this,
         &device_handle);
     if (ret != UPNP_E_SUCCESS) {
         throw _UpnpException(ret, _("upnp_init: UpnpRegisterRootDevice failed"));
@@ -225,12 +216,12 @@ void Server::upnp_init()
     }
 
     // initializing UpdateManager
-    UpdateManager::getInstance();
+    updateManager = UpdateManager{};
 
     // initializing ContentManager
-    ContentManager::getInstance();
+    contentManager = ContentManager{};
 
-    config->writeBookmark(ip, String::from(port));
+    configManager->writeBookmark(ip, String::from(port));
     l->info("The Web UI can be reached by following this link: http://{}:{}/", ip.c_str(), port);
 
     SPDLOG_TRACE(l, "end");
@@ -277,7 +268,7 @@ String Server::getVirtualURL()
     return virtual_url;
 }
 
-int Server::upnp_callback(Upnp_EventType eventtype, const void* event, void* cookie)
+int Server::upnp_callback(Upnp_EventType eventtype, const void* event)
 {
     int ret = UPNP_E_SUCCESS; // general purpose return code
 
