@@ -1,4 +1,4 @@
-<img src="https://github.com/v00d00/gerbera/blob/master/artwork/logo-horiz.png?raw=true" />
+<img src="https://github.com/wanman/gerber/blob/master/artwork/gerber.png?raw=true" />
 
 # Gerber - UPnP Media Server
 
