@@ -1,12 +1,10 @@
 <img src="https://github.com/v00d00/gerbera/blob/master/artwork/logo-horiz.png?raw=true" />
 
-# Gerbera - UPnP Media Server
+# Gerber - UPnP Media Server
 
- [![Current Release](https://img.shields.io/github/release/v00d00/gerbera.svg)](https://github.com/v00d00/gerbera/releases/latest) [![Build Status](https://travis-ci.org/v00d00/gerbera.svg?branch=master)](https://travis-ci.org/v00d00/gerbera) [![IRC](https://img.shields.io/badge/chat-on%20freenode-blue.svg)](https://webchat.freenode.net/?channels=#gerbera)
+Gerber is a UPnP media server which allows you to stream your digital media through your home network and consume it on a variety of UPnP compatible devices.
 
-Gerbera is a UPnP media server which allows you to stream your digital media through your home network and consume it on a variety of UPnP compatible devices.
-
-_Gerbera is based on [MediaTomb 12.1](http://mediatomb.cc) which is dead upstream, so this is my attempt to kick it back into life._
+_Gerber is based on Gerbera
 
 **Pull requests are very welcome and reporting issues is encouraged.**
 
@@ -29,8 +27,8 @@ _Gerbera is based on [MediaTomb 12.1](http://mediatomb.cc) which is dead upstrea
 * runs on Linux, FreeBSD, NetBSD, Mac OS X, eCS
 * runs on x86, Alpha, ARM, MIPS, Sparc, PowerPC
 
-## Differences to Mediatomb (So far)
-- Rebranded as Gerbera, new Logo!
+## Differences to Gerbera (So far)
+- Rebranded as Gerber, new Logo!
 - Actively maintained/developed.
 - Removed bundled `libupnp` - Now requires upstream 1.8 version.
 - Removed bundled `libuuid`.
